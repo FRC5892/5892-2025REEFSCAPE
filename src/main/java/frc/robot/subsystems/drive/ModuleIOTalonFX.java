@@ -18,6 +18,7 @@ import static frc.robot.util.PhoenixUtil.*;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.PositionVoltage;
@@ -41,6 +42,8 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.generated.TunerConstants;
+import frc.robot.util.PhoenixUtil;
+
 import java.util.Queue;
 
 /**
@@ -94,6 +97,11 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final Debouncer turnConnectedDebounce = new Debouncer(0.5);
   private final Debouncer turnEncoderConnectedDebounce = new Debouncer(0.5);
 
+  // 5892: Tunable PID
+  private final Slot0Configs driveSlotConfigs;
+  private final Slot0Configs steerSlotConfigs;
+
+
   public ModuleIOTalonFX(
       SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>
           constants) {
@@ -101,6 +109,10 @@ public class ModuleIOTalonFX implements ModuleIO {
     driveTalon = new TalonFX(constants.DriveMotorId, TunerConstants.DrivetrainConstants.CANBusName);
     turnTalon = new TalonFX(constants.SteerMotorId, TunerConstants.DrivetrainConstants.CANBusName);
     cancoder = new CANcoder(constants.EncoderId, TunerConstants.DrivetrainConstants.CANBusName);
+
+    // 5892: Tunable PID
+    driveSlotConfigs = constants.DriveMotorGains;
+    steerSlotConfigs = constants.SteerMotorGains;
 
     // Configure drive motor
     var driveConfig = constants.DriveMotorInitialConfigs;
@@ -264,5 +276,18 @@ public class ModuleIOTalonFX implements ModuleIO {
           case TorqueCurrentFOC -> positionTorqueCurrentRequest.withPosition(
               rotation.getRotations());
         });
+  }
+
+  /**
+   * 5892: Apply PID Constants
+   */
+  @Override
+  public void setDrivePID(double kP, double kI, double kD, double kS, double kV) {
+    driveSlotConfigs.kP = kP;
+    driveSlotConfigs.kI = kI;
+    driveSlotConfigs.kD = kD;
+    driveSlotConfigs.kS = kS;
+    driveSlotConfigs.kV = kV;
+    PhoenixUtil.tryUntilOk(2, () -> driveTalon.getConfigurator().apply(driveSlotConfigs));
   }
 }

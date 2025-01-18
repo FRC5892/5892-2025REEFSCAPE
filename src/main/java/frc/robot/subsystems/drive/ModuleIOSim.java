@@ -33,10 +33,10 @@ public class ModuleIOSim implements ModuleIO {
   // TunerConstants doesn't support separate sim constants, so they are declared locally
   private static final double DRIVE_KP = 0.05;
   private static final double DRIVE_KD = 0.0;
-  private static final double DRIVE_KS = 0.0;
-  private static final double DRIVE_KV_ROT =
+  private static double DRIVE_KS = 0.0;
+  private static double DRIVE_KV_ROT =
       0.91035; // Same units as TunerConstants: (volt * secs) / rotation
-  private static final double DRIVE_KV = 1.0 / Units.rotationsToRadians(1.0 / DRIVE_KV_ROT);
+  private static double DRIVE_KV = 1.0 / Units.rotationsToRadians(1.0 / DRIVE_KV_ROT);
   private static final double TURN_KP = 8.0;
   private static final double TURN_KD = 0.0;
   private static final DCMotor DRIVE_GEARBOX = DCMotor.getKrakenX60Foc(1);
@@ -138,5 +138,15 @@ public class ModuleIOSim implements ModuleIO {
   public void setTurnPosition(Rotation2d rotation) {
     turnClosedLoop = true;
     turnController.setSetpoint(rotation.getRadians());
+  }
+  //5892
+  @Override
+  public void setDrivePID(double p, double i, double d, double ks, double kv) {
+    driveController.setP(p);
+    driveController.setI(i);
+    driveController.setD(d);
+    DRIVE_KS = ks;
+    DRIVE_KV_ROT = kv;
+    DRIVE_KV = 1.0 / Units.rotationsToRadians(1.0 / DRIVE_KV_ROT);
   }
 }

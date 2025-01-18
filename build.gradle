@@ -33,13 +33,15 @@ deploy {
                     jvmArgs.add("-XX:GCTimeRatio=5")
                     jvmArgs.add("-XX:+UseSerialGC")
                     jvmArgs.add("-XX:MaxGCPauseMillis=50")
+                    // Battery tracking
+                    jvmArgs.add('-Dsun.security.smartcardio.library=/usr/lib/libpcsclite.so.1')
 
                     // The options below may improve performance, but should only be enabled on the RIO 2
                     //
-                    // final MAX_JAVA_HEAP_SIZE_MB = 100;
-                    // jvmArgs.add("-Xmx" + MAX_JAVA_HEAP_SIZE_MB + "M")
-                    // jvmArgs.add("-Xms" + MAX_JAVA_HEAP_SIZE_MB + "M")
-                    // jvmArgs.add("-XX:+AlwaysPreTouch")
+                     final MAX_JAVA_HEAP_SIZE_MB = 100;
+                     jvmArgs.add("-Xmx" + MAX_JAVA_HEAP_SIZE_MB + "M")
+                     jvmArgs.add("-Xms" + MAX_JAVA_HEAP_SIZE_MB + "M")
+                     jvmArgs.add("-XX:+AlwaysPreTouch")
                 }
 
                 // Static files artifact
@@ -49,6 +51,13 @@ deploy {
                     // Change to true to delete files on roboRIO that no
                     // longer exist in deploy directory on roboRIO
                     deleteOldFiles = false
+                }
+                PCSCInstall(getArtifactTypeClass('FileCollectionArtifact')) {
+                    files = project.fileTree('libraries')
+                    onlyIf = { context ->
+                        context.execute('[ -f /usr/sbin/pcscd ] && [ -f /usr/lib/libpcsclite.so.1 ]').exitCode != 0 }
+                    directory = '/tmp'
+                    postdeploy << {execute 'opkg install --nodeps --force-reinstall /tmp/BATTERY-*.ipk && sudo mv /tmp/BATTERY-pcsc /etc/init.d/pcsc && chmod +x /etc/init.d/pcsc && ln -s /etc/init.d/pcsc /etc/rc5.d/S10pcsc && /etc/init.d/pcsc start'}
                 }
             }
         }

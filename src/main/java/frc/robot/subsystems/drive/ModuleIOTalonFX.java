@@ -43,7 +43,6 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.generated.TunerConstants;
 import frc.robot.util.PhoenixUtil;
-
 import java.util.Queue;
 
 /**
@@ -100,7 +99,6 @@ public class ModuleIOTalonFX implements ModuleIO {
   // 5892: Tunable PID
   private final Slot0Configs driveSlotConfigs;
   private final Slot0Configs steerSlotConfigs;
-
 
   public ModuleIOTalonFX(
       SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>
@@ -278,9 +276,7 @@ public class ModuleIOTalonFX implements ModuleIO {
         });
   }
 
-  /**
-   * 5892: Apply PID Constants
-   */
+  /** 5892: Apply PID Constants */
   @Override
   public void setDrivePID(double kP, double kI, double kD, double kS, double kV) {
     driveSlotConfigs.kP = kP;

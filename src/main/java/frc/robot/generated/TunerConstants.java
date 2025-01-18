@@ -35,7 +35,13 @@ public class TunerConstants {
   // When using closed-loop control, the drive motor uses the control
   // output type specified by SwerveModuleConstants.DriveMotorClosedLoopOutput
   private static final Slot0Configs driveGains =
-      new Slot0Configs().withKP(0.11236).withKI(0).withKD(0).withKS(1.56443).withKV(0.62690);
+      new Slot0Configs()
+          .withKP(0.06396)
+          .withKI(0)
+          .withKD(0)
+          .withKS(0.137)
+          .withKV(0.11768)
+          .withKA(0.0062081);
   //   .withKA();
 
   // The closed-[]\loop output type to use for the steer motors;
@@ -43,8 +49,7 @@ public class TunerConstants {
   private static final ClosedLoopOutputType kSteerClosedLoopOutput = ClosedLoopOutputType.Voltage;
   // The closed-loop output type to use for the drive motors;
   // This affects the PID/FF gains for the drive motors
-  private static final ClosedLoopOutputType kDriveClosedLoopOutput =
-      ClosedLoopOutputType.TorqueCurrentFOC;
+  private static final ClosedLoopOutputType kDriveClosedLoopOutput = ClosedLoopOutputType.Voltage;
 
   // The remote sensor feedback type to use for the steer motors;
   // When not Pro-licensed, FusedCANcoder/SyncCANcoder automatically fall back to RemoteCANcoder

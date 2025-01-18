@@ -16,7 +16,6 @@ package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -63,8 +62,12 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
-        //TODO: tune transformation
-        vision = new Vision(drive::addVisionMeasurement,new VisionIOPhotonVision(VisionConstants.camera0Name,VisionConstants.robotToCamera0));
+        // TODO: tune transformation
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVision(
+                    VisionConstants.camera0Name, VisionConstants.robotToCamera0));
         break;
 
       case SIM:
@@ -76,7 +79,11 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
-        vision = new Vision(drive::addVisionMeasurement,new VisionIOPhotonVisionSim(VisionConstants.camera0Name,VisionConstants.robotToCamera0,drive::getPose));
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVisionSim(
+                    VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose));
         break;
 
       default:
@@ -88,7 +95,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        vision = new Vision(drive::addVisionMeasurement, new VisionIO (){});
+        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {});
         break;
     }
 

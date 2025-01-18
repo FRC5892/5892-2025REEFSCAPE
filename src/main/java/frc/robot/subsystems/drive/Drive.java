@@ -50,10 +50,9 @@ import frc.robot.Constants;
 import frc.robot.Constants.Mode;
 import frc.robot.generated.TunerConstants;
 import frc.robot.util.LocalADStarAK;
+import frc.robot.util.LoggedTunableNumber;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
-import frc.robot.util.LoggedTunableNumber;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -107,13 +106,13 @@ public class Drive extends SubsystemBase {
       };
   private SwerveDrivePoseEstimator poseEstimator =
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
-  //5892
+  // 5892
   private final LoggedTunableNumber driveKPTunableNumber;
   private final LoggedTunableNumber driveKITunableNumber;
   private final LoggedTunableNumber driveKDTunableNumber;
   private final LoggedTunableNumber driveKSTunableNumber;
   private final LoggedTunableNumber driveKVTunableNumber;
-  //End 5892
+  // End 5892
 
   public Drive(
       GyroIO gyroIO,
@@ -165,18 +164,18 @@ public class Drive extends SubsystemBase {
                 (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
             new SysIdRoutine.Mechanism(
                 (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
-    //5892
+    // 5892
     if (Constants.tuningMode) {
       driveKPTunableNumber =
-              new LoggedTunableNumber("Drive kP", TunerConstants.BackLeft.DriveMotorGains.kP);
+          new LoggedTunableNumber("Drive kP", TunerConstants.BackLeft.DriveMotorGains.kP);
       driveKITunableNumber =
-              new LoggedTunableNumber("Drive kI", TunerConstants.BackLeft.DriveMotorGains.kI);
+          new LoggedTunableNumber("Drive kI", TunerConstants.BackLeft.DriveMotorGains.kI);
       driveKDTunableNumber =
-              new LoggedTunableNumber("Drive kD", TunerConstants.BackLeft.DriveMotorGains.kD);
+          new LoggedTunableNumber("Drive kD", TunerConstants.BackLeft.DriveMotorGains.kD);
       driveKSTunableNumber =
-              new LoggedTunableNumber("Drive kS", TunerConstants.BackLeft.DriveMotorGains.kS);
+          new LoggedTunableNumber("Drive kS", TunerConstants.BackLeft.DriveMotorGains.kS);
       driveKVTunableNumber =
-              new LoggedTunableNumber("Drive kV", TunerConstants.BackLeft.DriveMotorGains.kV);
+          new LoggedTunableNumber("Drive kV", TunerConstants.BackLeft.DriveMotorGains.kV);
     } else {
       driveKPTunableNumber = null;
       driveKITunableNumber = null;
@@ -184,7 +183,7 @@ public class Drive extends SubsystemBase {
       driveKSTunableNumber = null;
       driveKVTunableNumber = null;
     }
-    //End 5892
+    // End 5892
   }
 
   @Override
@@ -245,16 +244,16 @@ public class Drive extends SubsystemBase {
     // Update gyro alert
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
 
-    //5892
+    // 5892
     LoggedTunableNumber.ifChanged(
-            hashCode(),
-            this::updateDrivePID,
-            driveKPTunableNumber,
-            driveKITunableNumber,
-            driveKDTunableNumber,
-            driveKSTunableNumber,
-            driveKVTunableNumber);
-    //End 5892
+        hashCode(),
+        this::updateDrivePID,
+        driveKPTunableNumber,
+        driveKITunableNumber,
+        driveKDTunableNumber,
+        driveKSTunableNumber,
+        driveKVTunableNumber);
+    // End 5892
   }
 
   /**
@@ -405,7 +404,7 @@ public class Drive extends SubsystemBase {
       new Translation2d(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)
     };
   }
-  //5892
+  // 5892
   private void updateDrivePID(double[] values) {
     double kP = values[0];
     double kI = values[1];

@@ -29,6 +29,7 @@ public class FrcBatteryTracking {
       return;
     }
     this.powerDistribution = powerDistribution;
+    powerDistribution.setSwitchableChannel(true);
     BatteryTracking.ERROR_HANDLER = new DriverStationLogger();
     BatteryTracking.initialRead();
     BatteryTracking.Battery insertedBattery = BatteryTracking.getInsertedBattery();
@@ -56,7 +57,11 @@ public class FrcBatteryTracking {
       return;
     }
     if (enabledLastCycle && DriverStation.isDisabled()) {
-      BatteryTracking.manualAsyncUpdate();
+      try {
+        BatteryTracking.manualAsyncUpdate();
+      } catch (Exception e) {
+        // :(
+      }
     }
     double current = powerDistribution.getTotalCurrent();
     batteryUsageAH += (current * (Robot.defaultPeriodSecs / (60 * 60)));

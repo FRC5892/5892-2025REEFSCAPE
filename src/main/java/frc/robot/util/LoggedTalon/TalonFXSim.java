@@ -6,10 +6,7 @@ import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.wpilibj.simulation.BatterySim;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
-import edu.wpi.first.wpilibj.simulation.RoboRioSim;
-import frc.robot.Robot;
 
 public class TalonFXSim extends PhoenixTalonFX {
   private final TalonFXSimState motorSimState;
@@ -40,11 +37,11 @@ public class TalonFXSim extends PhoenixTalonFX {
   @Override
   protected void updateInputs(TalonFXInputs inputs) {
     super.updateInputs(inputs);
-//     motorSimState.setSupplyVoltage(SimulatedBattery.getBatteryVoltage().baseUnitMagnitude());
-            physicsSim.setInputVoltage(motorSimState.getMotorVoltage());
-            physicsSim.update(0.02);
+    //     motorSimState.setSupplyVoltage(SimulatedBattery.getBatteryVoltage().baseUnitMagnitude());
+    physicsSim.setInputVoltage(motorSimState.getMotorVoltage());
+    physicsSim.update(0.02);
 
-            motorSimState.setRawRotorPosition(physicsSim.getAngularPosition());
-            motorSimState.setRotorVelocity(physicsSim.getAngularVelocity());
+    motorSimState.setRawRotorPosition(physicsSim.getAngularPosition());
+    motorSimState.setRotorVelocity(physicsSim.getAngularVelocity());
   }
 }

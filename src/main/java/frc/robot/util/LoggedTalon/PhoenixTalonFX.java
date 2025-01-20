@@ -14,7 +14,6 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.util.PhoenixUtil;
-
 import java.util.ArrayList;
 
 public class PhoenixTalonFX extends LoggedTalonFX {
@@ -23,7 +22,7 @@ public class PhoenixTalonFX extends LoggedTalonFX {
   private boolean statusSignalChanged = false;
   private final Debouncer connectionDebouncer = new Debouncer(0.5);
 
-  public PhoenixTalonFX(int canID, CANBus canBus, String name, ImplementedSignals... signals) {
+  public PhoenixTalonFX(int canID, CANBus canBus, String name) {
     super(name);
     talonFX = new TalonFX(canID, canBus);
   }
@@ -77,47 +76,53 @@ public class PhoenixTalonFX extends LoggedTalonFX {
   private StatusSignal<Voltage> voltageSignal = null;
 
   @Override
-  public void withAppliedVoltage() {
+  public LoggedTalonFX withAppliedVoltage() {
     statusSignalChanged = true;
     voltageSignal = talonFX.getMotorVoltage();
+    return this;
   }
 
   private StatusSignal<Current> torqueCurrentSignal = null;
 
   @Override
-  public void withTorqueCurrent() {
+  public LoggedTalonFX withTorqueCurrent() {
     statusSignalChanged = true;
     torqueCurrentSignal = talonFX.getTorqueCurrent();
+    return this;
   }
 
   private StatusSignal<Current> statorCurrentSignal = null;
 
   @Override
-  public void withStatorCurrent() {
+  public LoggedTalonFX withStatorCurrent() {
     statusSignalChanged = true;
     statorCurrentSignal = talonFX.getStatorCurrent();
+    return this;
   }
 
   private StatusSignal<AngularVelocity> velocitySignal = null;
 
   @Override
-  public void withVelocity() {
+  public LoggedTalonFX withVelocity() {
     statusSignalChanged = true;
     velocitySignal = talonFX.getVelocity();
+    return this;
   }
 
   private StatusSignal<Angle> positionSignal = null;
 
   @Override
-  public void withPosition() {
+  public LoggedTalonFX withPosition() {
     statusSignalChanged = true;
     positionSignal = talonFX.getPosition();
+    return this;
   }
 
   @Override
   public void applyConfig(TalonFXConfiguration config) {
     PhoenixUtil.tryUntilOk(5, () -> talonFX.getConfigurator().apply(config));
   }
+
   @Override
   public void quickApplySlot0Config(Slot0Configs config) {
     PhoenixUtil.tryUntilOk(3, () -> talonFX.getConfigurator().apply(config));

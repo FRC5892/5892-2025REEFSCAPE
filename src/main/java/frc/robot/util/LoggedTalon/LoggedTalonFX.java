@@ -24,7 +24,6 @@ public abstract class LoggedTalonFX {
   }
 
   public void periodic() {
-
     this.updateInputs(inputs);
     Logger.processInputs("Motors/" + name, inputs);
     connectionAlert.set(inputs.connected);
@@ -34,27 +33,19 @@ public abstract class LoggedTalonFX {
 
   protected abstract void updateInputs(TalonFXInputs inputs);
 
-  public abstract void withAppliedVoltage();
+  public abstract LoggedTalonFX withAppliedVoltage();
 
-  public abstract void withTorqueCurrent();
+  public abstract LoggedTalonFX withTorqueCurrent();
 
-  public abstract void withStatorCurrent();
+  public abstract LoggedTalonFX withStatorCurrent();
 
-  public abstract void withVelocity();
+  public abstract LoggedTalonFX withVelocity();
 
-  public abstract void withPosition();
+  public abstract LoggedTalonFX withPosition();
 
   public abstract void applyConfig(TalonFXConfiguration config);
 
   public abstract void quickApplySlot0Config(Slot0Configs config);
-
-  public enum ImplementedSignals {
-    AppliedVoltage(),
-    TorqueCurrent,
-    StatorCurrent,
-    Velocity,
-    Position,
-  }
 
   public Voltage getAppliedVoltage() {
     return this.inputs.appliedVoltage;

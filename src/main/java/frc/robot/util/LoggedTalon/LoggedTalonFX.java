@@ -1,12 +1,14 @@
 package frc.robot.util.LoggedTalon;
 
+import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.ControlRequest;
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj.Alert;
 import org.littletonrobotics.junction.Logger;
 
 /**
- * A TalonFX that is logged. Create A {@link PhoenixTalonFX} or {@link TalonFXSim} to use this
+ * A TalonFX that is logged. Construct {@link PhoenixTalonFX} or {@link TalonFXSim} to use this
  * class.
  */
 public abstract class LoggedTalonFX {
@@ -32,15 +34,19 @@ public abstract class LoggedTalonFX {
 
   protected abstract void updateInputs(TalonFXInputs inputs);
 
-  protected abstract void withAppliedVoltage();
+  public abstract void withAppliedVoltage();
 
-  protected abstract void withTorqueCurrent();
+  public abstract void withTorqueCurrent();
 
-  protected abstract void withStatorCurrent();
+  public abstract void withStatorCurrent();
 
-  protected abstract void withVelocity();
+  public abstract void withVelocity();
 
-  protected abstract void withPosition();
+  public abstract void withPosition();
+
+  public abstract void applyConfig(TalonFXConfiguration config);
+
+  public abstract void quickApplySlot0Config(Slot0Configs config);
 
   public enum ImplementedSignals {
     AppliedVoltage(),

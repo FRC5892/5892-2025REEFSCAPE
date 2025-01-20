@@ -4,6 +4,8 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.ControlRequest;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.filter.Debouncer;
@@ -11,6 +13,8 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
+import frc.robot.util.PhoenixUtil;
+
 import java.util.ArrayList;
 
 public class PhoenixTalonFX extends LoggedTalonFX {
@@ -73,7 +77,7 @@ public class PhoenixTalonFX extends LoggedTalonFX {
   private StatusSignal<Voltage> voltageSignal = null;
 
   @Override
-  protected void withAppliedVoltage() {
+  public void withAppliedVoltage() {
     statusSignalChanged = true;
     voltageSignal = talonFX.getMotorVoltage();
   }
@@ -81,7 +85,7 @@ public class PhoenixTalonFX extends LoggedTalonFX {
   private StatusSignal<Current> torqueCurrentSignal = null;
 
   @Override
-  protected void withTorqueCurrent() {
+  public void withTorqueCurrent() {
     statusSignalChanged = true;
     torqueCurrentSignal = talonFX.getTorqueCurrent();
   }
@@ -89,7 +93,7 @@ public class PhoenixTalonFX extends LoggedTalonFX {
   private StatusSignal<Current> statorCurrentSignal = null;
 
   @Override
-  protected void withStatorCurrent() {
+  public void withStatorCurrent() {
     statusSignalChanged = true;
     statorCurrentSignal = talonFX.getStatorCurrent();
   }
@@ -97,7 +101,7 @@ public class PhoenixTalonFX extends LoggedTalonFX {
   private StatusSignal<AngularVelocity> velocitySignal = null;
 
   @Override
-  protected void withVelocity() {
+  public void withVelocity() {
     statusSignalChanged = true;
     velocitySignal = talonFX.getVelocity();
   }
@@ -105,8 +109,17 @@ public class PhoenixTalonFX extends LoggedTalonFX {
   private StatusSignal<Angle> positionSignal = null;
 
   @Override
-  protected void withPosition() {
+  public void withPosition() {
     statusSignalChanged = true;
     positionSignal = talonFX.getPosition();
+  }
+
+  @Override
+  public void applyConfig(TalonFXConfiguration config) {
+    PhoenixUtil.tryUntilOk(5, () -> talonFX.getConfigurator().apply(config));
+  }
+  @Override
+  public void quickApplySlot0Config(Slot0Configs config) {
+    PhoenixUtil.tryUntilOk(3, () -> talonFX.getConfigurator().apply(config));
   }
 }

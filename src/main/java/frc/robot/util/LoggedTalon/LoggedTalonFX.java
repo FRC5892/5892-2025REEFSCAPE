@@ -1,10 +1,13 @@
 package frc.robot.util.LoggedTalon;
 
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.SlotConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.ControlRequest;
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj.Alert;
+import frc.robot.Constants;
+import frc.robot.util.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
 
 /**
@@ -16,6 +19,17 @@ public abstract class LoggedTalonFX {
   protected final String name;
   private final TalonFXInputsAutoLogged inputs = new TalonFXInputsAutoLogged();
   private final Alert connectionAlert;
+  private boolean tuning = false;
+
+  private LoggedTunableNumber kPTunable = null;
+  private LoggedTunableNumber kITunable = null;
+  private LoggedTunableNumber kDTunable = null;
+  private LoggedTunableNumber kGTunable = null;
+  private LoggedTunableNumber kSTunable = null;
+  private LoggedTunableNumber kVTunable = null;
+  private LoggedTunableNumber kATunable = null;
+  private Slot0Configs tunedConfigs = null;
+  private LoggedTalonFX[] tuningFollowers = null;
 
   public LoggedTalonFX(String name) {
     this.name = name;
@@ -26,9 +40,45 @@ public abstract class LoggedTalonFX {
   public void periodic() {
     this.updateInputs(inputs);
     Logger.processInputs("Motors/" + name, inputs);
+    if (tuning) {
+      LoggedTunableNumber.ifChanged(hashCode(),this::applyTuningChange, kPTunable, kITunable, kDTunable, kGTunable, kSTunable, kVTunable, kATunable);
+    }
     connectionAlert.set(inputs.connected);
   }
+  private void applyAllTuningChanges(double[] values) {
+    applyTuningChange(values);
+    for (LoggedTalonFX tuningFollower : tuningFollowers) {
+      tuningFollower.applyTuningChange(values);
+    }
 
+  }
+  private void applyTuningChange(double[] values) {
+    tunedConfigs.kP = values[0];
+    tunedConfigs.kI = values[1];
+    tunedConfigs.kD = values[2];
+    tunedConfigs.kG = values[3];
+    tunedConfigs.kS = values[4];
+    tunedConfigs.kV = values[5];
+    tunedConfigs.kA = values[6];
+    quickApplySlot0Config(tunedConfigs);
+  }
+
+  public LoggedTalonFX withTunable(Slot0Configs defaultValues, LoggedTalonFX... followers) {
+    if (!Constants.tuningMode) return this;
+    kPTunable = new LoggedTunableNumber(name+"/kP",defaultValues.kP);
+    kITunable = new LoggedTunableNumber(name+"/kI",defaultValues.kI);
+    kDTunable = new LoggedTunableNumber(name+"/kD",defaultValues.kD);
+    kGTunable = new LoggedTunableNumber(name+"/kG",defaultValues.kG);
+    kSTunable = new LoggedTunableNumber(name+"/kS",defaultValues.kS);
+    kVTunable = new LoggedTunableNumber(name+"/kV",defaultValues.kV);
+    kATunable = new LoggedTunableNumber(name+"/kA",defaultValues.kA);
+
+    tunedConfigs = defaultValues;
+    tuningFollowers = followers;
+
+    tuning = true;
+    return this;
+  }
   public abstract void setControl(ControlRequest controlRequest);
 
   protected abstract void updateInputs(TalonFXInputs inputs);

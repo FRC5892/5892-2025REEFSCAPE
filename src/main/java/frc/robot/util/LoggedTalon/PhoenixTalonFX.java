@@ -15,6 +15,7 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.util.PhoenixUtil;
 import java.util.ArrayList;
+import java.util.function.Function;
 
 public class PhoenixTalonFX extends LoggedTalonFX {
   protected final TalonFX talonFX;
@@ -119,8 +120,14 @@ public class PhoenixTalonFX extends LoggedTalonFX {
   }
 
   @Override
-  public void applyConfig(TalonFXConfiguration config) {
+  public LoggedTalonFX withConfig(TalonFXConfiguration config) {
     PhoenixUtil.tryUntilOk(5, () -> talonFX.getConfigurator().apply(config));
+    return this;
+  }
+
+  @Override
+  public LoggedTalonFX withSimConfig(Function<TalonFXConfiguration, TalonFXConfiguration> config) {
+    return this;
   }
 
   @Override

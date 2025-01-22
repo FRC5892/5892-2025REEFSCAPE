@@ -7,11 +7,12 @@ import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj.Alert;
 import frc.robot.Constants;
 import frc.robot.util.LoggedTunableNumber;
+import java.util.function.Function;
 import org.littletonrobotics.junction.Logger;
 
 /**
- * A TalonFX that is logged. Construct {@link PhoenixTalonFX} or {@link TalonFXSim} to use this
- * class.
+ * A TalonFX that is logged. Construct {@link PhoenixTalonFX}, {@link TalonFXSim}, or {@link
+ * NoOppTalonFX} to use this class.
  */
 public abstract class LoggedTalonFX {
 
@@ -42,7 +43,7 @@ public abstract class LoggedTalonFX {
     if (tuning) {
       LoggedTunableNumber.ifChanged(
           hashCode(),
-          this::applyTuningChange,
+          this::applyAllTuningChanges,
           kPTunable,
           kITunable,
           kDTunable,
@@ -103,7 +104,19 @@ public abstract class LoggedTalonFX {
 
   public abstract LoggedTalonFX withPosition();
 
-  public abstract void applyConfig(TalonFXConfiguration config);
+  public abstract LoggedTalonFX withConfig(TalonFXConfiguration config);
+
+  /**
+   * Apply a config for simulation. This is ignored by a real IO interface. This should be called
+   * after a normal config is applied.
+   *
+   * @param config Function to generate a config. This will only be called in simulation. Takes in
+   *     the current config, modifies it for simulation, and returns it. This is meant to make the
+   *     simulation resemble reality as much as possible.
+   * @return This for daisy-chaining
+   */
+  public abstract LoggedTalonFX withSimConfig(
+      Function<TalonFXConfiguration, TalonFXConfiguration> config);
 
   public abstract void quickApplySlot0Config(Slot0Configs config);
 

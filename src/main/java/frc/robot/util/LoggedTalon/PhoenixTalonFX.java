@@ -7,14 +7,17 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.ControlRequest;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
+import frc.robot.util.LoggedTalon.Follower.TalonFXFollower;
 import frc.robot.util.PhoenixUtil;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.function.Function;
 
 public class PhoenixTalonFX extends LoggedTalonFX {
@@ -22,9 +25,23 @@ public class PhoenixTalonFX extends LoggedTalonFX {
   private BaseStatusSignal[] statusSignals;
   private boolean statusSignalChanged = false;
   private final Debouncer connectionDebouncer = new Debouncer(0.5);
+  private final TalonFX[] followers;
 
-  public PhoenixTalonFX(int canID, CANBus canBus, String name) {
-    super(name);
+  protected PhoenixTalonFX(int canID, CANBus canBus, String name, int followers) {
+    super(name, followers);
+    this.followers = null;
+    talonFX = new TalonFX(canID, canBus);
+  }
+  public PhoenixTalonFX(int canID, CANBus canBus, String name, TalonFXFollower... followers) {
+    super(name, followers.length);
+    if (followers.length != 0) {
+      for (TalonFX follower : followers) {
+        follower.setControl(new Follower(canID));
+      }
+      Arrays.stream(followers).map(talonFXFollower -> talonFXFollower.).toArray(Object[]::new);
+    } else {
+        this.followers = null;
+    }
     talonFX = new TalonFX(canID, canBus);
   }
 

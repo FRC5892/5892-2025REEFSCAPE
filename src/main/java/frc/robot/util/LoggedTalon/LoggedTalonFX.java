@@ -6,12 +6,13 @@ import com.ctre.phoenix6.controls.ControlRequest;
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj.Alert;
 import frc.robot.Constants;
+import frc.robot.util.LoggedTalon.Follower.TalonFXFollower;
 import frc.robot.util.LoggedTunableNumber;
 import java.util.function.Function;
 import org.littletonrobotics.junction.Logger;
 
 /**
- * A TalonFX that is logged. Construct {@link PhoenixTalonFX}, {@link TalonFXSim}, or {@link
+ * A TalonFX that is logged. Construct {@link PhoenixTalonFX}, {@link BaseTalonFXSim}, or {@link
  * NoOppTalonFX} to use this class.
  */
 public abstract class LoggedTalonFX {
@@ -30,9 +31,11 @@ public abstract class LoggedTalonFX {
   private LoggedTunableNumber kATunable = null;
   private Slot0Configs tunedConfigs = null;
   private LoggedTalonFX[] tuningFollowers = null;
+  private final int followers;
 
-  public LoggedTalonFX(String name) {
+  public LoggedTalonFX(String name, int followers) {
     this.name = name;
+    this.followers = followers;
     this.connectionAlert =
         new Alert("TalonFX" + name + " is not connected", Alert.AlertType.kError);
   }

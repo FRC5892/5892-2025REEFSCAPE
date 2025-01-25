@@ -1,5 +1,6 @@
 package frc.robot.util.BatteryTracking;
 
+import java.io.FileOutputStream;
 import java.io.StringWriter;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -53,7 +54,7 @@ import javax.smartcardio.*;
  */
 public class BatteryTracking {
   /** Error handler to use. */
-  protected static ProgramSpecificErrorHandling ERROR_HANDLER = new JavaErrors();
+  private static final ProgramSpecificErrorHandling ERROR_HANDLER = new JavaErrors();
   /** How often to write to the tag */
   private static final long WRITE_EVERY_SECS = 60 * 5;
 
@@ -79,7 +80,6 @@ public class BatteryTracking {
     }
     if (asyncThread == null) {
       asyncThread = new Thread(new BatteryRunner(usageSupplierAH, getInsertedBattery()));
-      asyncThread.setName("Battery Tracking Thread");
       asyncThread.start();
     } else {
       ERROR_HANDLER.consumeError("Automatic writes thread attempted to start multiple times!");
@@ -110,7 +110,16 @@ public class BatteryTracking {
     // already checked for null so suppress
     //noinspection SynchronizeOnNonFinalField
     synchronized (asyncThread) {
-      asyncThread.notifyAll();
+      asyncThread.notify();
+    }
+  }
+
+  public static void temp() {
+    try {
+      ByteBuffer buffer = NFCUtils.dumpCard();
+      writeFile(buffer, "dump.bin");
+    } catch (Exception e) {
+      ERROR_HANDLER.consumeError("Failed to initially read battery", e);
     }
   }
 
@@ -130,6 +139,14 @@ public class BatteryTracking {
       }
     } else {
       ERROR_HANDLER.consumeError("Initial read called twice!");
+    }
+  }
+
+  public static void writeFile(ByteBuffer data, String path) {
+    try (FileOutputStream stream = new FileOutputStream(path)) {
+      stream.write(data.array());
+    } catch (Exception e) {
+      ERROR_HANDLER.consumeError("Failed to write file", e);
     }
   }
 
@@ -166,6 +183,7 @@ public class BatteryTracking {
    * @throws NoSuchAlgorithmException If the pcsc daemon was not found.
    */
   private static void write(String data) throws NoSuchAlgorithmException, CardException {
+    System.out.println(data);
     ByteBuffer buffer = NFCUtils.createBuffer();
     int length = NDEFUtils.ndefLength(data);
     NFCUtils.addMifareHeader((short) length, buffer);
@@ -210,17 +228,17 @@ public class BatteryTracking {
     private final int year;
     private final double testedCapacityAH;
     private double sessionUsageAH = 0;
-    private double initialUsageAH;
-    private List<LogEntry> log;
+    private final double initialUsageAH;
+    private final List<LogEntry> log;
     private boolean hasNewLog = false;
 
-    public Battery(
-        int id,
-        String name,
-        int year,
+    private Battery(
+        List<LogEntry> log,
         double testedCapacityAH,
-        double initialUsageAH,
-        List<LogEntry> log) {
+        String name,
+        int id,
+        int year,
+        double initialUsageAH) {
       this.id = id;
       this.name = name;
       this.year = year;
@@ -229,6 +247,7 @@ public class BatteryTracking {
       this.log = log;
       this.sessionUsageAH = 0;
     }
+
     /**
      * @return Battery's numeric ID
      */
@@ -318,7 +337,7 @@ public class BatteryTracking {
         log.add(LogEntry.fromTag(line));
       }
       Collections.sort(log);
-      return new Battery(batteryID, batteryName, year, testedCapacityAH, usedAH, log);
+      return new Battery(log, testedCapacityAH, batteryName, batteryID, year, usedAH);
     }
 
     /**
@@ -328,15 +347,17 @@ public class BatteryTracking {
      */
     private String toTag() {
       StringWriter writer = new StringWriter();
-      writer.write(
-          String.format(
-              // All that header stuff
-              "%03d %s %d %02.2fAH\n%02.2fAHu\n",
-              id, name, year, testedCapacityAH, initialUsageAH + sessionUsageAH));
+      writer.write(getHeader());
       for (LogEntry record : log) {
         writer.write(record.toTag() + "\n");
       }
       return writer.toString();
+    }
+
+    private String getHeader() {
+      return String.format(
+          "%03d %s %d %02.2fAH\n%02.2fAHu\n",
+          id, name, year, testedCapacityAH, initialUsageAH + sessionUsageAH);
     }
 
     @Override
@@ -357,7 +378,8 @@ public class BatteryTracking {
     }
 
     private boolean canAddMoreLogs() {
-      return (log.size() + 1) * LogEntry.SERIALIZED_SIZE
+      return (log.size() + 1 /* This log */) * (LogEntry.SERIALIZED_SIZE + 1 /* Line Break */)
+              + getHeader().length()
           < (NFCUtils.MAX_WRITABLE_BYTES - NDEFUtils.NDEF_MAX_HEADER_SIZE);
     }
 
@@ -403,7 +425,6 @@ public class BatteryTracking {
        */
       private void update(double newUsageAH) {
         dateTime = LocalDateTime.now();
-
         usageAH = newUsageAH;
       }
       /**
@@ -447,19 +468,34 @@ public class BatteryTracking {
      * If this tag is MIFARE. Set to false if this is NTAG or something else generic This determines
      * decryption
      */
-    private static final Boolean IS_MIFARE = true;
-    /** Sectors on a card, 16 for MIFARE classic 1k */
+    private static final Boolean IS_MIFARE = false;
+    /**
+     * If the tag is broken up by sector. MIFARE classic 1k is. The NTAGs I have are not. If not by
+     * sector, it's by page
+     */
+    private static final boolean BY_SECTOR = false;
+    /** By Page ONLY: Bytes per page */
+    private static final int PAGE_SIZE_BYTES = 4;
+    /** By Page ONLY: First usable page */
+    private static final int START_PAGE = 4;
+    /** By Page ONLY: Last usable page */
+    private static final int END_PAGE = 129;
+    /** By Page ONLY: Page count */
+    private static final int PAGE_COUNT = END_PAGE - START_PAGE + 1;
+    /** By Sector ONLY: Sectors on a card, 16 for MIFARE classic 1k */
     private static final int SECTORS = 16;
-    /** Blocks per sector. For MIFARE classic 1k, this is 4. */
+    /** By Sector ONLY: Blocks per sector. For MIFARE classic 1k, this is 4. */
     private static final int BLOCKS_PER_SECTOR = 4;
     /**
-     * Blocks to read in each sector. Mifare uses the last block for encryption stuff so only use
-     * the first 3
+     * By Sector ONLY: Blocks to read in each sector. Mifare uses the last block for encryption
+     * stuff so only use the first 3
      */
     @SuppressWarnings("ConstantConditions")
     private static final int BLOCKS_TO_USE_PER_SECTOR = IS_MIFARE ? 3 : 4;
-    /** Bytes per block Mifare classic 1k has 16 */
+    /** By Sector ONLY: Bytes per block Mifare classic 1k has 16 */
     private static final int BYTES_PER_BLOCK = 16;
+    /** Bytes per unit. Either a block or a page */
+    private static final int BYTES_PER_UNIT = BY_SECTOR ? BYTES_PER_BLOCK : PAGE_SIZE_BYTES;
     /**
      * Milliseconds to wait for a card before erroring. It should already be close enough, so it
      * doesn't have to be large
@@ -467,7 +503,9 @@ public class BatteryTracking {
     private static final int WAIT_FOR_CARD_TIMEOUT_MS = 1_000;
 
     private static final int MAX_WRITABLE_BYTES =
-        BLOCKS_TO_USE_PER_SECTOR * (SECTORS - 1) * BYTES_PER_BLOCK - 4;
+        BY_SECTOR
+            ? BLOCKS_TO_USE_PER_SECTOR * BLOCKS_PER_SECTOR * BYTES_PER_BLOCK - 4
+            : PAGE_COUNT * PAGE_SIZE_BYTES;
 
     /** Utility class */
     private NFCUtils() {}
@@ -499,12 +537,15 @@ public class BatteryTracking {
       CardChannel channel = connectToCard();
       ByteBuffer bytes = createBuffer();
       long startTime = System.nanoTime();
-
-      // don't read sector 0, it can't be written to or contain NDEF data, so I don't care
-      for (int i = 1; i < SECTORS; i++) {
-        readSector(bytes, i, channel);
+      if (BY_SECTOR) {
+        // don't read sector 0, it can't be written to or contain NDEF data, so I don't care
+        for (int i = 1; i < SECTORS; i++) {
+          readSectorOrCard(bytes, i, channel);
+        }
+      } else {
+        readSectorOrCard(bytes, -1, channel);
       }
-      if (!IS_MIFARE) return bytes; // If its not mifare we are done
+      System.out.printf("Took %d ns \n", System.nanoTime() - startTime);
       bytes.position(0);
       if (!(bytes.get() == (byte) 0x03))
         return bytes; // If it doesn't have these proprietary bytes were done
@@ -522,14 +563,14 @@ public class BatteryTracking {
     }
 
     /**
-     * Reads an individual sector of a card
+     * Reads an individual sector of a card. If in page mode, reads the whole card
      *
      * @param return_bytes ByteBuffer to append data to
-     * @param sector sector id to read
+     * @param sector sector id to read. If in page mode, this is ignored
      * @param channel card channel to communicate with the card
      * @throws CardException if the read command failed
      */
-    private static void readSector(ByteBuffer return_bytes, int sector, CardChannel channel)
+    private static void readSectorOrCard(ByteBuffer return_bytes, int sector, CardChannel channel)
         throws CardException {
       if (IS_MIFARE) {
         // Will throw CardException if it fails, that's ok.
@@ -537,12 +578,16 @@ public class BatteryTracking {
       }
       // Reuse variables because java GC
       // Default to read position to -1 because we know that's not right
-      byte[] commandBytes = new byte[] {(byte) 0xFF, (byte) 0xB0, 0x00, (byte) -1, BYTES_PER_BLOCK};
+      byte[] commandBytes = new byte[] {(byte) 0xFF, (byte) 0xB0, 0x00, (byte) -1, BYTES_PER_UNIT};
       CommandAPDU command;
+
+      // Declare variables outside of loop to make it usable for sectors or pages
+      final int start = BY_SECTOR ? sector * BLOCKS_PER_SECTOR : START_PAGE;
+      final int end =
+          BY_SECTOR ? start + BLOCKS_TO_USE_PER_SECTOR : (END_PAGE + 1 /* End page is inclusive */);
+
       // Loop through every block and read it
-      for (int i = sector * BLOCKS_PER_SECTOR;
-          i < sector * BLOCKS_PER_SECTOR + BLOCKS_TO_USE_PER_SECTOR;
-          i++) {
+      for (int i = start; i < end; i++) {
         try {
           // make new command
           commandBytes[3] = (byte) i;
@@ -552,11 +597,11 @@ public class BatteryTracking {
 
           validateResponse(response); // Will return CardException, but it's in a try
           // Yay! add the good data
-          byte[] data = response.getData();
           return_bytes.put(response.getData());
         } catch (Exception e) {
           // Pass it on with extra info
-          throw new CardException(String.format("Could not read sector %d block %d", sector, i), e);
+          throw new CardException(
+              String.format("Could not read sector %d (if applicable) block %d", sector, i), e);
         }
       }
     }
@@ -573,7 +618,7 @@ public class BatteryTracking {
       bytes.position(0);
       int sector = 1;
       while (bytes.hasRemaining()) {
-        writeSector(bytes, sector, channel);
+        writeSectorOrCard(bytes, sector, channel);
         sector++;
       }
     }
@@ -586,30 +631,33 @@ public class BatteryTracking {
      * @param channel card channel to communicate with the card
      * @throws CardException If writing failed
      */
-    private static void writeSector(ByteBuffer bytes, int sector, CardChannel channel)
+    private static void writeSectorOrCard(ByteBuffer bytes, int sector, CardChannel channel)
         throws CardException {
       try {
         if (IS_MIFARE) {
           authenticateSector(sector, channel);
         }
-        ByteBuffer command = ByteBuffer.allocate(5 + BYTES_PER_BLOCK);
-        command.put(new byte[] {(byte) 0xFF, (byte) 0xD6, 0x00, (byte) -1, (byte) BYTES_PER_BLOCK});
+        ByteBuffer command = ByteBuffer.allocate(5 + BYTES_PER_UNIT);
+        command.put(new byte[] {(byte) 0xFF, (byte) 0xD6, 0x00, (byte) -1, (byte) BYTES_PER_UNIT});
         ByteBuffer response =
             ByteBuffer.allocate(
                 259); // We only use 2 bytes but for some reason CardChannel.transmit(Bytebuffer,
         // Bytebuffer) requires > 258
-        for (int i = sector * BLOCKS_PER_SECTOR;
-            i < sector * BLOCKS_PER_SECTOR + BLOCKS_TO_USE_PER_SECTOR && bytes.hasRemaining();
-            i++) {
+        final int start = BY_SECTOR ? sector * BLOCKS_PER_SECTOR : START_PAGE;
+        final int end =
+            BY_SECTOR
+                ? start + BLOCKS_TO_USE_PER_SECTOR
+                : (END_PAGE + 1 /* End page is inclusive */);
+        for (int i = start; i < end && bytes.hasRemaining(); i++) {
           try {
             // Write block
 
             // our block
             command.put(3, (byte) i);
             // write the next 16 block
-            command.put(5, bytes, bytes.position(), BYTES_PER_BLOCK);
-            // Since its absolute read, move the position ahead by BYTES_PER_BLOCK
-            bytes.position(bytes.position() + BYTES_PER_BLOCK);
+            command.put(5, bytes, bytes.position(), BYTES_PER_UNIT);
+            // Since its absolute read, move the position ahead by BYTES_PER_UNIT
+            bytes.position(bytes.position() + BYTES_PER_UNIT);
 
             command.position(0);
 
@@ -649,7 +697,11 @@ public class BatteryTracking {
      * @return the new ByteBuffer
      */
     private static ByteBuffer createBuffer() {
-      return ByteBuffer.allocate((SECTORS - 1) * BLOCKS_TO_USE_PER_SECTOR * BYTES_PER_BLOCK);
+      if (BY_SECTOR) {
+        return ByteBuffer.allocate(SECTORS * BLOCKS_TO_USE_PER_SECTOR * BYTES_PER_BLOCK);
+      } else {
+        return ByteBuffer.allocate(PAGE_COUNT * PAGE_SIZE_BYTES);
+      }
     }
 
     /**
@@ -757,7 +809,7 @@ public class BatteryTracking {
      * @param buffer buffer to add header to, at current position
      */
     public static void addMifareHeader(short length, ByteBuffer buffer) {
-      if (!IS_MIFARE) return;
+      // TODO: check if we need a header
       buffer.put((byte) 0x03);
       if (length <= 0xFE) {
         // 1 byte, short
@@ -912,7 +964,7 @@ public class BatteryTracking {
   }
 
   /** Interface to allow multiple error handling options, to avoid program - lock in. */
-  public interface ProgramSpecificErrorHandling {
+  private interface ProgramSpecificErrorHandling {
     /**
      * Consume an error
      *
@@ -964,6 +1016,7 @@ public class BatteryTracking {
     public void consumeError(String message) {
       System.out.printf("Battery Tracking Error: %s \n", message);
       (new RuntimeException(message)).printStackTrace();
+      ;
     }
 
     /**

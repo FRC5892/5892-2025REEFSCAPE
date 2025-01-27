@@ -6,7 +6,7 @@ import com.ctre.phoenix6.controls.ControlRequest;
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj.Alert;
 import frc.robot.Constants;
-import frc.robot.util.LoggedTalon.Follower.TalonFXFollower;
+// import frc.robot.util.LoggedTalon.Follower.TalonFXFollower;
 import frc.robot.util.LoggedTunableNumber;
 import java.util.function.Function;
 import org.littletonrobotics.junction.Logger;

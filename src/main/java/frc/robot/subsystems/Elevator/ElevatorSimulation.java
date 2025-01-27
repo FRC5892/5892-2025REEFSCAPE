@@ -17,7 +17,7 @@ public class ElevatorSimulation extends BaseTalonFXSim {
 
   private final ElevatorSim elevatorSim =
       new ElevatorSim(
-          DCMotor.getKrakenX60(1),
+          DCMotor.getKrakenX60Foc(1),
           kElevatorGearing,
           kCarriageMass,
           kElevatorDrumRadius,

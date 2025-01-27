@@ -1,15 +1,18 @@
 package frc.robot.subsystems.Elevator;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Rotations;
 
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.LoggedTalon.LoggedTalonFX;
 import java.util.function.DoubleSupplier;
-
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
@@ -29,10 +32,18 @@ public class Elevator extends SubsystemBase {
 
   private final VoltageOut voltageOut = new VoltageOut(0);
 
+  private final MotionMagicVoltage motionMagicControl =
+      new MotionMagicVoltage(Degrees.zero()).withEnableFOC(true);
   private double heightMeters = -1;
 
   public Elevator(LoggedTalonFX talon) {
-    var config = new TalonFXConfiguration();
+    var config =
+        new TalonFXConfiguration()
+            .withMotionMagic(
+                new MotionMagicConfigs()
+                    .withMotionMagicCruiseVelocity(20)
+                    .withMotionMagicAcceleration(100)
+                    .withMotionMagicJerk(100));
     this.talon =
         talon
             .withPosition()
@@ -51,10 +62,9 @@ public class Elevator extends SubsystemBase {
   @Override
   public void periodic() {
     talon.periodic();
-    heightMeters = rotationsToMeters(talon.getPosition().in(Rotations));
+    heightMeters = rotationsToMeters(talon.getPosition());
     mechanism2dLigament.setLength(heightMeters);
     Logger.recordOutput("Elevator/mechanism", mechanism2d);
-    Logger.recordOutput("Elevator/height", heightMeters);
   }
 
   public Command moveDutyCycle(DoubleSupplier dutyCycle) {
@@ -67,13 +77,22 @@ public class Elevator extends SubsystemBase {
         () -> talon.setControl(voltageOut.withOutput(0)));
   }
 
-  private double metersToRotations(double heightMeters) {
-    return (heightMeters / (Math.PI * ELEVATOR_SPOOL_DIAMETER)) / ELEVATOR_GEAR_RATIO;
+  public Command goToPosition(ElevatorConstants.ElevatorTarget target) {
+    return runOnce(
+        () -> {
+          talon.setControl(motionMagicControl.withPosition(metersToAngle(target.height)));
+          Logger.recordOutput("Elevator/positionSetpoint", motionMagicControl.Position);
+        });
   }
 
-  private double rotationsToMeters(double rotations) {
-    return rotations * (Math.PI * ELEVATOR_SPOOL_DIAMETER) * ELEVATOR_GEAR_RATIO;
+  private Angle metersToAngle(double heightMeters) {
+    return Rotations.of((heightMeters / (Math.PI * ELEVATOR_SPOOL_DIAMETER)) / ELEVATOR_GEAR_RATIO);
   }
+
+  private double rotationsToMeters(Angle angle) {
+    return angle.in(Rotations) * (Math.PI * ELEVATOR_SPOOL_DIAMETER) * ELEVATOR_GEAR_RATIO;
+  }
+
   @AutoLogOutput(key = "Elevator/height")
   public double getHeightMeters() {
     return heightMeters;

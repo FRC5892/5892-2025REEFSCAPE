@@ -6,8 +6,8 @@ import com.ctre.phoenix6.controls.ControlRequest;
 import java.util.function.Function;
 
 public class NoOppTalonFX extends LoggedTalonFX {
-  public NoOppTalonFX(String name) {
-    super(name);
+  public NoOppTalonFX(String name, int followers) {
+    super(name, followers);
   }
 
   @Override

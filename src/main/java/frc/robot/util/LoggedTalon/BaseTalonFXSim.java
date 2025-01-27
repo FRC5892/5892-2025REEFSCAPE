@@ -12,7 +12,7 @@ public abstract class BaseTalonFXSim extends PhoenixTalonFX {
   protected final TalonFXSimState motorSimState;
 
   public BaseTalonFXSim(int canID, CANBus canBus, String name) {
-    super(canID, canBus, name);
+    super(canID, canBus, name, 0);
     motorSimState = super.talonFX.getSimState();
   }
 

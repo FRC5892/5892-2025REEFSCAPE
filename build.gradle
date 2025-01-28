@@ -2,9 +2,8 @@ plugins {
     id "java"
     id "edu.wpi.first.GradleRIO" version "2025.2.1"
     id "com.peterabeles.gversion" version "1.10"
-    id "com.diffplug.spotless" version "6.12.0"
+    id "com.diffplug.spotless" version "7.0.2"
 }
-
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
@@ -55,7 +54,8 @@ deploy {
                 PCSCInstall(getArtifactTypeClass('FileCollectionArtifact')) {
                     files = project.fileTree('libraries')
                     onlyIf = { context ->
-                        context.execute('[ -f /usr/sbin/pcscd ] && [ -f /usr/lib/libpcsclite.so.1 ]').exitCode != 0 }
+                        context.execute('[ -f /usr/sbin/pcscd ] && [ -f /usr/lib/libpcsclite.so.1 ]').exitCode != 0
+                    }
                     directory = '/tmp'
                     postdeploy << {execute 'opkg install --nodeps --force-reinstall /tmp/BATTERY-*.ipk && sudo mv /tmp/BATTERY-pcsc /etc/init.d/pcsc && chmod +x /etc/init.d/pcsc && ln -s /etc/init.d/pcsc /etc/rc5.d/S10pcsc && /etc/init.d/pcsc start'}
                 }
@@ -124,7 +124,11 @@ wpi.sim.addDriverstation()
 // in order to make them all available at runtime. Also adding the manifest so WPILib
 // knows where to look for our Robot Class.
 jar {
-    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    from {
+        configurations.runtimeClasspath.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
     from sourceSets.main.allSource
     manifest edu.wpi.first.gradlerio.GradleRIOPlugin.javaManifest(ROBOT_MAIN_CLASS)
     duplicatesStrategy = DuplicatesStrategy.INCLUDE

@@ -23,6 +23,7 @@ public class PhoenixTalonFX extends LoggedTalonFX {
   private BaseStatusSignal[] statusSignals;
   private boolean statusSignalChanged = false;
   private final Debouncer connectionDebouncer = new Debouncer(0.5);
+
   // private final TalonFX[] followers;
 
   protected PhoenixTalonFX(int canID, CANBus canBus, String name, int followers) {
@@ -88,6 +89,7 @@ public class PhoenixTalonFX extends LoggedTalonFX {
       inputs.position = positionSignal.getValue();
     }
   }
+
   // This is when I wish java had macro support
   private StatusSignal<Voltage> voltageSignal = null;
 

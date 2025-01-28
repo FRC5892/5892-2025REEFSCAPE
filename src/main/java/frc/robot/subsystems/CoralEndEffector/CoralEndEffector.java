@@ -15,6 +15,7 @@ public class CoralEndEffector extends SubsystemBase {
   private final DutyCycleOut climbDutyCycleOut = new DutyCycleOut(DEFAULT_DUTY_CYCLE);
   private final DutyCycleOut stopDutyCycleOut = new DutyCycleOut(0);
   private final LoggedTalonFX talon;
+
   // https://v6.docs.ctr-electronics.com/en/stable/docs/api-reference/api-usage/control-requests.html#modifying-a-control-request
   public CoralEndEffector(LoggedTalonFX talon) {
     var config = new TalonFXConfiguration();

@@ -1,6 +1,7 @@
 package frc.robot.subsystems.Elevator;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Rotations;
 
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
@@ -9,6 +10,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.LoggedTalon.LoggedTalonFX;
@@ -28,7 +30,8 @@ public class Elevator extends SubsystemBase {
       mechanism2dRoot.append(new LoggedMechanismLigament2d("Elevator Ligament", 0, 90));
 
   private final double ELEVATOR_SPOOL_DIAMETER = 0.005 * 2;
-  private final double ELEVATOR_GEAR_RATIO = 3;
+  private final double ELEVATOR_GEAR_RATIO = 32.1428;
+  private final Distance PER_ROTATION = Inches.of(11);
 
   private final VoltageOut voltageOut = new VoltageOut(0);
 
@@ -43,7 +46,12 @@ public class Elevator extends SubsystemBase {
                 new MotionMagicConfigs()
                     .withMotionMagicCruiseVelocity(20)
                     .withMotionMagicAcceleration(100)
-                    .withMotionMagicJerk(100));
+                    .withMotionMagicJerk(100)
+            ).withCurrentLimits(
+                new CurrentLimitsConfigs()
+                    .withSupplyCurrentLimit(10)
+                    .withStatorCurrentLimit(20)
+                );
     this.talon =
         talon
             .withPosition()
@@ -85,12 +93,13 @@ public class Elevator extends SubsystemBase {
         });
   }
 
-  private Angle metersToAngle(double heightMeters) {
-    return Rotations.of((heightMeters / (Math.PI * ELEVATOR_SPOOL_DIAMETER)) / ELEVATOR_GEAR_RATIO);
+  private Angle metersToAngle(Distance height) {
+    // return Rotations.of((heightMeters / (Math.PI * ELEVATOR_SPOOL_DIAMETER)) / ELEVATOR_GEAR_RATIO);
+    return Rotations.of(height.div(PER_ROTATION).baseUnitMagnitude());
   }
 
-  private double rotationsToMeters(Angle angle) {
-    return angle.in(Rotations) * (Math.PI * ELEVATOR_SPOOL_DIAMETER) * ELEVATOR_GEAR_RATIO;
+  private Distance rotationsToDistance(Angle angle) {
+    return PER_ROTATION.times(angle.in(Rotations)).div(ELEVATOR_GEAR_RATIO);
   }
 
   @AutoLogOutput(key = "Elevator/height")

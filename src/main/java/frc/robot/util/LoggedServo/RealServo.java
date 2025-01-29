@@ -7,17 +7,19 @@ package frc.robot.util.LoggedServo;
 import edu.wpi.first.wpilibj.Servo;
 
 public class RealServo extends LoggedServo {
-    private final Servo servo;
-    public RealServo(int id) {
-        this.servo = new Servo(id);
-    }
-    @Override
-    public void setPosition(double position) {
-        servo.setPosition(position);
-    }
+  private final Servo servo;
 
-    @Override
-    public void setAngle(double degrees) {
-        servo.setAngle(degrees);
-    }
+  public RealServo(int id) {
+    this.servo = new Servo(id);
+  }
+
+  @Override
+  public void setPosition(double position) {
+    servo.setPosition(position);
+  }
+
+  @Override
+  public void setAngle(double degrees) {
+    servo.setAngle(degrees);
+  }
 }

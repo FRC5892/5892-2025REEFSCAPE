@@ -55,7 +55,7 @@ public abstract class LoggedTalonFX {
           kVTunable,
           kATunable);
     }
-    connectionAlert.set(inputs.connected);
+    connectionAlert.set(!inputs.connected);
   }
 
   private void applyAllTuningChanges(double[] values) {

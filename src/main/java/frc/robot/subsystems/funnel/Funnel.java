@@ -11,13 +11,16 @@ import frc.robot.util.LoggedServo.LoggedServo;
 public class Funnel extends SubsystemBase {
   private final double FOLD_UP_POSITION = 1.0;
   private final LoggedServo servo;
+
   public Funnel(LoggedServo servo) {
     this.servo = servo;
   }
+
   public Command foldUp() {
-    return runOnce(()-> {
-      servo.setPosition(FOLD_UP_POSITION);
-    });
+    return runOnce(
+        () -> {
+          servo.setPosition(FOLD_UP_POSITION);
+        });
   }
 
   @Override

@@ -186,7 +186,7 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
                     drive)
                 .ignoringDisable(true));
-    elevator.setDefaultCommand(elevator.moveDutyCycle(() -> controller.getRightY() * 0.25));
+    //    elevator.setDefaultCommand(elevator.moveDutyCycle(() -> controller.getRightY() * 0.25));
   }
 
   /**

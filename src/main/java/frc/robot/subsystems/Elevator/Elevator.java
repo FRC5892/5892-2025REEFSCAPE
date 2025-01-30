@@ -1,10 +1,9 @@
 package frc.robot.subsystems.Elevator;
 
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.*;
 
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
@@ -29,15 +28,11 @@ public class Elevator extends SubsystemBase {
   private final LoggedMechanismLigament2d mechanism2dLigament =
       mechanism2dRoot.append(new LoggedMechanismLigament2d("Elevator Ligament", 0, 90));
 
-  private final double ELEVATOR_SPOOL_DIAMETER = 0.005 * 2;
-  private final double ELEVATOR_GEAR_RATIO = 32.1428;
-  private final Distance PER_ROTATION = Inches.of(11);
-
   private final VoltageOut voltageOut = new VoltageOut(0);
-
   private final MotionMagicVoltage motionMagicControl =
       new MotionMagicVoltage(Degrees.zero()).withEnableFOC(true);
-  private double heightMeters = -1;
+
+  private Distance height = Meters.zero();
 
   public Elevator(LoggedTalonFX talon) {
     var config =
@@ -46,11 +41,12 @@ public class Elevator extends SubsystemBase {
                 new MotionMagicConfigs()
                     .withMotionMagicCruiseVelocity(20)
                     .withMotionMagicAcceleration(100)
-                    .withMotionMagicJerk(100)
-            ).withCurrentLimits(
-                new CurrentLimitsConfigs()
-                    .withSupplyCurrentLimit(10)
-                    .withStatorCurrentLimit(20)
+                    .withMotionMagicJerk(100))
+            .withCurrentLimits(
+                new CurrentLimitsConfigs().withSupplyCurrentLimit(10).withStatorCurrentLimit(20))
+            .withFeedback(
+                new FeedbackConfigs()
+                //                        .withSensorToMechanismRatio(ElevatorConstants.GEAR_RATIO)
                 );
     this.talon =
         talon
@@ -70,8 +66,8 @@ public class Elevator extends SubsystemBase {
   @Override
   public void periodic() {
     talon.periodic();
-    heightMeters = rotationsToMeters(talon.getPosition());
-    mechanism2dLigament.setLength(heightMeters);
+    height = Elevator.angleToDistance(talon.getPosition());
+    mechanism2dLigament.setLength(height.in(Meters));
     Logger.recordOutput("Elevator/mechanism", mechanism2d);
   }
 
@@ -88,22 +84,22 @@ public class Elevator extends SubsystemBase {
   public Command goToPosition(ElevatorConstants.ElevatorTarget target) {
     return runOnce(
         () -> {
-          talon.setControl(motionMagicControl.withPosition(metersToAngle(target.height)));
+          talon.setControl(motionMagicControl.withPosition(distanceToAngle(target.height)));
           Logger.recordOutput("Elevator/positionSetpoint", motionMagicControl.Position);
         });
   }
 
-  private Angle metersToAngle(Distance height) {
-    // return Rotations.of((heightMeters / (Math.PI * ELEVATOR_SPOOL_DIAMETER)) / ELEVATOR_GEAR_RATIO);
-    return Rotations.of(height.div(PER_ROTATION).baseUnitMagnitude());
+  protected static Angle distanceToAngle(Distance height) {
+    return Rotations.of(
+        height.baseUnitMagnitude() / ElevatorConstants.DISTANCE_PER_ROTATION.baseUnitMagnitude());
   }
 
-  private Distance rotationsToDistance(Angle angle) {
-    return PER_ROTATION.times(angle.in(Rotations)).div(ELEVATOR_GEAR_RATIO);
+  protected static Distance angleToDistance(Angle angle) {
+    return ElevatorConstants.DISTANCE_PER_ROTATION.times(angle.in(Rotations));
   }
 
   @AutoLogOutput(key = "Elevator/height")
-  public double getHeightMeters() {
-    return heightMeters;
+  public Distance getHeight() {
+    return height;
   }
 }

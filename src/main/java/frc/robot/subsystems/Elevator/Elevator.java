@@ -45,9 +45,7 @@ public class Elevator extends SubsystemBase {
             .withCurrentLimits(
                 new CurrentLimitsConfigs().withSupplyCurrentLimit(10).withStatorCurrentLimit(20))
             .withFeedback(
-                new FeedbackConfigs()
-                //                        .withSensorToMechanismRatio(ElevatorConstants.GEAR_RATIO)
-                );
+                new FeedbackConfigs().withSensorToMechanismRatio(ElevatorConstants.GEAR_RATIO));
     this.talon =
         talon
             .withPosition()

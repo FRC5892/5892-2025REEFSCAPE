@@ -12,7 +12,7 @@ import frc.robot.util.LoggedTalon.TalonFXInputs;
 import org.littletonrobotics.junction.Logger;
 
 public class ElevatorSimulation extends BaseTalonFXSim {
-  private final double kElevatorGearing = 3;
+  private final double kElevatorGearing = 55;
   private final double kCarriageMass = 5;
   private final double kMinElevatorHeightMeters = 0;
   private final double kMaxElevatorHeightMeters = 2;
@@ -22,8 +22,8 @@ public class ElevatorSimulation extends BaseTalonFXSim {
           DCMotor.getKrakenX60Foc(1),
           kElevatorGearing,
           kCarriageMass,
-          //          ElevatorConstants.DISTANCE_PER_ROTATION.in(Meters) / (2 * Math.PI),
-          0.001,
+          ElevatorConstants.DISTANCE_PER_ROTATION.in(Meters) / (2 * Math.PI),
+          //          0.001,
           kMinElevatorHeightMeters,
           kMaxElevatorHeightMeters,
           true,

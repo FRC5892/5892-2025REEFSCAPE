@@ -25,13 +25,12 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.Climb.Climb;
+import frc.robot.subsystems.CoralEndEffector.CoralEndEffector;
 import frc.robot.subsystems.Elevator.Elevator;
 import frc.robot.subsystems.Elevator.ElevatorConstants.ElevatorTarget;
 import frc.robot.subsystems.Elevator.ElevatorSimulation;
-import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.drive.GyroIO;
-import frc.robot.subsystems.drive.ModuleIO;
-import frc.robot.subsystems.drive.ModuleIOSim;
+import frc.robot.subsystems.drive.*;
 import frc.robot.subsystems.vision.*;
 import frc.robot.util.LoggedTalon.NoOppTalonFX;
 import frc.robot.util.LoggedTalon.PhoenixTalonFX;
@@ -49,8 +48,8 @@ public class RobotContainer {
   private final Drive drive;
   private final Vision vision;
   private final Elevator elevator;
-  //   private final Climb climb = null;
-  //   private final CoralEndEffector coralEndEffector;
+  private final Climb climb;
+  private final CoralEndEffector coralEndEffector;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -61,20 +60,8 @@ public class RobotContainer {
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     switch (Constants.currentMode) {
-      case REAL:
-        // Real robot, instantiate hardware IO implementations
-        // drive =
-        //     new Drive(
-        //         new GyroIOPigeon2(),
-        //         new ModuleIOTalonFX(TunerConstants.FrontLeft),
-        //         new ModuleIOTalonFX(TunerConstants.FrontRight),
-        //         new ModuleIOTalonFX(TunerConstants.BackLeft),
-        //         new ModuleIOTalonFX(TunerConstants.BackRight));
-        // vision =
-        //     new Vision(
-        //         drive::addVisionMeasurement,
-        //         new VisionIOPhotonVision(
-        //             VisionConstants.camera0Name, VisionConstants.robotToCamera0));
+      case DEV:
+        // Disabled IO for everything but the tested subsystem
         drive =
             new Drive(
                 new GyroIO() {},
@@ -83,9 +70,32 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {});
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {});
-        elevator = new Elevator(new PhoenixTalonFX(20, TunerConstants.kCANBus, "elevator"));
-        // coralEndEffector =
-        //     new CoralEndEffector(new PhoenixTalonFX(-2, defaultCanBus, "coralEffector"));
+        coralEndEffector = new CoralEndEffector(new NoOppTalonFX("coralEffector", 0));
+        climb = new Climb(new NoOppTalonFX("climb", 0));
+
+        // Instantiate the tested subsystem
+
+        elevator = new Elevator(new PhoenixTalonFX(21, TunerConstants.kCANBus, "elevator"));
+
+        break;
+      case REAL:
+        // Real robot, instantiate hardware IO implementations
+        drive =
+            new Drive(
+                new GyroIOPigeon2(),
+                new ModuleIOTalonFX(TunerConstants.FrontLeft),
+                new ModuleIOTalonFX(TunerConstants.FrontRight),
+                new ModuleIOTalonFX(TunerConstants.BackLeft),
+                new ModuleIOTalonFX(TunerConstants.BackRight));
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVision(
+                    VisionConstants.camera0Name, VisionConstants.robotToCamera0));
+        elevator = new Elevator(new PhoenixTalonFX(20, defaultCanBus, "elevator"));
+        coralEndEffector =
+            new CoralEndEffector(new PhoenixTalonFX(-2, defaultCanBus, "coralEffector"));
+        climb = new Climb(new PhoenixTalonFX(-3, defaultCanBus, "climb"));
         break;
 
       case SIM:
@@ -103,8 +113,9 @@ public class RobotContainer {
                 new VisionIOPhotonVisionSim(
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose));
         elevator = new Elevator(new ElevatorSimulation(5, defaultCanBus, "elevator"));
-        // coralEndEffector = null;
-        // new CoralEndEffeector(new PhoenixTalonFx(-2,defaultCAn))
+        coralEndEffector =
+            new CoralEndEffector(new PhoenixTalonFX(-2, defaultCanBus, "coralEffector"));
+        climb = new Climb(new PhoenixTalonFX(-3, defaultCanBus, "climb"));
         break;
 
       default:
@@ -118,7 +129,8 @@ public class RobotContainer {
                 new ModuleIO() {});
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {});
         elevator = new Elevator(new NoOppTalonFX("elevator", 0));
-        // coralEndEffector = null;
+        coralEndEffector = new CoralEndEffector(new NoOppTalonFX("coralEffector", 0));
+        climb = new Climb(new NoOppTalonFX("climb", 0));
         break;
     }
 
@@ -160,23 +172,13 @@ public class RobotContainer {
             () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
 
-    // Lock to 0° when A button is held
-    // controller
-    //     .a()
-    //     .whileTrue(
-    //         DriveCommands.joystickDriveAtAngle(
-    //             drive,
-    //             () -> -controller.getLeftY(),
-    //             () -> -controller.getLeftX(),
-    //             () -> new Rotation2d()));
-
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
     controller.b().onTrue(elevator.goToPosition(ElevatorTarget.L3));
     controller.a().onTrue(elevator.goToPosition(ElevatorTarget.INTAKE));
 
-    // Reset gyro to 0° when B button is pressed
+    // Reset gyro to 0° when B button is pressed
     controller
         .y()
         .onTrue(
@@ -186,7 +188,6 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
                     drive)
                 .ignoringDisable(true));
-    //    elevator.setDefaultCommand(elevator.moveDutyCycle(() -> controller.getRightY() * 0.25));
   }
 
   /**

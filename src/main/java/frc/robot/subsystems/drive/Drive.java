@@ -48,11 +48,13 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.Constants.Mode;
+import frc.robot.FieldConstants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.util.LocalADStarAK;
 import frc.robot.util.LoggedTunableNumber;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import lombok.Getter;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -112,6 +114,10 @@ public class Drive extends SubsystemBase {
   private final LoggedTunableNumber driveKDTunableNumber;
   private final LoggedTunableNumber driveKSTunableNumber;
   private final LoggedTunableNumber driveKVTunableNumber;
+
+  @Getter
+  @AutoLogOutput(key = "Drive/ReefSector")
+  private final int reefSector = -1;
 
   // End 5892
 
@@ -254,6 +260,12 @@ public class Drive extends SubsystemBase {
         driveKDTunableNumber,
         driveKSTunableNumber,
         driveKVTunableNumber);
+    Translation2d robotToReef = getPose().getTranslation().minus(FieldConstants.Reef.center);
+    Logger.recordOutput("Drive/robotToReef", robotToReef);
+    Logger.recordOutput("Drive/translationRotation", robotToReef.getAngle());
+    double rotation = Math.atan2(robotToReef.getY(), robotToReef.getX());
+    Logger.recordOutput("Drive/fieldRotation", rotation);
+
     // End 5892
   }
 
@@ -417,4 +429,5 @@ public class Drive extends SubsystemBase {
       modules[i].setDrivePID(kP, kI, kD, kS, kV);
     }
   }
+  // end 5892
 }

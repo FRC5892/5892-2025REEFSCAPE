@@ -1,0 +1,37 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Left Preload - I"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "I - Left Far Station "
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Left Far Station - J"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "J - Left Far Station"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}

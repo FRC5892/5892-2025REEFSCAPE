@@ -52,7 +52,8 @@ public class RobotContainer {
   private final CoralEndEffector coralEndEffector;
 
   // Controller
-  private final CommandXboxController controller = new CommandXboxController(0);
+  private final CommandXboxController driverController = new CommandXboxController(0);
+  private final CommandXboxController codriverController = new CommandXboxController(1);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -164,22 +165,17 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
+    /* Driver Controls */
+
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
-            () -> -controller.getRightX()));
-
-    // Switch to X pattern when X button is pressed
-    controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
-
-    controller.b().onTrue(elevator.goToPosition(ElevatorTarget.L3));
-    controller.a().onTrue(elevator.goToPosition(ElevatorTarget.INTAKE));
-
+            () -> -driverController.getLeftY(),
+            () -> -driverController.getLeftX(),
+            () -> -driverController.getRightX()));
     // Reset gyro to 0° when B button is pressed
-    controller
+    driverController
         .y()
         .onTrue(
             Commands.runOnce(
@@ -188,6 +184,11 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
                     drive)
                 .ignoringDisable(true));
+    /* Codriver Controls */
+    codriverController.a().onTrue(elevator.goToPosition(ElevatorTarget.INTAKE));
+    codriverController.b().onTrue(elevator.goToPosition(ElevatorTarget.L2));
+    codriverController.x().onTrue(elevator.goToPosition(ElevatorTarget.L3));
+    codriverController.y().onTrue(elevator.goToPosition(ElevatorTarget.L4));
   }
 
   /**

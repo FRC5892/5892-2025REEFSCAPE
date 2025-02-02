@@ -184,6 +184,8 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
                     drive)
                 .ignoringDisable(true));
+    driverController.leftBumper().whileTrue(drive.driveToReefCommand(Drive.ReefBranch.LEFT));
+    driverController.rightBumper().whileTrue(drive.driveToReefCommand(Drive.ReefBranch.RIGHT));
     /* Codriver Controls */
     codriverController.a().onTrue(elevator.goToPosition(ElevatorTarget.INTAKE));
     codriverController.b().onTrue(elevator.goToPosition(ElevatorTarget.L2));

@@ -21,6 +21,7 @@ import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
@@ -28,10 +29,7 @@ import edu.wpi.first.hal.FRCNetComm.tResourceType;
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -263,15 +261,16 @@ public class Drive extends SubsystemBase {
         driveKVTunableNumber);
     Translation2d robotToReef =
         getPose().getTranslation().minus(AllianceFlipUtil.apply(FieldConstants.Reef.center));
-    Logger.recordOutput("Drive/RobotToReef", robotToReef.getAngle().getRotations());
     double angleOffset =
-        (AllianceFlipUtil.shouldFlip() ? 0.0 : 0.5) + (double) 1 / 12 /* add a half sector*/;
+        (AllianceFlipUtil.shouldFlip() ? 1.0 : 0.5) + (double) 1 / 12 /* add a half sector*/;
     reefSector =
         (int)
                     ((robotToReef.getAngle().getRotations() + angleOffset)
                         * 6 /* 6 sides, so on a scale of 0-6 */)
                 % 6 /*Wrap around if it's more than 6 */
             + 1 /*Driver count from one :( */;
+
+    Logger.recordOutput("Drive/ReefSectorSide", FieldConstants.Reef.centerFaces[reefSector - 1]);
 
     // End 5892
   }
@@ -435,6 +434,23 @@ public class Drive extends SubsystemBase {
     for (int i = 0; i < 4; i++) {
       modules[i].setDrivePID(kP, kI, kD, kS, kV);
     }
+  }
+
+  public Command driveToReefCommand(ReefBranch branch) {
+    return defer(
+        () -> {
+          Pose2d target =
+              FieldConstants.Reef.centerFaces[reefSector - 1].transformBy(
+                  new Transform2d(
+                      0, FieldConstants.Reef.centerToBranchAdjustY, Rotation2d.k180deg));
+          Logger.recordOutput("Drive/ReefTarget", target);
+          return AutoBuilder.pathfindToPose(target, new PathConstraints(5, 5, 5, 5));
+        });
+  }
+
+  public enum ReefBranch {
+    LEFT,
+    RIGHT,
   }
   // end 5892
 }

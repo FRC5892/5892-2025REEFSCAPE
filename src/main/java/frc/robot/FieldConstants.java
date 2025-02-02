@@ -59,7 +59,6 @@ public class FieldConstants {
   public static class Reef {
     public static final Translation2d center =
         new Translation2d(Units.inchesToMeters(176.746), Units.inchesToMeters(158.501));
-    public static final Transform2d centerTransform = new Transform2d(center, new Rotation2d());
     public static final double faceToZoneLine =
         Units.inchesToMeters(12); // Side of the reef to the inside of the reef zone line
 
@@ -67,6 +66,8 @@ public class FieldConstants {
         new Pose2d[6]; // Starting facing the driver station in clockwise order
     public static final List<Map<ReefHeight, Pose3d>> branchPositions =
         new ArrayList<>(); // Starting at the right branch facing the driver station in clockwise
+    public static final double centerToBranchAdjustX = Units.inchesToMeters(30.738);
+    public static final double centerToBranchAdjustY = Units.inchesToMeters(6.469);
 
     static {
       // Initialize faces
@@ -77,14 +78,14 @@ public class FieldConstants {
               Rotation2d.fromDegrees(180));
       centerFaces[1] =
           new Pose2d(
-              Units.inchesToMeters(160.373),
-              Units.inchesToMeters(186.857),
-              Rotation2d.fromDegrees(120));
+              Units.inchesToMeters(160.375),
+              Units.inchesToMeters(130.144),
+              Rotation2d.fromDegrees(-120));
       centerFaces[2] =
           new Pose2d(
-              Units.inchesToMeters(193.116),
-              Units.inchesToMeters(186.858),
-              Rotation2d.fromDegrees(60));
+              Units.inchesToMeters(193.118),
+              Units.inchesToMeters(130.145),
+              Rotation2d.fromDegrees(-60));
       centerFaces[3] =
           new Pose2d(
               Units.inchesToMeters(209.489),
@@ -92,14 +93,14 @@ public class FieldConstants {
               Rotation2d.fromDegrees(0));
       centerFaces[4] =
           new Pose2d(
-              Units.inchesToMeters(193.118),
-              Units.inchesToMeters(130.145),
-              Rotation2d.fromDegrees(-60));
+              Units.inchesToMeters(193.116),
+              Units.inchesToMeters(186.858),
+              Rotation2d.fromDegrees(60));
       centerFaces[5] =
           new Pose2d(
-              Units.inchesToMeters(160.375),
-              Units.inchesToMeters(130.144),
-              Rotation2d.fromDegrees(-120));
+              Units.inchesToMeters(160.373),
+              Units.inchesToMeters(186.857),
+              Rotation2d.fromDegrees(120));
 
       // Initialize branch positions
       for (int face = 0; face < 6; face++) {
@@ -107,18 +108,20 @@ public class FieldConstants {
         Map<ReefHeight, Pose3d> fillLeft = new HashMap<>();
         for (var level : ReefHeight.values()) {
           Pose2d poseDirection = new Pose2d(center, Rotation2d.fromDegrees(180 - (60 * face)));
-          double adjustX = Units.inchesToMeters(30.738);
-          double adjustY = Units.inchesToMeters(6.469);
 
           fillRight.put(
               level,
               new Pose3d(
                   new Translation3d(
                       poseDirection
-                          .transformBy(new Transform2d(adjustX, adjustY, new Rotation2d()))
+                          .transformBy(
+                              new Transform2d(
+                                  centerToBranchAdjustX, centerToBranchAdjustY, new Rotation2d()))
                           .getX(),
                       poseDirection
-                          .transformBy(new Transform2d(adjustX, adjustY, new Rotation2d()))
+                          .transformBy(
+                              new Transform2d(
+                                  centerToBranchAdjustX, centerToBranchAdjustY, new Rotation2d()))
                           .getY(),
                       level.height),
                   new Rotation3d(
@@ -130,10 +133,14 @@ public class FieldConstants {
               new Pose3d(
                   new Translation3d(
                       poseDirection
-                          .transformBy(new Transform2d(adjustX, -adjustY, new Rotation2d()))
+                          .transformBy(
+                              new Transform2d(
+                                  centerToBranchAdjustX, -centerToBranchAdjustY, new Rotation2d()))
                           .getX(),
                       poseDirection
-                          .transformBy(new Transform2d(adjustX, -adjustY, new Rotation2d()))
+                          .transformBy(
+                              new Transform2d(
+                                  centerToBranchAdjustX, -centerToBranchAdjustY, new Rotation2d()))
                           .getY(),
                       level.height),
                   new Rotation3d(

@@ -50,6 +50,7 @@ import frc.robot.Constants;
 import frc.robot.Constants.Mode;
 import frc.robot.FieldConstants;
 import frc.robot.generated.TunerConstants;
+import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.LocalADStarAK;
 import frc.robot.util.LoggedTunableNumber;
 import java.util.concurrent.locks.Lock;
@@ -117,7 +118,7 @@ public class Drive extends SubsystemBase {
 
   @Getter
   @AutoLogOutput(key = "Drive/ReefSector")
-  private final int reefSector = -1;
+  private int reefSector = -1;
 
   // End 5892
 
@@ -260,11 +261,17 @@ public class Drive extends SubsystemBase {
         driveKDTunableNumber,
         driveKSTunableNumber,
         driveKVTunableNumber);
-    Translation2d robotToReef = getPose().getTranslation().minus(FieldConstants.Reef.center);
-    Logger.recordOutput("Drive/robotToReef", robotToReef);
-    Logger.recordOutput("Drive/translationRotation", robotToReef.getAngle());
-    double rotation = Math.atan2(robotToReef.getY(), robotToReef.getX());
-    Logger.recordOutput("Drive/fieldRotation", rotation);
+    Translation2d robotToReef =
+        getPose().getTranslation().minus(AllianceFlipUtil.apply(FieldConstants.Reef.center));
+    Logger.recordOutput("Drive/RobotToReef", robotToReef.getAngle().getRotations());
+    double angleOffset =
+        (AllianceFlipUtil.shouldFlip() ? 0.0 : 0.5) + (double) 1 / 12 /* add a half sector*/;
+    reefSector =
+        (int)
+                    ((robotToReef.getAngle().getRotations() + angleOffset)
+                        * 6 /* 6 sides, so on a scale of 0-6 */)
+                % 6 /*Wrap around if it's more than 6 */
+            + 1 /*Driver count from one :( */;
 
     // End 5892
   }

@@ -16,10 +16,9 @@ import org.littletonrobotics.junction.Logger;
  * NoOppTalonFX} to use this class.
  */
 public abstract class LoggedTalonFX {
-
   protected final String name;
   private final TalonFXInputsAutoLogged inputs = new TalonFXInputsAutoLogged();
-  private final Alert connectionAlert;
+  private final Alert[] connectionAlerts;
   private boolean tuning = false;
 
   private LoggedTunableNumber kPTunable = null;
@@ -31,13 +30,19 @@ public abstract class LoggedTalonFX {
   private LoggedTunableNumber kATunable = null;
   private Slot0Configs tunedConfigs = null;
   private LoggedTalonFX[] tuningFollowers = null;
-  private final int followers;
+  protected final int followers;
 
   public LoggedTalonFX(String name, int followers) {
-    this.name = name;
     this.followers = followers;
-    this.connectionAlert =
+    this.name = name;
+    this.connectionAlerts = new Alert[followers+1];
+    this.connectionAlerts[0] =
         new Alert("TalonFX" + name + " is not connected", Alert.AlertType.kError);
+    if (followers != 0) {
+      for (int i = 1; i <= followers; i++) {
+        connectionAlerts[i] = new Alert("TalonFX "+name+" follower "+i+" is not connected", Alert.AlertType.kError);
+      }
+    }
   }
 
   public void periodic() {
@@ -55,7 +60,9 @@ public abstract class LoggedTalonFX {
           kVTunable,
           kATunable);
     }
-    connectionAlert.set(!inputs.connected);
+    for (int i = 0; i < followers+1; i++) {
+      connectionAlerts[i].set(!inputs.connected[i]);
+    }
   }
 
   private void applyAllTuningChanges(double[] values) {
@@ -96,17 +103,6 @@ public abstract class LoggedTalonFX {
   public abstract void setControl(ControlRequest controlRequest);
 
   protected abstract void updateInputs(TalonFXInputs inputs);
-
-  public abstract LoggedTalonFX withAppliedVoltage();
-
-  public abstract LoggedTalonFX withTorqueCurrent();
-
-  public abstract LoggedTalonFX withStatorCurrent();
-
-  public abstract LoggedTalonFX withVelocity();
-
-  public abstract LoggedTalonFX withPosition();
-
   public abstract LoggedTalonFX withConfig(TalonFXConfiguration config);
 
   /**
@@ -123,16 +119,31 @@ public abstract class LoggedTalonFX {
 
   public abstract void quickApplySlot0Config(Slot0Configs config);
 
-  public Voltage getAppliedVoltage() {
-    return this.inputs.appliedVoltage;
+  public Voltage getPrimaryAppliedVoltage() {
+    return getAppliedVoltage(0);
+  }
+  public Voltage getAppliedVoltage(int follower) {
+    return this.inputs.appliedVoltage[follower];
+  }
+  public Temperature getPrimaryTemperature() {
+    return getTempurature(0);
+  }
+  public Temperature getTempurature(int follower) {
+    return this.inputs.temperature[follower];
   }
 
-  public Current getTorqueCurrent() {
-    return this.inputs.torqueCurrent;
+  public Current getPrimaryTorqueCurrent() {
+    return getTorqueCurrent(0);
+  }
+  public Current getTorqueCurrent(int follower) {
+    return this.inputs.torqueCurrent[follower];
   }
 
-  public Current getStatorCurrent() {
-    return this.inputs.statorCurrent;
+  public Current getPrimarySupplyCurrent() {
+    return getSupplyCurrent(0);
+  }
+  public Current getSupplyCurrent(int follower) {
+    return this.inputs.supplyCurrent[follower];
   }
 
   public AngularVelocity getVelocity() {
@@ -142,6 +153,7 @@ public abstract class LoggedTalonFX {
   public Angle getPosition() {
     return this.inputs.position;
   }
+
 }
 
 /*

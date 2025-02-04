@@ -7,6 +7,7 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.ControlRequest;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Angle;
@@ -15,130 +16,70 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 // import frc.robot.util.LoggedTalon.Follower.TalonFXFollower;
 import frc.robot.util.PhoenixUtil;
+import frc.robot.util.LoggedTalon.Follower.PhoenixTalonFollower;
+
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 
 public class PhoenixTalonFX extends LoggedTalonFX {
-  protected final TalonFX talonFX;
+  protected final TalonFX[] talonFX;
   private BaseStatusSignal[] statusSignals;
   private boolean statusSignalChanged = false;
-  private final Debouncer connectionDebouncer = new Debouncer(0.5);
+  private final Debouncer[] connectionDebouncer;
 
-  // private final TalonFX[] followers;
+  private final List<StatusSignal<Voltage>> voltageSignal;
+  private final List<StatusSignal<Current>> torqueCurrentSignal;
+  private final List<StatusSignal<Current>> supplyCurrentSignal;
+  private final List<StatusSignal<AngularVelocity>> velocitySignal;
+  private final List<StatusSignal<Angle>> positionSignal;
 
-  protected PhoenixTalonFX(int canID, CANBus canBus, String name, int followers) {
-    super(name, followers);
-    // this.followers = null;
-    talonFX = new TalonFX(canID, canBus);
-  }
+  public PhoenixTalonFX(int canID, CANBus canBus, String name, PhoenixTalonFollower... followers) {
+    
+    super(name,followers.length);
+    
+    talonFX = new TalonFX[followers.length+1];
+    connectionDebouncer = new Debouncer[followers.length+1];
+    voltageSignal = new ArrayList<>(followers.length+1);
+    torqueCurrentSignal = new ArrayList<>(followers.length+1);
+    supplyCurrentSignal = new ArrayList<>(followers.length+1);
+    velocitySignal = new ArrayList<>(followers.length+1);
+    positionSignal = new ArrayList<>(followers.length+1);
 
-  public PhoenixTalonFX(int canID, CANBus canBus, String name /*, TalonFXFollower... followers*/) {
-    super(name, 0);
-    // if (followers.length != 0) {
-    //   for (TalonFX follower : followers) {
-    //   }
-    //   Arrays.stream(followers).map(talonFXFollower -> talonFXFollower.).toArray(Object[]::new);
-    // } else {
-    //     this.followers = null;
-    // }
-    talonFX = new TalonFX(canID, canBus);
+    for (int i = 0; i <= followers.length; i++) {
+      if (i == 0) {
+        talonFX[0] = new TalonFX(canID, canBus);
+      } else {
+        talonFX[i] = new TalonFX(followers[i-1].canid(),canBus);
+      }
+      connectionDebouncer[i] = new Debouncer(0.5);
+      voltageSignal.set(i, talonFX[i].getMotorVoltage());
+      torqueCurrentSignal.set(i, talonFX[i].getTorqueCurrent());
+      supplyCurrentSignal.set(i, talonFX[i].getSupplyCurrent());
+      velocitySignal.set(i,talonFX[i].getVelocity());
+      positionSignal.set(i,talonFX[i].getPosition());
+    }
   }
 
   @Override
   public void setControl(ControlRequest controlRequest) {
-    talonFX.setControl(controlRequest);
+    talonFX[0].setControl(controlRequest);
   }
 
   @Override
   protected void updateInputs(TalonFXInputs inputs) {
-    if (statusSignalChanged) {
-      ArrayList<BaseStatusSignal> statusSignalsList = new ArrayList<>();
-      if (voltageSignal != null) {
-        statusSignalsList.add(voltageSignal);
-      }
-      if (torqueCurrentSignal != null) {
-        statusSignalsList.add(torqueCurrentSignal);
-      }
-      if (statorCurrentSignal != null) {
-        statusSignalsList.add(statorCurrentSignal);
-      }
-      if (velocitySignal != null) {
-        statusSignalsList.add(velocitySignal);
-      }
-      if (positionSignal != null) {
-        statusSignalsList.add(positionSignal);
-      }
-      this.statusSignals = statusSignalsList.toArray(new BaseStatusSignal[0]);
-      statusSignalChanged = false;
-    }
-    StatusCode status = BaseStatusSignal.refreshAll(statusSignals);
-    inputs.connected = connectionDebouncer.calculate(status == StatusCode.OK);
-    if (voltageSignal != null) {
-      inputs.appliedVoltage = voltageSignal.getValue();
-    }
-    if (torqueCurrentSignal != null) {
-      inputs.torqueCurrent = torqueCurrentSignal.getValue();
-    }
-    if (statorCurrentSignal != null) {
-      inputs.statorCurrent = statorCurrentSignal.getValue();
-    }
-    if (velocitySignal != null) {
-      inputs.velocity = velocitySignal.getValue();
-    }
-    if (positionSignal != null) {
-      inputs.position = positionSignal.getValue();
+    for (int i = 1; i <= super.followers; i++) {
+      
     }
   }
 
   // This is when I wish java had macro support
-  private StatusSignal<Voltage> voltageSignal = null;
-
-  @Override
-  public LoggedTalonFX withAppliedVoltage() {
-    statusSignalChanged = true;
-    voltageSignal = talonFX.getMotorVoltage();
-    return this;
-  }
-
-  private StatusSignal<Current> torqueCurrentSignal = null;
-
-  @Override
-  public LoggedTalonFX withTorqueCurrent() {
-    statusSignalChanged = true;
-    torqueCurrentSignal = talonFX.getTorqueCurrent();
-    return this;
-  }
-
-  private StatusSignal<Current> statorCurrentSignal = null;
-
-  @Override
-  public LoggedTalonFX withStatorCurrent() {
-    statusSignalChanged = true;
-    statorCurrentSignal = talonFX.getStatorCurrent();
-    return this;
-  }
-
-  private StatusSignal<AngularVelocity> velocitySignal = null;
-
-  @Override
-  public LoggedTalonFX withVelocity() {
-    statusSignalChanged = true;
-    velocitySignal = talonFX.getVelocity();
-    return this;
-  }
-
-  private StatusSignal<Angle> positionSignal = null;
-
-  @Override
-  public LoggedTalonFX withPosition() {
-    statusSignalChanged = true;
-    positionSignal = talonFX.getPosition();
-    return this;
-  }
+  
 
   @Override
   public LoggedTalonFX withConfig(TalonFXConfiguration config) {
-    PhoenixUtil.tryUntilOk(5, () -> talonFX.getConfigurator().apply(config));
+    PhoenixUtil.tryUntilOk(5, () -> talonFX[0].getConfigurator().apply(config));
     return this;
   }
 
@@ -149,6 +90,6 @@ public class PhoenixTalonFX extends LoggedTalonFX {
 
   @Override
   public void quickApplySlot0Config(Slot0Configs config) {
-    PhoenixUtil.tryUntilOk(3, () -> talonFX.getConfigurator().apply(config));
+    PhoenixUtil.tryUntilOk(3, () -> talonFX[0].getConfigurator().apply(config));
   }
 }

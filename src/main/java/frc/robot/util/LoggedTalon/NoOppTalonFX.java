@@ -6,7 +6,8 @@ import com.ctre.phoenix6.controls.ControlRequest;
 import java.util.function.Function;
 
 public class NoOppTalonFX extends LoggedTalonFX {
-  public NoOppTalonFX(String name, int followers) {
+
+  public NoOppTalonFX(String name, LoggedTalonFX... followers) {
     super(name, followers);
   }
 
@@ -53,4 +54,7 @@ public class NoOppTalonFX extends LoggedTalonFX {
 
   @Override
   public void quickApplySlot0Config(Slot0Configs config) {}
+
+  @Override
+  public void follow() {}
 }

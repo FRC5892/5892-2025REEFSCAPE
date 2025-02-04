@@ -5,6 +5,7 @@
 package frc.robot.subsystems.CoralEndEffector;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.CoastOut;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -12,11 +13,10 @@ import frc.robot.util.LoggedTalon.LoggedTalonFX;
 
 public class CoralEndEffector extends SubsystemBase {
   private static final double DEFAULT_DUTY_CYCLE = 0.5;
-  private final DutyCycleOut climbDutyCycleOut = new DutyCycleOut(DEFAULT_DUTY_CYCLE);
-  private final DutyCycleOut stopDutyCycleOut = new DutyCycleOut(0);
+  private final DutyCycleOut dutyCycleOut = new DutyCycleOut(DEFAULT_DUTY_CYCLE).withEnableFOC(true);
+  private final CoastOut coastOut = new CoastOut();
   private final LoggedTalonFX talon;
 
-  // https://v6.docs.ctr-electronics.com/en/stable/docs/api-reference/api-usage/control-requests.html#modifying-a-control-request
   public CoralEndEffector(LoggedTalonFX talon) {
     var config = new TalonFXConfiguration();
     this.talon =
@@ -28,10 +28,11 @@ public class CoralEndEffector extends SubsystemBase {
             .withTunable(config.Slot0);
   }
 
-  public Command runAtDutyCycle() {
+  public Command runAtDutyCycle(double dutyCycle) {
     return runEnd(
-        () -> talon.setControl(climbDutyCycleOut), // Start the motor
-        () -> talon.setControl(stopDutyCycleOut)); // Stop the motor
+        () -> talon.setControl(dutyCycleOut.withOutput(dutyCycle)), // Start the motor
+        () -> talon.setControl(coastOut) // Stop the motor
+    ); 
   }
 
   @Override

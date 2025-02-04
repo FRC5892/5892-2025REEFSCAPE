@@ -5,10 +5,11 @@ import org.littletonrobotics.junction.AutoLog;
 
 @AutoLog
 public class TalonFXInputs {
-  public boolean connected;
-  public Voltage appliedVoltage;
-  public Current torqueCurrent;
-  public Current statorCurrent;
+  public boolean[] connected;
+  public Voltage[] appliedVoltage;
+  public Current[] torqueCurrent;
+  public Current[] supplyCurrent;
+  public Temperature[] temperature;
   public AngularVelocity velocity;
   public Angle position;
 }

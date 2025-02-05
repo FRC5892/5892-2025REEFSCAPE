@@ -13,26 +13,21 @@ import frc.robot.util.LoggedTalon.LoggedTalonFX;
 
 public class CoralEndEffector extends SubsystemBase {
   private static final double DEFAULT_DUTY_CYCLE = 0.5;
-  private final DutyCycleOut dutyCycleOut = new DutyCycleOut(DEFAULT_DUTY_CYCLE).withEnableFOC(true);
+  private final DutyCycleOut dutyCycleOut =
+      new DutyCycleOut(DEFAULT_DUTY_CYCLE).withEnableFOC(true);
   private final CoastOut coastOut = new CoastOut();
   private final LoggedTalonFX talon;
 
   public CoralEndEffector(LoggedTalonFX talon) {
     var config = new TalonFXConfiguration();
-    this.talon =
-        talon
-            .withPosition()
-            .withVelocity()
-            .withAppliedVoltage()
-            .withConfig(config)
-            .withTunable(config.Slot0);
+    this.talon = talon.withConfig(config).withTunable(config.Slot0);
   }
 
   public Command runAtDutyCycle(double dutyCycle) {
     return runEnd(
         () -> talon.setControl(dutyCycleOut.withOutput(dutyCycle)), // Start the motor
         () -> talon.setControl(coastOut) // Stop the motor
-    ); 
+        );
   }
 
   @Override

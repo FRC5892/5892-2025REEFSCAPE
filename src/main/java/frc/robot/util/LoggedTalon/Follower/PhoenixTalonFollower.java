@@ -4,5 +4,4 @@
 
 package frc.robot.util.LoggedTalon.Follower;
 
-public record PhoenixTalonFollower(int canid, boolean opposeDirection) {
-}
+public record PhoenixTalonFollower(int canid, boolean opposeDirection) {}

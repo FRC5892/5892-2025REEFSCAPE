@@ -8,6 +8,12 @@ import edu.wpi.first.wpilibj.Alert;
 import frc.robot.Constants;
 // import frc.robot.util.LoggedTalon.Follower.TalonFXFollower;
 import frc.robot.util.LoggedTunableNumber;
+
+import static edu.wpi.first.units.Units.Amp;
+import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Celsius;
+import static edu.wpi.first.units.Units.Volt;
+
 import java.util.function.Function;
 import org.littletonrobotics.junction.Logger;
 
@@ -35,12 +41,14 @@ public abstract class LoggedTalonFX {
   public LoggedTalonFX(String name, int followers) {
     this.followers = followers;
     this.name = name;
-    this.connectionAlerts = new Alert[followers+1];
+    this.connectionAlerts = new Alert[followers + 1];
     this.connectionAlerts[0] =
         new Alert("TalonFX" + name + " is not connected", Alert.AlertType.kError);
     if (followers != 0) {
       for (int i = 1; i <= followers; i++) {
-        connectionAlerts[i] = new Alert("TalonFX "+name+" follower "+i+" is not connected", Alert.AlertType.kError);
+        connectionAlerts[i] =
+            new Alert(
+                "TalonFX " + name + " follower " + i + " is not connected", Alert.AlertType.kError);
       }
     }
   }
@@ -60,7 +68,7 @@ public abstract class LoggedTalonFX {
           kVTunable,
           kATunable);
     }
-    for (int i = 0; i < followers+1; i++) {
+    for (int i = 0; i < followers + 1; i++) {
       connectionAlerts[i].set(!inputs.connected[i]);
     }
   }
@@ -103,6 +111,7 @@ public abstract class LoggedTalonFX {
   public abstract void setControl(ControlRequest controlRequest);
 
   protected abstract void updateInputs(TalonFXInputs inputs);
+
   public abstract LoggedTalonFX withConfig(TalonFXConfiguration config);
 
   /**
@@ -122,28 +131,60 @@ public abstract class LoggedTalonFX {
   public Voltage getPrimaryAppliedVoltage() {
     return getAppliedVoltage(0);
   }
+  
   public Voltage getAppliedVoltage(int follower) {
-    return this.inputs.appliedVoltage[follower];
+    return Volt.of(getAppliedVoltageVolts(follower));
   }
+  public double getPrimaryAppliedVoltageVolts() {
+    return getAppliedVoltageVolts(0);
+  }
+  public double getAppliedVoltageVolts(int follower) {
+    return this.inputs.appliedVolts[follower];
+  }
+
   public Temperature getPrimaryTemperature() {
     return getTempurature(0);
   }
+
   public Temperature getTempurature(int follower) {
-    return this.inputs.temperature[follower];
+    return Celsius.of(this.inputs.temperatureC[follower]);
+  }
+  public double getPrimaryTemperatureC() {
+    return getTempuratureC(0);
+  }
+
+  public double getTempuratureC(int follower) {
+    return this.inputs.temperatureC[follower];
   }
 
   public Current getPrimaryTorqueCurrent() {
     return getTorqueCurrent(0);
   }
+
   public Current getTorqueCurrent(int follower) {
-    return this.inputs.torqueCurrent[follower];
+    return Amp.of(getTorqueCurrentAmps(follower));
+  }
+  public double getPrimaryTorqueCurrentAmps() {
+    return getTorqueCurrentAmps(0);
+  }
+
+  public double getTorqueCurrentAmps(int follower) {
+    return this.inputs.torqueCurrentAmps[follower];
   }
 
   public Current getPrimarySupplyCurrent() {
     return getSupplyCurrent(0);
   }
+
   public Current getSupplyCurrent(int follower) {
-    return this.inputs.supplyCurrent[follower];
+    return Amp.of(getSupplyCurrentAmps(follower));
+  }
+  public double getPrimarySupplyCurrentAmps() {
+    return getSupplyCurrentAmps(0);
+  }
+
+  public double getSupplyCurrentAmps(int follower) {
+    return this.inputs.supplyCurrentAmps[follower];
   }
 
   public AngularVelocity getVelocity() {
@@ -153,7 +194,6 @@ public abstract class LoggedTalonFX {
   public Angle getPosition() {
     return this.inputs.position;
   }
-
 }
 
 /*

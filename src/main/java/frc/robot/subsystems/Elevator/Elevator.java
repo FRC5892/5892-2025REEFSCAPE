@@ -48,9 +48,6 @@ public class Elevator extends SubsystemBase {
                 new FeedbackConfigs().withSensorToMechanismRatio(ElevatorConstants.GEAR_RATIO));
     this.talon =
         talon
-            .withPosition()
-            .withVelocity()
-            .withAppliedVoltage()
             .withConfig(config)
             .withSimConfig(
                 c ->

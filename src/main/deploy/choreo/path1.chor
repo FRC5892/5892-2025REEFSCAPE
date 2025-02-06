@@ -4,11 +4,32 @@
  "type":"Swerve",
  "variables":{
   "expressions":{
+   "duzina":{
+    "dimension":"Length",
+    "var":{
+     "exp":"3 m",
+     "val":3.0
+    }
+   },
    "endAngle":{
     "dimension":"Angle",
     "var":{
      "exp":"-53 deg",
      "val":-0.9250245035569946
+    }
+   },
+   "refx":{
+    "dimension":"Number",
+    "var":{
+     "exp":"1.12",
+     "val":1.12
+    }
+   },
+   "refy":{
+    "dimension":"Number",
+    "var":{
+     "exp":"7.1",
+     "val":7.1
     }
    },
    "startAngleLeftMiddle":{

@@ -1,5 +1,9 @@
 package frc.robot.util.LoggedTalon;
 
+import static edu.wpi.first.units.Units.Amp;
+import static edu.wpi.first.units.Units.Celsius;
+import static edu.wpi.first.units.Units.Volt;
+
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.ControlRequest;
@@ -8,12 +12,6 @@ import edu.wpi.first.wpilibj.Alert;
 import frc.robot.Constants;
 // import frc.robot.util.LoggedTalon.Follower.TalonFXFollower;
 import frc.robot.util.LoggedTunableNumber;
-
-import static edu.wpi.first.units.Units.Amp;
-import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.Celsius;
-import static edu.wpi.first.units.Units.Volt;
-
 import java.util.function.Function;
 import org.littletonrobotics.junction.Logger;
 
@@ -131,13 +129,15 @@ public abstract class LoggedTalonFX {
   public Voltage getPrimaryAppliedVoltage() {
     return getAppliedVoltage(0);
   }
-  
+
   public Voltage getAppliedVoltage(int follower) {
     return Volt.of(getAppliedVoltageVolts(follower));
   }
+
   public double getPrimaryAppliedVoltageVolts() {
     return getAppliedVoltageVolts(0);
   }
+
   public double getAppliedVoltageVolts(int follower) {
     return this.inputs.appliedVolts[follower];
   }
@@ -149,6 +149,7 @@ public abstract class LoggedTalonFX {
   public Temperature getTempurature(int follower) {
     return Celsius.of(this.inputs.temperatureC[follower]);
   }
+
   public double getPrimaryTemperatureC() {
     return getTempuratureC(0);
   }
@@ -164,6 +165,7 @@ public abstract class LoggedTalonFX {
   public Current getTorqueCurrent(int follower) {
     return Amp.of(getTorqueCurrentAmps(follower));
   }
+
   public double getPrimaryTorqueCurrentAmps() {
     return getTorqueCurrentAmps(0);
   }
@@ -179,6 +181,7 @@ public abstract class LoggedTalonFX {
   public Current getSupplyCurrent(int follower) {
     return Amp.of(getSupplyCurrentAmps(follower));
   }
+
   public double getPrimarySupplyCurrentAmps() {
     return getSupplyCurrentAmps(0);
   }

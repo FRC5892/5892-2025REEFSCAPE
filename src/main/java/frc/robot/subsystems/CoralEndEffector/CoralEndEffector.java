@@ -9,6 +9,8 @@ import com.ctre.phoenix6.controls.CoastOut;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
+import frc.robot.util.LoggedDIO.LoggedDIO;
 import frc.robot.util.LoggedTalon.LoggedTalonFX;
 
 public class CoralEndEffector extends SubsystemBase {
@@ -17,10 +19,12 @@ public class CoralEndEffector extends SubsystemBase {
       new DutyCycleOut(DEFAULT_DUTY_CYCLE).withEnableFOC(true);
   private final CoastOut coastOut = new CoastOut();
   private final LoggedTalonFX talon;
+  private final LoggedDIO beamBreak;
 
-  public CoralEndEffector(LoggedTalonFX talon) {
+  public CoralEndEffector(LoggedTalonFX talon, LoggedDIO beambreak) {
     var config = new TalonFXConfiguration();
     this.talon = talon.withConfig(config).withTunable(config.Slot0);
+    this.beamBreak = beambreak;
   }
 
   public Command runAtDutyCycle(double dutyCycle) {
@@ -28,6 +32,9 @@ public class CoralEndEffector extends SubsystemBase {
         () -> talon.setControl(dutyCycleOut.withOutput(dutyCycle)), // Start the motor
         () -> talon.setControl(coastOut) // Stop the motor
         );
+  }
+  public Command intakeCommand() {
+    return new WaitUntilCommand(()->beamBreak.get()).andThen(runAtDutyCycle(DEFAULT_DUTY_CYCLE).until(()->!beamBreak.get()));
   }
 
   @Override

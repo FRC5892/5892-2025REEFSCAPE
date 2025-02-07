@@ -1,6 +1,5 @@
 package frc.robot.util.LoggedTalon;
 
-import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
@@ -51,7 +50,6 @@ public class PhoenixTalonFX extends LoggedTalonFX {
       voltageSignal.set(i, talonFX[i].getMotorVoltage());
       torqueCurrentSignal.set(i, talonFX[i].getTorqueCurrent());
       supplyCurrentSignal.set(i, talonFX[i].getSupplyCurrent());
-      
     }
     velocitySignal = talonFX[0].getVelocity();
     positionSignal = talonFX[0].getPosition();
@@ -66,15 +64,23 @@ public class PhoenixTalonFX extends LoggedTalonFX {
   protected void updateInputs(TalonFXInputs inputs) {
     for (int i = 0; i <= super.followers; i++) {
       final StatusCode status;
-      if (i==0) {
-        status = StatusSignal.refreshAll(voltageSignal.get(0), torqueCurrentSignal.get(0), supplyCurrentSignal.get(0), velocitySignal, positionSignal);
+      if (i == 0) {
+        status =
+            StatusSignal.refreshAll(
+                voltageSignal.get(0),
+                torqueCurrentSignal.get(0),
+                supplyCurrentSignal.get(0),
+                velocitySignal,
+                positionSignal);
       } else {
-        status = StatusSignal.refreshAll(voltageSignal.get(i), torqueCurrentSignal.get(i), supplyCurrentSignal.get(i));
+        status =
+            StatusSignal.refreshAll(
+                voltageSignal.get(i), torqueCurrentSignal.get(i), supplyCurrentSignal.get(i));
       }
       inputs.connected[i] = connectionDebouncer[i].calculate(status.isOK());
       inputs.appliedVolts[i] = voltageSignal.get(i).getValueAsDouble();
-
     }
+    // inputs.position
   }
 
   // This is when I wish java had macro support

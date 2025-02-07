@@ -49,6 +49,11 @@ public abstract class LoggedTalonFX {
                 "TalonFX " + name + " follower " + i + " is not connected", Alert.AlertType.kError);
       }
     }
+    inputs.torqueCurrentAmps = new double[followers + 1];
+    inputs.temperatureC = new double[followers + 1];
+    inputs.connected = new boolean[followers + 1];
+    inputs.supplyCurrentAmps = new double[followers + 1];
+    inputs.appliedVolts = new double[followers + 1];
   }
 
   public void periodic() {

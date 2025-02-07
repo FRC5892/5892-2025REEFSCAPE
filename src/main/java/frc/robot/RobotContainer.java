@@ -15,12 +15,9 @@ package frc.robot;
 
 import com.ctre.phoenix6.CANBus;
 import com.pathplanner.lib.auto.AutoBuilder;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
@@ -175,22 +172,22 @@ public class RobotContainer {
             () -> -driverController.getLeftX(),
             () -> -driverController.getRightX()));
     // Reset gyro to 0° when B button is pressed
-    driverController
-        .y()
-        .onTrue(
-            Commands.runOnce(
-                    () ->
-                        drive.setPose(
-                            new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
-                    drive)
-                .ignoringDisable(true));
+    //    driverController
+    //        .y()
+    //        .onTrue(
+    //            Commands.runOnce(
+    //                    () ->
+    //                        drive.setPose(
+    //                            new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
+    //                    drive)
+    //                .ignoringDisable(true));
     driverController.leftBumper().whileTrue(drive.driveToReefCommand(Drive.ReefBranch.LEFT));
     driverController.rightBumper().whileTrue(drive.driveToReefCommand(Drive.ReefBranch.RIGHT));
     /* Codriver Controls */
-    codriverController.a().onTrue(elevator.goToPosition(ElevatorTarget.INTAKE));
-    codriverController.b().onTrue(elevator.goToPosition(ElevatorTarget.L2));
-    codriverController.x().onTrue(elevator.goToPosition(ElevatorTarget.L3));
-    codriverController.y().onTrue(elevator.goToPosition(ElevatorTarget.L4));
+    driverController.a().onTrue(elevator.goToPosition(ElevatorTarget.INTAKE));
+    driverController.b().onTrue(elevator.goToPosition(ElevatorTarget.L2));
+    driverController.x().onTrue(elevator.goToPosition(ElevatorTarget.L3));
+    driverController.y().onTrue(elevator.goToPosition(ElevatorTarget.L4));
   }
 
   /**

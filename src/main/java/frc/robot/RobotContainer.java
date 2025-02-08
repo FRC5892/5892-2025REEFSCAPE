@@ -74,7 +74,9 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {});
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {});
-        coralEndEffector = new CoralEndEffector(new NoOppTalonFX("coralEffector", 0),new NoOppDio("intakeBeamBreak"));
+        coralEndEffector =
+            new CoralEndEffector(
+                new NoOppTalonFX("coralEffector", 0), new NoOppDio("intakeBeamBreak"));
         climb = new Climb(new NoOppTalonFX("climb", 0));
 
         // Instantiate the tested subsystem
@@ -98,7 +100,9 @@ public class RobotContainer {
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0));
         elevator = new Elevator(new PhoenixTalonFX(20, defaultCanBus, "elevator"));
         coralEndEffector =
-            new CoralEndEffector(new PhoenixTalonFX(-2, defaultCanBus, "coralEffector"),new HardwareDIO("intakeBeamBreak",2));
+            new CoralEndEffector(
+                new PhoenixTalonFX(-2, defaultCanBus, "coralEffector"),
+                new HardwareDIO("intakeBeamBreak", 2));
         climb = new Climb(new PhoenixTalonFX(-3, defaultCanBus, "climb"));
         break;
 
@@ -118,7 +122,9 @@ public class RobotContainer {
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose));
         elevator = new Elevator(new ElevatorSimulation(5, defaultCanBus, "elevator"));
         coralEndEffector =
-            new CoralEndEffector(new PhoenixTalonFX(-2, defaultCanBus, "coralEffector"), SimDIO.fromNT("intakeBeamBreak"));
+            new CoralEndEffector(
+                new PhoenixTalonFX(-2, defaultCanBus, "coralEffector"),
+                SimDIO.fromNT("intakeBeamBreak"));
         climb = new Climb(new PhoenixTalonFX(-3, defaultCanBus, "climb"));
         break;
 
@@ -133,7 +139,9 @@ public class RobotContainer {
                 new ModuleIO() {});
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {});
         elevator = new Elevator(new NoOppTalonFX("elevator", 0));
-        coralEndEffector = new CoralEndEffector(new NoOppTalonFX("coralEffector", 0), new NoOppDio("intakeBeamBreak"));
+        coralEndEffector =
+            new CoralEndEffector(
+                new NoOppTalonFX("coralEffector", 0), new NoOppDio("intakeBeamBreak"));
         climb = new Climb(new NoOppTalonFX("climb", 0));
         break;
     }

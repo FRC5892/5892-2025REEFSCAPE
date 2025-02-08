@@ -32,6 +32,9 @@ import frc.robot.subsystems.Elevator.ElevatorConstants.ElevatorTarget;
 import frc.robot.subsystems.Elevator.ElevatorSimulation;
 import frc.robot.subsystems.drive.*;
 import frc.robot.subsystems.vision.*;
+import frc.robot.util.LoggedDIO.HardwareDIO;
+import frc.robot.util.LoggedDIO.NoOppDio;
+import frc.robot.util.LoggedDIO.SimDIO;
 import frc.robot.util.LoggedTalon.NoOppTalonFX;
 import frc.robot.util.LoggedTalon.PhoenixTalonFX;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -51,7 +54,7 @@ public class RobotContainer {
   private final Climb climb;
   private final CoralEndEffector coralEndEffector;
 
-  // Controller
+  // Controllers
   private final CommandXboxController driverController = new CommandXboxController(0);
   private final CommandXboxController codriverController = new CommandXboxController(1);
 
@@ -71,7 +74,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {});
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {});
-        coralEndEffector = new CoralEndEffector(new NoOppTalonFX("coralEffector", 0));
+        coralEndEffector = new CoralEndEffector(new NoOppTalonFX("coralEffector", 0),new NoOppDio("intakeBeamBreak"));
         climb = new Climb(new NoOppTalonFX("climb", 0));
 
         // Instantiate the tested subsystem
@@ -95,7 +98,7 @@ public class RobotContainer {
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0));
         elevator = new Elevator(new PhoenixTalonFX(20, defaultCanBus, "elevator"));
         coralEndEffector =
-            new CoralEndEffector(new PhoenixTalonFX(-2, defaultCanBus, "coralEffector"));
+            new CoralEndEffector(new PhoenixTalonFX(-2, defaultCanBus, "coralEffector"),new HardwareDIO("intakeBeamBreak",2));
         climb = new Climb(new PhoenixTalonFX(-3, defaultCanBus, "climb"));
         break;
 
@@ -115,7 +118,7 @@ public class RobotContainer {
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose));
         elevator = new Elevator(new ElevatorSimulation(5, defaultCanBus, "elevator"));
         coralEndEffector =
-            new CoralEndEffector(new PhoenixTalonFX(-2, defaultCanBus, "coralEffector"));
+            new CoralEndEffector(new PhoenixTalonFX(-2, defaultCanBus, "coralEffector"), SimDIO.fromNT("intakeBeamBreak"));
         climb = new Climb(new PhoenixTalonFX(-3, defaultCanBus, "climb"));
         break;
 
@@ -130,7 +133,7 @@ public class RobotContainer {
                 new ModuleIO() {});
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {});
         elevator = new Elevator(new NoOppTalonFX("elevator", 0));
-        coralEndEffector = new CoralEndEffector(new NoOppTalonFX("coralEffector", 0));
+        coralEndEffector = new CoralEndEffector(new NoOppTalonFX("coralEffector", 0), new NoOppDio("intakeBeamBreak"));
         climb = new Climb(new NoOppTalonFX("climb", 0));
         break;
     }

@@ -8,15 +8,15 @@ import edu.wpi.first.wpilibj.DigitalInput;
 
 /** Add your docs here. */
 public class HardwareDIO extends LoggedDIO {
-    private final DigitalInput hardware;
-    public HardwareDIO(String name, int id) {
-        super(name);
-        hardware = new DigitalInput(id);
-    }
+  private final DigitalInput hardware;
 
-    @Override
-    protected void updateInputs(DIOInputsAutoLogged inputs) {
-        inputs.value = hardware.get();
-    }
-    
+  public HardwareDIO(String name, int id) {
+    super(name);
+    hardware = new DigitalInput(id);
+  }
+
+  @Override
+  protected void updateInputs(DIOInputsAutoLogged inputs) {
+    inputs.value = hardware.get();
+  }
 }

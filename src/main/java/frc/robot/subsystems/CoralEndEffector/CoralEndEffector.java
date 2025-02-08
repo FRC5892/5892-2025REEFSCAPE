@@ -33,8 +33,10 @@ public class CoralEndEffector extends SubsystemBase {
         () -> talon.setControl(coastOut) // Stop the motor
         );
   }
+
   public Command intakeCommand() {
-    return new WaitUntilCommand(()->beamBreak.get()).andThen(runAtDutyCycle(DEFAULT_DUTY_CYCLE).until(()->!beamBreak.get()));
+    return new WaitUntilCommand(() -> beamBreak.get())
+        .andThen(runAtDutyCycle(DEFAULT_DUTY_CYCLE).until(() -> !beamBreak.get()));
   }
 
   @Override

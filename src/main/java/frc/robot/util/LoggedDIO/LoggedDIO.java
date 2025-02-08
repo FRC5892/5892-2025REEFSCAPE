@@ -4,28 +4,29 @@
 
 package frc.robot.util.LoggedDIO;
 
+import lombok.RequiredArgsConstructor;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
-import frc.robot.util.LoggedDIO.DIOInputsAutoLogged;
-import lombok.RequiredArgsConstructor;
 
 /** Add your docs here. */
 @RequiredArgsConstructor
 public abstract class LoggedDIO {
-    private final DIOInputsAutoLogged inputs = new DIOInputsAutoLogged(); 
-    private final String name;
+  private final DIOInputsAutoLogged inputs = new DIOInputsAutoLogged();
+  private final String name;
 
-    public void periodic() {
-        updateInputs(inputs);
-        Logger.processInputs("DigitalInput/"+name, inputs);
-    };
-    protected abstract void updateInputs(DIOInputsAutoLogged inputs);
-    @AutoLog
-    protected class DIOInputs {
-        boolean value;
-    }
-    public boolean get() {
-        return inputs.value;
-    }
-    
+  public void periodic() {
+    updateInputs(inputs);
+    Logger.processInputs("DigitalInput/" + name, inputs);
+  }
+
+  protected abstract void updateInputs(DIOInputsAutoLogged inputs);
+
+  @AutoLog
+  protected static class DIOInputs {
+    boolean value;
+  }
+
+  public boolean get() {
+    return inputs.value;
+  }
 }

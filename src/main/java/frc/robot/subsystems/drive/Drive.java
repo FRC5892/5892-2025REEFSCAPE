@@ -115,9 +115,7 @@ public class Drive extends SubsystemBase {
   private final LoggedTunableNumber driveKSTunableNumber;
   private final LoggedTunableNumber driveKVTunableNumber;
 
-  @Getter
-  @AutoLogOutput(key = "Drive/ReefSector")
-  private int reefSector = -1;
+  @Getter @AutoLogOutput private int reefSector = -1;
 
   // End 5892
 

@@ -9,7 +9,7 @@ import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.NeutralOut;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.util.LoggedDIO.LoggedDIO;
 import frc.robot.util.LoggedTalon.LoggedTalonFX;
 import frc.robot.util.LoggedTunableNumber;
@@ -34,9 +34,12 @@ public class CoralEndEffector extends SubsystemBase {
         );
   }
 
-  public Command intakeCommand() {
-    return new WaitUntilCommand(() -> beamBreak.get())
-        .andThen(runAtDutyCycle(dutyCycle.get()).until(() -> !beamBreak.get()));
+  public Command runIntake() {
+    return runAtDutyCycle(dutyCycle.get());
+  }
+
+  public Trigger beamBreakTrigger() {
+    return new Trigger(beamBreak::get);
   }
 
   @Override

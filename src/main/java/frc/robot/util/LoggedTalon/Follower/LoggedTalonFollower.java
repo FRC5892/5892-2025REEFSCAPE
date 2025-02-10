@@ -5,5 +5,4 @@
 package frc.robot.util.LoggedTalon.Follower;
 
 /** Add your docs here. */
-public class LoggedTalonFollower {
-}
+public class LoggedTalonFollower {}

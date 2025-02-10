@@ -23,6 +23,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 public class Module {
   private final ModuleIO io;
@@ -36,6 +37,13 @@ public class Module {
   private final Alert turnDisconnectedAlert;
   private final Alert turnEncoderDisconnectedAlert;
   private SwerveModulePosition[] odometryPositions = new SwerveModulePosition[] {};
+
+  // 5892: module EStop
+  private final LoggedNetworkBoolean moduleDisable;
+  private final LoggedNetworkBoolean disableDrive;
+
+  private boolean isModuleDisabled = false;
+  private boolean isDriveDisabled = false;
 
   public Module(
       ModuleIO io,
@@ -56,6 +64,11 @@ public class Module {
         new Alert(
             "Disconnected turn encoder on module " + Integer.toString(index) + ".",
             AlertType.kError);
+    // 5892: module EStop
+    moduleDisable =
+        new LoggedNetworkBoolean("SmartDashboard/Drive/Module" + index + "/Disable", false);
+    disableDrive =
+        new LoggedNetworkBoolean("SmartDashboard/Drive/Module" + index + "/DisableDrive", false);
   }
 
   public void periodic() {
@@ -75,6 +88,17 @@ public class Module {
     driveDisconnectedAlert.set(!inputs.driveConnected);
     turnDisconnectedAlert.set(!inputs.turnConnected);
     turnEncoderDisconnectedAlert.set(!inputs.turnEncoderConnected);
+
+    // 5892: module EStop
+    if (moduleDisable.get() != isModuleDisabled) {
+      io.coastTurn(moduleDisable.get());
+      io.coastDrive(moduleDisable.get());
+      isModuleDisabled = moduleDisable.get();
+    }
+    if (disableDrive.get() != isDriveDisabled) {
+      io.coastDrive(disableDrive.get());
+      isDriveDisabled = disableDrive.get();
+    }
   }
 
   /** Runs the module with the specified setpoint state. Mutates the state to optimize it. */
@@ -84,8 +108,13 @@ public class Module {
     state.cosineScale(inputs.turnPosition);
 
     // Apply setpoints
-    io.setDriveVelocity(state.speedMetersPerSecond / constants.WheelRadius);
-    io.setTurnPosition(state.angle);
+    // 5892: module EStop
+    if (!(isModuleDisabled || isDriveDisabled)) {
+      io.setDriveVelocity(state.speedMetersPerSecond / constants.WheelRadius);
+    }
+    if (!isModuleDisabled) {
+      io.setTurnPosition(state.angle);
+    }
   }
 
   /** Runs the module with the specified output while controlling to zero degrees. */

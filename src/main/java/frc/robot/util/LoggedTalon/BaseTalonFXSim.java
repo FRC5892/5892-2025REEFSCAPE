@@ -5,7 +5,6 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 import edu.wpi.first.wpilibj.RobotController;
 import frc.robot.util.LoggedTalon.Follower.PhoenixTalonFollower;
-
 import java.util.function.Function;
 
 public abstract class BaseTalonFXSim extends PhoenixTalonFX {
@@ -15,7 +14,7 @@ public abstract class BaseTalonFXSim extends PhoenixTalonFX {
 
   public BaseTalonFXSim(int canID, CANBus canBus, String name, PhoenixTalonFollower... followers) {
     super(canID, canBus, name, followers);
-    motorSimState = super.talonFX.getSimState();
+    motorSimState = super.talonFX[0].getSimState();
   }
 
   @Override

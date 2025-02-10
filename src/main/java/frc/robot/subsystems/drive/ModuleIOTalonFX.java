@@ -287,4 +287,21 @@ public class ModuleIOTalonFX implements ModuleIO {
     driveSlotConfigs.kV = kV;
     PhoenixUtil.tryUntilOk(2, () -> driveTalon.getConfigurator().apply(driveSlotConfigs));
   }
+
+  /** 5892: Coast Drive motor */
+  @Override
+  public void coastDrive(boolean coast) {
+    new Thread(
+            () ->
+                driveTalon.setNeutralMode(coast ? NeutralModeValue.Coast : NeutralModeValue.Brake))
+        .start();
+  }
+
+  /** 5892: Coast Turn motor */
+  @Override
+  public void coastTurn(boolean coast) {
+    new Thread(
+            () -> turnTalon.setNeutralMode(coast ? NeutralModeValue.Coast : NeutralModeValue.Brake))
+        .start();
+  }
 }

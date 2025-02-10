@@ -22,9 +22,6 @@ public class Climb extends SubsystemBase {
     var config = new TalonFXConfiguration();
     this.talon =
         talon
-            .withPosition()
-            .withVelocity()
-            .withAppliedVoltage()
             .withConfig(config)
             .withSimConfig(
                 c ->

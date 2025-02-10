@@ -7,7 +7,7 @@ import java.util.function.Function;
 
 public class NoOppTalonFX extends LoggedTalonFX {
 
-  public NoOppTalonFX(String name, LoggedTalonFX... followers) {
+  public NoOppTalonFX(String name, int followers) {
     super(name, followers);
   }
 
@@ -16,31 +16,6 @@ public class NoOppTalonFX extends LoggedTalonFX {
 
   @Override
   protected void updateInputs(TalonFXInputs inputs) {}
-
-  @Override
-  public LoggedTalonFX withAppliedVoltage() {
-    return this;
-  }
-
-  @Override
-  public LoggedTalonFX withTorqueCurrent() {
-    return this;
-  }
-
-  @Override
-  public LoggedTalonFX withStatorCurrent() {
-    return this;
-  }
-
-  @Override
-  public LoggedTalonFX withVelocity() {
-    return this;
-  }
-
-  @Override
-  public LoggedTalonFX withPosition() {
-    return this;
-  }
 
   @Override
   public LoggedTalonFX withConfig(TalonFXConfiguration config) {
@@ -54,7 +29,4 @@ public class NoOppTalonFX extends LoggedTalonFX {
 
   @Override
   public void quickApplySlot0Config(Slot0Configs config) {}
-
-  @Override
-  public void follow() {}
 }

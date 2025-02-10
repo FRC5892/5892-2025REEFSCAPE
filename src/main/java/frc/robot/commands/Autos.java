@@ -13,15 +13,15 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.Elevator.Elevator;
-import frc.robot.subsystems.Elevator.ElevatorConstants.ElevatorTarget;
+import frc.robot.subsystems.Elevator.ElevatorConstants.ElevatorPosition;
 
 /** Add your docs here. */
 public class Autos {
   public static void registerTriggers(Elevator elevator) {
-    new EventTrigger("Extend L4").onTrue(elevator.goToPosition(ElevatorTarget.L4));
-    new EventTrigger("Extend L3").onTrue(elevator.goToPosition(ElevatorTarget.L3));
-    new EventTrigger("Extend L2").onTrue(elevator.goToPosition(ElevatorTarget.L2));
-    new EventTrigger("Extend Intake").onTrue(elevator.goToPosition(ElevatorTarget.INTAKE));
+    new EventTrigger("Extend L4").onTrue(elevator.goToPosition(ElevatorPosition.L4));
+    new EventTrigger("Extend L3").onTrue(elevator.goToPosition(ElevatorPosition.L3));
+    new EventTrigger("Extend L2").onTrue(elevator.goToPosition(ElevatorPosition.L2));
+    new EventTrigger("Extend Intake").onTrue(elevator.goToPosition(ElevatorPosition.INTAKE));
   }
 
   public static final Command upCoralAuto() {

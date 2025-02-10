@@ -85,6 +85,7 @@ public class LoggedTunableNumber implements DoubleSupplier {
    *     otherwise.
    */
   public boolean hasChanged(int id) {
+    if (!Constants.tuningMode) return false;
     double currentValue = get();
     Double lastValue = lastHasChangedValues.get(id);
     if (lastValue == null || currentValue != lastValue) {
@@ -106,6 +107,7 @@ public class LoggedTunableNumber implements DoubleSupplier {
    */
   public static void ifChanged(
       int id, Consumer<double[]> action, LoggedTunableNumber... tunableNumbers) {
+    if (!Constants.tuningMode) return;
     if (Arrays.stream(tunableNumbers).anyMatch(tunableNumber -> tunableNumber.hasChanged(id))) {
       action.accept(Arrays.stream(tunableNumbers).mapToDouble(LoggedTunableNumber::get).toArray());
     }

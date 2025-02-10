@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
@@ -28,10 +29,13 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Climb.Climb;
 import frc.robot.subsystems.CoralEndEffector.CoralEndEffector;
 import frc.robot.subsystems.Elevator.Elevator;
-import frc.robot.subsystems.Elevator.ElevatorConstants.ElevatorTarget;
+import frc.robot.subsystems.Elevator.ElevatorConstants.ElevatorPosition;
 import frc.robot.subsystems.Elevator.ElevatorSimulation;
 import frc.robot.subsystems.drive.*;
 import frc.robot.subsystems.vision.*;
+import frc.robot.util.LoggedDIO.HardwareDIO;
+import frc.robot.util.LoggedDIO.NoOppDio;
+import frc.robot.util.LoggedDIO.SimDIO;
 import frc.robot.util.LoggedTalon.NoOppTalonFX;
 import frc.robot.util.LoggedTalon.PhoenixTalonFX;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -51,7 +55,7 @@ public class RobotContainer {
   private final Climb climb;
   private final CoralEndEffector coralEndEffector;
 
-  // Controller
+  // Controllers
   private final CommandXboxController driverController = new CommandXboxController(0);
   private final CommandXboxController codriverController = new CommandXboxController(1);
 
@@ -71,7 +75,9 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {});
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {});
-        coralEndEffector = new CoralEndEffector(new NoOppTalonFX("coralEffector", 0));
+        coralEndEffector =
+            new CoralEndEffector(
+                new NoOppTalonFX("coralEffector", 0), new NoOppDio("intakeBeamBreak"));
         climb = new Climb(new NoOppTalonFX("climb", 0));
 
         // Instantiate the tested subsystem
@@ -95,7 +101,9 @@ public class RobotContainer {
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0));
         elevator = new Elevator(new PhoenixTalonFX(20, defaultCanBus, "elevator"));
         coralEndEffector =
-            new CoralEndEffector(new PhoenixTalonFX(-2, defaultCanBus, "coralEffector"));
+            new CoralEndEffector(
+                new PhoenixTalonFX(-2, defaultCanBus, "coralEffector"),
+                new HardwareDIO("intakeBeamBreak", 2));
         climb = new Climb(new PhoenixTalonFX(-3, defaultCanBus, "climb"));
         break;
 
@@ -115,7 +123,9 @@ public class RobotContainer {
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose));
         elevator = new Elevator(new ElevatorSimulation(5, defaultCanBus, "elevator"));
         coralEndEffector =
-            new CoralEndEffector(new PhoenixTalonFX(-2, defaultCanBus, "coralEffector"));
+            new CoralEndEffector(
+                new PhoenixTalonFX(-2, defaultCanBus, "coralEffector"),
+                SimDIO.fromNT("intakeBeamBreak"));
         climb = new Climb(new PhoenixTalonFX(-3, defaultCanBus, "climb"));
         break;
 
@@ -130,11 +140,21 @@ public class RobotContainer {
                 new ModuleIO() {});
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {});
         elevator = new Elevator(new NoOppTalonFX("elevator", 0));
-        coralEndEffector = new CoralEndEffector(new NoOppTalonFX("coralEffector", 0));
+        coralEndEffector =
+            new CoralEndEffector(
+                new NoOppTalonFX("coralEffector", 0), new NoOppDio("intakeBeamBreak"));
         climb = new Climb(new NoOppTalonFX("climb", 0));
         break;
     }
 
+    coralEndEffector
+        .beamBreakTrigger()
+        .and(() -> elevator.atPosition(ElevatorPosition.INTAKE))
+        .whileTrue(
+            coralEndEffector
+                .runIntake()
+                .andThen(rumbleBoth(GenericHID.RumbleType.kLeftRumble, 1, 0.25))
+                .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf));
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
@@ -187,10 +207,10 @@ public class RobotContainer {
     driverController.leftBumper().whileTrue(drive.driveToReefCommand(Drive.ReefBranch.LEFT));
     driverController.rightBumper().whileTrue(drive.driveToReefCommand(Drive.ReefBranch.RIGHT));
     /* Codriver Controls */
-    codriverController.a().onTrue(elevator.goToPosition(ElevatorTarget.INTAKE));
-    codriverController.b().onTrue(elevator.goToPosition(ElevatorTarget.L2));
-    codriverController.x().onTrue(elevator.goToPosition(ElevatorTarget.L3));
-    codriverController.y().onTrue(elevator.goToPosition(ElevatorTarget.L4));
+    driverController.a().onTrue(elevator.goToPosition(ElevatorPosition.INTAKE));
+    driverController.b().onTrue(elevator.goToPosition(ElevatorPosition.L2));
+    driverController.x().onTrue(elevator.goToPosition(ElevatorPosition.L3));
+    driverController.y().onTrue(elevator.goToPosition(ElevatorPosition.L4));
   }
 
   /**
@@ -200,5 +220,32 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     return autoChooser.get();
+  }
+
+  public Command rumbleDriver(
+      GenericHID.RumbleType rumbleType, double intensity, double timeSeconds) {
+    return Commands.runOnce(
+            () -> {
+              driverController.setRumble(rumbleType, intensity);
+            })
+        .andThen(new WaitCommand(timeSeconds))
+        .finallyDo(() -> driverController.setRumble(rumbleType, 0));
+  }
+
+  public Command rumbleCoDriver(
+      GenericHID.RumbleType rumbleType, double intensity, double timeSeconds) {
+    return Commands.runOnce(
+            () -> {
+              codriverController.setRumble(rumbleType, intensity);
+            })
+        .andThen(new WaitCommand(timeSeconds))
+        .finallyDo(() -> codriverController.setRumble(rumbleType, 0));
+  }
+
+  public Command rumbleBoth(
+      GenericHID.RumbleType rumbleType, double intensity, double timeSeconds) {
+    return Commands.parallel(
+        rumbleDriver(rumbleType, intensity, timeSeconds),
+        rumbleCoDriver(rumbleType, intensity, timeSeconds));
   }
 }

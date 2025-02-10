@@ -55,4 +55,10 @@ public interface ModuleIO {
 
   /** 5892: Apply PID Constants */
   public default void setDrivePID(double kP, double kI, double kD, double kS, double kV) {}
+
+  /** 5892: Coast Drive motor */
+  default void coastDrive(boolean coast) {}
+
+  /** 5892: Coast Turn motor */
+  default void coastTurn(boolean coast) {}
 }

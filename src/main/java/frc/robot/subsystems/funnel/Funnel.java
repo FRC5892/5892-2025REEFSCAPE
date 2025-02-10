@@ -23,6 +23,13 @@ public class Funnel extends SubsystemBase {
         });
   }
 
+  public Command foldDown() {
+    return runOnce(
+        () -> {
+          servo.setPosition(0);
+        });
+  }
+
   @Override
   public void periodic() {
     // This method will be called once per scheduler run

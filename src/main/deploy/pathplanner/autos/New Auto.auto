@@ -7,7 +7,25 @@
         {
           "type": "path",
           "data": {
-            "pathName": "New Path"
+            "pathName": "Left Preload - I"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "I - Left Far Station "
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Left Far Station - J"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "J - Left Far Station"
           }
         }
       ]

@@ -21,6 +21,7 @@ import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.*;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
@@ -28,10 +29,7 @@ import edu.wpi.first.hal.FRCNetComm.tResourceType;
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -48,11 +46,15 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.Constants.Mode;
+import frc.robot.FieldConstants;
 import frc.robot.generated.TunerConstants;
+import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.LocalADStarAK;
 import frc.robot.util.LoggedTunableNumber;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import lombok.Getter;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -112,6 +114,9 @@ public class Drive extends SubsystemBase {
   private final LoggedTunableNumber driveKDTunableNumber;
   private final LoggedTunableNumber driveKSTunableNumber;
   private final LoggedTunableNumber driveKVTunableNumber;
+
+  @Getter @AutoLogOutput private int reefSector = -1;
+
   // End 5892
 
   public Drive(
@@ -166,16 +171,24 @@ public class Drive extends SubsystemBase {
                 (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
     // 5892
     if (Constants.tuningMode) {
-      driveKPTunableNumber =
-          new LoggedTunableNumber("Drive kP", TunerConstants.BackLeft.DriveMotorGains.kP);
-      driveKITunableNumber =
-          new LoggedTunableNumber("Drive kI", TunerConstants.BackLeft.DriveMotorGains.kI);
-      driveKDTunableNumber =
-          new LoggedTunableNumber("Drive kD", TunerConstants.BackLeft.DriveMotorGains.kD);
-      driveKSTunableNumber =
-          new LoggedTunableNumber("Drive kS", TunerConstants.BackLeft.DriveMotorGains.kS);
-      driveKVTunableNumber =
-          new LoggedTunableNumber("Drive kV", TunerConstants.BackLeft.DriveMotorGains.kV);
+      if (Constants.currentMode == Mode.SIM) {
+        driveKPTunableNumber = new LoggedTunableNumber("Drive kP", ModuleIOSim.DRIVE_KP);
+        driveKITunableNumber = new LoggedTunableNumber("Drive kI", 0.0);
+        driveKDTunableNumber = new LoggedTunableNumber("Drive kD", ModuleIOSim.DRIVE_KD);
+        driveKSTunableNumber = new LoggedTunableNumber("Drive kS", ModuleIOSim.DRIVE_KS);
+        driveKVTunableNumber = new LoggedTunableNumber("Drive kV", ModuleIOSim.DRIVE_KV);
+      } else {
+        driveKPTunableNumber =
+            new LoggedTunableNumber("Drive kP", TunerConstants.BackLeft.DriveMotorGains.kP);
+        driveKITunableNumber =
+            new LoggedTunableNumber("Drive kI", TunerConstants.BackLeft.DriveMotorGains.kI);
+        driveKDTunableNumber =
+            new LoggedTunableNumber("Drive kD", TunerConstants.BackLeft.DriveMotorGains.kD);
+        driveKSTunableNumber =
+            new LoggedTunableNumber("Drive kS", TunerConstants.BackLeft.DriveMotorGains.kS);
+        driveKVTunableNumber =
+            new LoggedTunableNumber("Drive kV", TunerConstants.BackLeft.DriveMotorGains.kV);
+      }
     } else {
       driveKPTunableNumber = null;
       driveKITunableNumber = null;
@@ -253,6 +266,21 @@ public class Drive extends SubsystemBase {
         driveKDTunableNumber,
         driveKSTunableNumber,
         driveKVTunableNumber);
+    Translation2d robotToReef =
+        getPose().getTranslation().minus(AllianceFlipUtil.apply(FieldConstants.Reef.center));
+    double angleOffset =
+        (AllianceFlipUtil.shouldFlip() ? 1.0 : 0.5) + (double) 1 / 12 /* add a half sector*/;
+    reefSector =
+        (int)
+                    ((robotToReef.getAngle().getRotations() + angleOffset)
+                        * 6 /* 6 sides, so on a scale of 0-6 */)
+                % 6 /*Wrap around if it's more than 6 */
+            + 1 /*Driver count from one :( */;
+
+    Logger.recordOutput(
+        "Drive/ReefSectorSide",
+        AllianceFlipUtil.apply(FieldConstants.Reef.centerFaces[reefSector - 1]));
+
     // End 5892
   }
 
@@ -404,6 +432,7 @@ public class Drive extends SubsystemBase {
       new Translation2d(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)
     };
   }
+
   // 5892
   private void updateDrivePID(double[] values) {
     double kP = values[0];
@@ -415,4 +444,36 @@ public class Drive extends SubsystemBase {
       modules[i].setDrivePID(kP, kI, kD, kS, kV);
     }
   }
+
+  private final double FRONT_TO_CENTER_METERS = 0.47;
+  private final Transform2d START_POINT_TRANSFORM =
+      new Transform2d(-1, 0.0, Rotation2d.fromDegrees(0.0));
+  private final PathConstraints PATH_CONSTRAINTS = new PathConstraints(5, 10, 5, 10);
+
+  public Command driveToReefCommand(ReefBranch branch) {
+    return defer(
+        () -> {
+          Pose2d target =
+              FieldConstants.Reef.centerFaces[reefSector - 1].transformBy(
+                  new Transform2d(
+                      FRONT_TO_CENTER_METERS,
+                      branch == ReefBranch.LEFT
+                          ? -FieldConstants.Reef.centerToBranchAdjustY
+                          : FieldConstants.Reef.centerToBranchAdjustY,
+                      Rotation2d.k180deg));
+          Logger.recordOutput("Drive/ReefTarget", AllianceFlipUtil.apply(target));
+          Pose2d start = target.transformBy(START_POINT_TRANSFORM);
+          List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(start, target);
+          PathPlannerPath path =
+              new PathPlannerPath(
+                  waypoints, PATH_CONSTRAINTS, null, new GoalEndState(0, target.getRotation()));
+          return AutoBuilder.pathfindThenFollowPath(path, PATH_CONSTRAINTS);
+        });
+  }
+
+  public enum ReefBranch {
+    LEFT,
+    RIGHT,
+  }
+  // end 5892
 }

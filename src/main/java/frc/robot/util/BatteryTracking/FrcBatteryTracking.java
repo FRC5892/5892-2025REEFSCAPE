@@ -16,6 +16,7 @@ public class FrcBatteryTracking {
 
   private boolean hasWritten = false;
   private boolean haveBatteryData = false;
+
   /** Previous Battery's ID 0 = not attempted -1 = failed */
   private final int previousBatteryID = 0;
 

@@ -138,8 +138,9 @@ public class ModuleIOTalonFX implements ModuleIO {
           case RemoteCANcoder -> FeedbackSensorSourceValue.RemoteCANcoder;
           case FusedCANcoder -> FeedbackSensorSourceValue.FusedCANcoder;
           case SyncCANcoder -> FeedbackSensorSourceValue.SyncCANcoder;
-          default -> throw new RuntimeException(
-              "You are using an unsupported swerve configuration, which this template does not support without manual customization. The 2025 release of Phoenix supports some swerve configurations which were not available during 2025 beta testing, preventing any development and support from the AdvantageKit developers.");
+          default ->
+              throw new RuntimeException(
+                  "You are using an unsupported swerve configuration, which this template does not support without manual customization. The 2025 release of Phoenix supports some swerve configurations which were not available during 2025 beta testing, preventing any development and support from the AdvantageKit developers.");
         };
     turnConfig.Feedback.RotorToSensorRatio = constants.SteerMotorGearRatio;
     turnConfig.MotionMagic.MotionMagicCruiseVelocity = 100.0 / constants.SteerMotorGearRatio;
@@ -271,8 +272,8 @@ public class ModuleIOTalonFX implements ModuleIO {
     turnTalon.setControl(
         switch (constants.SteerMotorClosedLoopOutput) {
           case Voltage -> positionVoltageRequest.withPosition(rotation.getRotations());
-          case TorqueCurrentFOC -> positionTorqueCurrentRequest.withPosition(
-              rotation.getRotations());
+          case TorqueCurrentFOC ->
+              positionTorqueCurrentRequest.withPosition(rotation.getRotations());
         });
   }
 
@@ -285,5 +286,22 @@ public class ModuleIOTalonFX implements ModuleIO {
     driveSlotConfigs.kS = kS;
     driveSlotConfigs.kV = kV;
     PhoenixUtil.tryUntilOk(2, () -> driveTalon.getConfigurator().apply(driveSlotConfigs));
+  }
+
+  /** 5892: Coast Drive motor */
+  @Override
+  public void coastDrive(boolean coast) {
+    new Thread(
+            () ->
+                driveTalon.setNeutralMode(coast ? NeutralModeValue.Coast : NeutralModeValue.Brake))
+        .start();
+  }
+
+  /** 5892: Coast Turn motor */
+  @Override
+  public void coastTurn(boolean coast) {
+    new Thread(
+            () -> turnTalon.setNeutralMode(coast ? NeutralModeValue.Coast : NeutralModeValue.Brake))
+        .start();
   }
 }

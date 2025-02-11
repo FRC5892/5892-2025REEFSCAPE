@@ -13,8 +13,13 @@ import java.util.function.Supplier;
 
 public class ElevatorConstants {
   // TODO: Tune Gear Ratio
-  public static final double GEAR_RATIO = 55;
-  public static final Distance DISTANCE_PER_ROTATION = Inches.of(11);
+  public static final double GEAR_RATIO = 64.286 / 6.81;
+  // Max planetary 5:1, 5:1, 54:42, 22 teeth chain pitch is 1/4 in
+  // Overall: 32.143:1
+  // 64.286:1
+  // 5.5 in per rotation
+  // 2:1 elevator gearing
+  public static final Distance DISTANCE_PER_ROTATION = Inches.of(5.5);
   public static final double DISTANCE_TOLERANCE_METERS = 0.01;
   public static final double VELOCITY_TOLERANCE_RPM = 0.1;
 

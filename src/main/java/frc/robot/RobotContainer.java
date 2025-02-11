@@ -82,7 +82,7 @@ public class RobotContainer {
 
         // Instantiate the tested subsystem
 
-        elevator = new Elevator(new PhoenixTalonFX(21, TunerConstants.kCANBus, "elevator"));
+        elevator = new Elevator(new PhoenixTalonFX(20, defaultCanBus, "elevator"));
 
         break;
       case REAL:
@@ -191,8 +191,8 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> -driverController.getLeftY(),
-            () -> -driverController.getLeftX(),
+            () -> driverController.getLeftY(),
+            () -> driverController.getLeftX(),
             () -> -driverController.getRightX()));
     // Reset gyro to 0° when B button is pressed
     driverController

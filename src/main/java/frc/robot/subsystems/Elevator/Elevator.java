@@ -5,9 +5,11 @@ import static edu.wpi.first.units.Units.*;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.signals.InvertedValue;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
@@ -37,6 +39,7 @@ public class Elevator extends SubsystemBase {
   @AutoLogOutput private ElevatorPosition setPoint = ElevatorPosition.INTAKE;
   @Getter @AutoLogOutput private boolean atSetpoint = false;
 
+  // 135.7
   public Elevator(LoggedTalonFX talon) {
     var config =
         new TalonFXConfiguration()
@@ -48,7 +51,9 @@ public class Elevator extends SubsystemBase {
             .withCurrentLimits(
                 new CurrentLimitsConfigs().withSupplyCurrentLimit(10).withStatorCurrentLimit(20))
             .withFeedback(
-                new FeedbackConfigs().withSensorToMechanismRatio(ElevatorConstants.GEAR_RATIO));
+                new FeedbackConfigs().withSensorToMechanismRatio(ElevatorConstants.GEAR_RATIO))
+            .withMotorOutput(
+                new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
     this.talon =
         talon
             .withConfig(config)

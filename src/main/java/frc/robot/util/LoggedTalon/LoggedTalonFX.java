@@ -202,6 +202,8 @@ public abstract class LoggedTalonFX {
   public Angle getPosition() {
     return this.inputs.position;
   }
+
+  public abstract void setPosition(Angle position);
 }
 
 /*

@@ -6,10 +6,12 @@ import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
@@ -49,11 +51,14 @@ public class Elevator extends SubsystemBase {
                     .withMotionMagicAcceleration(100)
                     .withMotionMagicJerk(100))
             .withCurrentLimits(
-                new CurrentLimitsConfigs().withSupplyCurrentLimit(10).withStatorCurrentLimit(20))
+                new CurrentLimitsConfigs().withSupplyCurrentLimit(40).withStatorCurrentLimit(40))
             .withFeedback(
                 new FeedbackConfigs().withSensorToMechanismRatio(ElevatorConstants.GEAR_RATIO))
             .withMotorOutput(
-                new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
+                new MotorOutputConfigs()
+                    .withInverted(InvertedValue.Clockwise_Positive)
+                    .withNeutralMode(NeutralModeValue.Brake))
+            .withSlot0(new Slot0Configs().withKG(0.26).withKV(1.15).withKP(0.7).withKA(0.001));
     this.talon =
         talon
             .withConfig(config)
@@ -89,6 +94,10 @@ public class Elevator extends SubsystemBase {
         () -> talon.setControl(voltageOut.withOutput(0)));
   }
 
+  public Command set0() {
+    return runOnce(() -> talon.setPosition(Degree.of(0)));
+  }
+
   /**
    * Moves the elevator to a position.
    *
@@ -99,10 +108,17 @@ public class Elevator extends SubsystemBase {
     return runOnce(
         () -> {
           talon.setControl(motionMagicControl.withPosition(distanceToAngle(position.height.get())));
-          Logger.recordOutput("Elevator/MotorPositionSetpoint", motionMagicControl.Position);
+          Logger.recordOutput(
+              "Elevator/MotorPositionSetpoint", Rotations.of(motionMagicControl.Position));
           setPoint = position;
         });
   }
+
+  // public Command homeCommand() {
+  //   return runEnd(()->{
+  //     talon.setControl(voltageOut.withOutput(5));
+  //   }, null).until(()-> talon.getVelocity()>)
+  // }
 
   protected static Angle distanceToAngle(Distance height) {
     return Rotations.of(

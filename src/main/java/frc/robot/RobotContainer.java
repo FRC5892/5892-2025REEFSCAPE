@@ -211,6 +211,7 @@ public class RobotContainer {
     driverController.b().onTrue(elevator.goToPosition(ElevatorPosition.L2));
     driverController.x().onTrue(elevator.goToPosition(ElevatorPosition.L3));
     driverController.y().onTrue(elevator.goToPosition(ElevatorPosition.L4));
+    driverController.start().onTrue(elevator.set0());
   }
 
   /**

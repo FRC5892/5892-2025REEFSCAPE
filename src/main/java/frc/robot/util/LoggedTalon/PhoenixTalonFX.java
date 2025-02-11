@@ -107,4 +107,9 @@ public class PhoenixTalonFX extends LoggedTalonFX {
   public void quickApplySlot0Config(Slot0Configs config) {
     PhoenixUtil.tryUntilOk(3, () -> talonFX[0].getConfigurator().apply(config));
   }
+
+  @Override
+  public void setPosition(Angle position) {
+    talonFX[0].setPosition(position);
+  }
 }

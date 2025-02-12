@@ -15,6 +15,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.MutDistance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Elevator.ElevatorConstants.ElevatorPosition;
@@ -37,11 +38,11 @@ public class Elevator extends SubsystemBase {
   private final VoltageOut voltageOut = new VoltageOut(0);
   private final MotionMagicVoltage motionMagicControl =
       new MotionMagicVoltage(Degrees.zero()).withEnableFOC(true);
-  @AutoLogOutput @Getter private Distance height = Meters.zero();
+
+  @AutoLogOutput @Getter private final MutDistance height = Meters.mutable(0);
   @AutoLogOutput private ElevatorPosition setPoint = ElevatorPosition.INTAKE;
   @Getter @AutoLogOutput private boolean atSetpoint = false;
 
-  // 135.7
   public Elevator(LoggedTalonFX talon) {
     var config =
         new TalonFXConfiguration()
@@ -74,7 +75,7 @@ public class Elevator extends SubsystemBase {
   @Override
   public void periodic() {
     talon.periodic();
-    height = Elevator.angleToDistance(talon.getPosition());
+    height.mut_replace(Elevator.angleToDistance(talon.getPosition()));
     atSetpoint =
         MathUtil.isNear(
                 setPoint.height.get().baseUnitMagnitude(),

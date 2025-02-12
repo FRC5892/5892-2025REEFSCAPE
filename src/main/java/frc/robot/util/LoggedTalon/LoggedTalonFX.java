@@ -61,7 +61,7 @@ public abstract class LoggedTalonFX {
     Logger.processInputs("Motors/" + name, inputs);
     if (tuning) {
       LoggedTunableNumber.ifChanged(
-          hashCode(),
+          this,
           this::applyAllTuningChanges,
           kPTunable,
           kITunable,

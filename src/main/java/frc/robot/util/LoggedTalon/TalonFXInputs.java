@@ -10,6 +10,6 @@ public class TalonFXInputs {
   public double[] torqueCurrentAmps;
   public double[] supplyCurrentAmps;
   public double[] temperatureC;
-  public AngularVelocity velocity;
-  public Angle position;
+  public MutAngularVelocity velocity;
+  public MutAngle position;
 }

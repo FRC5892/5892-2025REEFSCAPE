@@ -75,14 +75,18 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {});
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {});
-        coralEndEffector =
-            new CoralEndEffector(
-                new NoOppTalonFX("coralEffector", 0), new NoOppDio("intakeBeamBreak"));
+        // coralEndEffector =
+        //     new CoralEndEffector(
+        //         new NoOppTalonFX("coralEffector", 0), new NoOppDio("intakeBeamBreak"));
         climb = new Climb(new NoOppTalonFX("climb", 0));
 
         // Instantiate the tested subsystem
 
         elevator = new Elevator(new PhoenixTalonFX(20, defaultCanBus, "elevator"));
+        coralEndEffector =
+            new CoralEndEffector(
+                new PhoenixTalonFX(22, defaultCanBus, "coralEffector"),
+                new HardwareDIO("intakeBeamBreak", 0));
 
         break;
       case REAL:

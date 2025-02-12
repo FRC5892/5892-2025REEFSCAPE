@@ -259,7 +259,7 @@ public class Drive extends SubsystemBase {
 
     // 5892
     LoggedTunableNumber.ifChanged(
-        hashCode(),
+        this,
         this::updateDrivePID,
         driveKPTunableNumber,
         driveKITunableNumber,

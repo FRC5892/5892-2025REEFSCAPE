@@ -1,5 +1,8 @@
 package frc.robot.util.LoggedTalon;
 
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
@@ -86,8 +89,8 @@ public class PhoenixTalonFX extends LoggedTalonFX {
       inputs.supplyCurrentAmps[i] = supplyCurrentSignal.get(i).getValueAsDouble();
       inputs.temperatureC[i] = temperatureSignal.get(i).getValueAsDouble();
     }
-    inputs.position = positionSignal.getValue();
-    inputs.velocity = velocitySignal.getValue();
+    inputs.position.mut_replace(positionSignal.getValueAsDouble(), Rotations);
+    inputs.velocity.mut_replace(velocitySignal.getValueAsDouble(), RotationsPerSecond);
   }
 
   // This is when I wish java had macro support

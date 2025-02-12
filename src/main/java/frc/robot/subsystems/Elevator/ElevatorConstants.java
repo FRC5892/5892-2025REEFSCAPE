@@ -8,6 +8,7 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.MutDistance;
 import frc.robot.util.LoggedTunableMeasure;
 import java.util.function.Supplier;
 
@@ -24,14 +25,14 @@ public class ElevatorConstants {
   public static final double VELOCITY_TOLERANCE_RPM = 0.1;
 
   public enum ElevatorPosition {
-    INTAKE(new LoggedTunableMeasure<>("Elevator/Intake", Meters.of(0.0))),
-    L2(new LoggedTunableMeasure<>("Elevator/L2", Meters.of(0.5))),
-    L3(new LoggedTunableMeasure<>("Elevator/L3", Meters.of(1))),
-    L4(new LoggedTunableMeasure<>("Elevator/L4", Meters.of(2)));
+    INTAKE(new LoggedTunableMeasure<>("Elevator/Intake", Meters.mutable(0.0))),
+    L2(new LoggedTunableMeasure<>("Elevator/L2", Meters.mutable(0.5))),
+    L3(new LoggedTunableMeasure<>("Elevator/L3", Meters.mutable(1))),
+    L4(new LoggedTunableMeasure<>("Elevator/L4", Meters.mutable(2)));
 
-    public final Supplier<Distance> height;
+    public final Supplier<MutDistance> height;
 
-    ElevatorPosition(Supplier<Distance> heightMeters) {
+    ElevatorPosition(Supplier<MutDistance> heightMeters) {
       this.height = heightMeters;
     }
   }

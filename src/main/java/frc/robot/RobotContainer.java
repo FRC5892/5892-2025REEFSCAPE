@@ -128,7 +128,7 @@ public class RobotContainer {
         elevator = new Elevator(new ElevatorSimulation(20, defaultCanBus, "elevator"));
         coralEndEffector =
             new CoralEndEffector(
-                new PhoenixTalonFX(-2, defaultCanBus, "coralEffector"),
+                new PhoenixTalonFX(22, defaultCanBus, "coralEffector"),
                 SimDIO.fromNT("intakeBeamBreak"));
         climb = new Climb(new PhoenixTalonFX(-3, defaultCanBus, "climb"));
         break;

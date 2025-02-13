@@ -211,11 +211,13 @@ public class RobotContainer {
     driverController.leftBumper().whileTrue(drive.driveToReefCommand(Drive.ReefBranch.LEFT));
     driverController.rightBumper().whileTrue(drive.driveToReefCommand(Drive.ReefBranch.RIGHT));
     /* Codriver Controls */
-    driverController.a().onTrue(elevator.goToPosition(ElevatorPosition.INTAKE));
-    driverController.b().onTrue(elevator.goToPosition(ElevatorPosition.L2));
-    driverController.x().onTrue(elevator.goToPosition(ElevatorPosition.L3));
-    driverController.y().onTrue(elevator.goToPosition(ElevatorPosition.L4));
-    driverController.start().onTrue(elevator.set0());
+    //    driverController.a().onTrue(elevator.goToPosition(ElevatorPosition.L1));
+    codriverController.b().onTrue(elevator.goToPosition(ElevatorPosition.L2));
+    codriverController.x().onTrue(elevator.goToPosition(ElevatorPosition.L3));
+    codriverController.y().onTrue(elevator.goToPosition(ElevatorPosition.L4));
+    codriverController.leftBumper().whileTrue(coralEndEffector.runIntake());
+    codriverController.rightBumper().onTrue(elevator.goToPosition(ElevatorPosition.INTAKE));
+    codriverController.start().onTrue(elevator.set0());
   }
 
   /**

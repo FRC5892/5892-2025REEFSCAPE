@@ -20,8 +20,7 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
  * Class for a tunable number. Gets value from dashboard in tuning mode, returns default if not or
  * value not in dashboard.
  */
-public class LoggedTunableMeasure<
-        M extends MutableMeasure<U, Base, M>, U extends Unit, Base extends Measure<U>>
+public class LoggedTunableMeasure<M extends MutableMeasure<? extends Unit, ? extends Measure<?>, M>>
     implements Supplier<M> {
   private static final String tableKey = "/Tuning";
 
@@ -38,7 +37,7 @@ public class LoggedTunableMeasure<
     this.defaultValue = defaultValue;
     if (Constants.tuningMode) {
       String key = tableKey + "/" + dashboardKey + " " + defaultValue.unit().symbol();
-      dashboardNumber = new LoggedNetworkNumber(key, defaultValue.in(defaultValue.unit()));
+      dashboardNumber = new LoggedNetworkNumber(key, defaultValue.magnitude());
       lastHasChangedValues = new HashMap<>();
     }
   }

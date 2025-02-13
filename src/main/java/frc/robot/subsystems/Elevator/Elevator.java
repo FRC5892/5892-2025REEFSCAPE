@@ -13,12 +13,15 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.*;
+import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Elevator.ElevatorConstants.ElevatorPosition;
 import frc.robot.util.LoggedTalon.LoggedTalonFX;
 import frc.robot.util.LoggedTunableMeasure;
+import frc.robot.util.LoggedTunableNumber;
 import java.util.function.DoubleSupplier;
 import lombok.Getter;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -30,7 +33,9 @@ import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 public class Elevator extends SubsystemBase {
   private final LoggedTalonFX talon;
   private final LoggedTunableMeasure<MutAngularVelocity> homedThreshold =
-      new LoggedTunableMeasure<>("Elevator/homedThreshold", RotationsPerSecond.mutable(0.25));
+      new LoggedTunableMeasure<>("Elevator/homing/Threshold", RotationsPerSecond.mutable(0.25));
+  private final LoggedTunableNumber homingVoltage =
+      new LoggedTunableNumber("Elevator/homing/Speed V", -0.5);
 
   @AutoLogOutput private final LoggedMechanism2d mechanism = new LoggedMechanism2d(0, 3);
   private final LoggedMechanismRoot2d mechanism2dRoot = mechanism.getRoot("Elevator Root", 0, 0);
@@ -44,6 +49,9 @@ public class Elevator extends SubsystemBase {
   @AutoLogOutput @Getter private final MutDistance height = Meters.mutable(0);
   @AutoLogOutput private ElevatorPosition setPoint = ElevatorPosition.INTAKE;
   @Getter @AutoLogOutput private boolean atSetpoint = false;
+  @AutoLogOutput private boolean homed = false;
+  private final Alert homedAlert = new Alert("Elevator not homed", Alert.AlertType.kWarning);
+  private Debouncer homingDebouncer;
 
   public Elevator(LoggedTalonFX talon) {
     var config =
@@ -87,6 +95,7 @@ public class Elevator extends SubsystemBase {
                 ElevatorConstants.DISTANCE_TOLERANCE_METERS)
             && talon.getVelocity().in(RPM) < ElevatorConstants.VELOCITY_TOLERANCE_RPM;
     mechanism2dLigament.setLength(height.in(Meters));
+    homedAlert.set(!homed);
   }
 
   public Command moveDutyCycle(DoubleSupplier dutyCycle) {
@@ -97,10 +106,6 @@ public class Elevator extends SubsystemBase {
           talon.setControl(voltageOut);
         },
         () -> talon.setControl(voltageOut.withOutput(0)));
-  }
-
-  public Command set0() {
-    return runOnce(() -> talon.setPosition(Degree.of(0)));
   }
 
   /**
@@ -119,11 +124,33 @@ public class Elevator extends SubsystemBase {
         });
   }
 
-  // public Command homeCommand() {
-  //   return runEnd(()->{
-  //     talon.setControl(voltageOut.withOutput(5));
-  //   }, null).until(()-> talon.getVelocity()>)
-  // }
+  public Command homeCommand() {
+    return startRun(
+            () -> {
+              homingDebouncer = new Debouncer(0.25);
+            },
+            () -> {
+              talon.setControl(voltageOut.withOutput(homingVoltage.get()));
+              homed =
+                  homingDebouncer.calculate(
+                      Math.abs(talon.getVelocity().baseUnitMagnitude())
+                          <= homedThreshold.get().baseUnitMagnitude());
+            })
+        .until(() -> homed)
+        .andThen(
+            () -> {
+              // Success!
+              talon.setPosition(Rotations.of(0));
+              homed = true;
+            })
+        .finallyDo(
+            () -> {
+              // Success or interrupted, just clean up
+              talon.setControl(voltageOut.withOutput(0));
+              // Let the GC take it away
+              homingDebouncer = null;
+            });
+  }
 
   protected static Angle distanceToAngle(Distance height) {
     return Rotations.of(

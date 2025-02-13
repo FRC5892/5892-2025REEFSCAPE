@@ -217,7 +217,7 @@ public class RobotContainer {
     codriverController.y().onTrue(elevator.goToPosition(ElevatorPosition.L4));
     codriverController.leftBumper().whileTrue(coralEndEffector.runIntake());
     codriverController.rightBumper().onTrue(elevator.goToPosition(ElevatorPosition.INTAKE));
-    codriverController.start().onTrue(elevator.set0());
+    codriverController.start().whileTrue(elevator.homeCommand());
   }
 
   /**

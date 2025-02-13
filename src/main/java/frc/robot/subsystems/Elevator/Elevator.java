@@ -13,13 +13,12 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.units.measure.MutDistance;
+import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Elevator.ElevatorConstants.ElevatorPosition;
 import frc.robot.util.LoggedTalon.LoggedTalonFX;
+import frc.robot.util.LoggedTunableMeasure;
 import java.util.function.DoubleSupplier;
 import lombok.Getter;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -30,6 +29,9 @@ import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 
 public class Elevator extends SubsystemBase {
   private final LoggedTalonFX talon;
+  private final LoggedTunableMeasure<MutAngularVelocity> homedThreshold =
+      new LoggedTunableMeasure<>("Elevator/homedThreshold", RotationsPerSecond.mutable(0.25));
+
   @AutoLogOutput private final LoggedMechanism2d mechanism = new LoggedMechanism2d(0, 3);
   private final LoggedMechanismRoot2d mechanism2dRoot = mechanism.getRoot("Elevator Root", 0, 0);
   private final LoggedMechanismLigament2d mechanism2dLigament =

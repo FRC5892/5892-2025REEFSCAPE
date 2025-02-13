@@ -1,8 +1,6 @@
 package frc.robot.util.LoggedTalon;
 
-import static edu.wpi.first.units.Units.Amp;
-import static edu.wpi.first.units.Units.Celsius;
-import static edu.wpi.first.units.Units.Volt;
+import static edu.wpi.first.units.Units.*;
 
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -54,6 +52,8 @@ public abstract class LoggedTalonFX {
     inputs.connected = new boolean[followers + 1];
     inputs.supplyCurrentAmps = new double[followers + 1];
     inputs.appliedVolts = new double[followers + 1];
+    inputs.position = Rotation.mutable(0);
+    inputs.velocity = RotationsPerSecond.mutable(0);
   }
 
   public void periodic() {

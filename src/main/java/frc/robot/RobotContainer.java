@@ -125,7 +125,7 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVisionSim(
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose));
-        elevator = new Elevator(new ElevatorSimulation(5, defaultCanBus, "elevator"));
+        elevator = new Elevator(new ElevatorSimulation(20, defaultCanBus, "elevator"));
         coralEndEffector =
             new CoralEndEffector(
                 new PhoenixTalonFX(-2, defaultCanBus, "coralEffector"),

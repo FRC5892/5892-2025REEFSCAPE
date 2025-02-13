@@ -17,6 +17,7 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Elevator.ElevatorConstants.ElevatorPosition;
 import frc.robot.util.LoggedTalon.LoggedTalonFX;
@@ -116,12 +117,14 @@ public class Elevator extends SubsystemBase {
    */
   public Command goToPosition(ElevatorPosition position) {
     return runOnce(
-        () -> {
-          talon.setControl(motionMagicControl.withPosition(distanceToAngle(position.height.get())));
-          Logger.recordOutput(
-              "Elevator/MotorPositionSetpoint", Rotations.of(motionMagicControl.Position));
-          setPoint = position;
-        });
+            () -> {
+              talon.setControl(
+                  motionMagicControl.withPosition(distanceToAngle(position.height.get())));
+              Logger.recordOutput(
+                  "Elevator/MotorPositionSetpoint", Rotations.of(motionMagicControl.Position));
+              setPoint = position;
+            })
+        .andThen(Commands.waitUntil(this::isAtSetpoint));
   }
 
   public Command homeCommand() {

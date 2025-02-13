@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Rotations;
 
 import com.ctre.phoenix6.CANBus;
+import com.ctre.phoenix6.sim.ChassisReference;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import frc.robot.Robot;
@@ -12,15 +13,14 @@ import frc.robot.util.LoggedTalon.TalonFXInputs;
 import org.littletonrobotics.junction.Logger;
 
 public class ElevatorSimulation extends BaseTalonFXSim {
-  private final double kElevatorGearing = 55;
   private final double kCarriageMass = 5;
   private final double kMinElevatorHeightMeters = 0;
-  private final double kMaxElevatorHeightMeters = 2;
+  private final double kMaxElevatorHeightMeters = 1.8;
 
   private final ElevatorSim elevatorSim =
       new ElevatorSim(
           DCMotor.getKrakenX60Foc(1),
-          kElevatorGearing,
+          ElevatorConstants.GEAR_RATIO,
           kCarriageMass,
           ElevatorConstants.DISTANCE_PER_ROTATION.in(Meters) / (2 * Math.PI),
           //          0.001,
@@ -28,11 +28,12 @@ public class ElevatorSimulation extends BaseTalonFXSim {
           kMaxElevatorHeightMeters,
           true,
           0,
-          0.00005,
-          0.0);
+          0,
+          0);
 
   public ElevatorSimulation(int CAN_ID, CANBus canBus, String name) {
     super(CAN_ID, canBus, name);
+    motorSimState.Orientation = ChassisReference.Clockwise_Positive;
   }
 
   @Override

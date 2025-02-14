@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.subsystems.CoralEndEffector.CoralEndEffector;
 import frc.robot.subsystems.Elevator.Elevator;
 import frc.robot.subsystems.Elevator.ElevatorConstants.ElevatorPosition;
 
@@ -21,15 +22,27 @@ public class Autos {
     new EventTrigger("Extend Score").onTrue(elevator.goToPosition(ElevatorPosition.L4));
   }
 
-  public static final Command upCoralAuto() {
+  public static Command leftCoralAuto(Elevator elevatorSubsystem, CoralEndEffector coralSubsystem) {
     try {
+      PathPlannerPath pathLPreI = PathPlannerPath.fromChoreoTrajectory("LPreI");
+      PathPlannerPath pathIS = PathPlannerPath.fromChoreoTrajectory("IS");
+      PathPlannerPath pathSJ = PathPlannerPath.fromChoreoTrajectory("SJ");
+      PathPlannerPath pathJS = PathPlannerPath.fromChoreoTrajectory("JS");
+      PathPlannerPath pathSK = PathPlannerPath.fromChoreoTrajectory("SK");
+      PathPlannerPath pathKS = PathPlannerPath.fromChoreoTrajectory("KS");
+      PathPlannerPath pathSL = PathPlannerPath.fromChoreoTrajectory("SL");
+      PathPlannerPath pathLS = PathPlannerPath.fromChoreoTrajectory("LS");
+      PathPlannerPath pathSA = PathPlannerPath.fromChoreoTrajectory("SA");
+      return AutoBuilder.followPath(pathLPreI)
+          .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.L4))
+          .andThen(
+              outtakeCoral(coralSubsystem),
+              AutoBuilder.followPath(pathIS)
+                  .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
+              waitForCoral(coralSubsystem),
+              AutoBuilder.followPath(pathSJ)
+                  .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.L4)));
 
-      PathPlannerPath preloadPath = PathPlannerPath.fromChoreoTrajectory("UP Preload - I");
-      PathPlannerPath iToStation = PathPlannerPath.fromPathFile("I - UP Far Station");
-      PathPlannerPath stationToJ = PathPlannerPath.fromPathFile("I - UP Far Station");
-      PathPlannerPath jToStation = PathPlannerPath.fromPathFile("I - UP Far Station");
-
-      return AutoBuilder.followPath(preloadPath).andThen(AutoBuilder.followPath(iToStation));
     } catch (Exception e) {
       @SuppressWarnings("resource")
       Alert alert = new Alert("Failed to load upCoral Auto", AlertType.kError);
@@ -37,5 +50,13 @@ public class Autos {
       DriverStation.reportError("Big oops: " + e.getMessage(), e.getStackTrace());
       return Commands.none();
     }
+  }
+
+  public static Command waitForCoral(CoralEndEffector coralSubsystem) {
+    return Commands.waitUntil(coralSubsystem::getBeamBreak);
+  }
+
+  public static Command outtakeCoral(CoralEndEffector coralSubsystem) {
+    return coralSubsystem.runOuttake().withTimeout(0.25);
   }
 }

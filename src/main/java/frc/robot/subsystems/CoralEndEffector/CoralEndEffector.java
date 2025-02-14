@@ -7,7 +7,7 @@ package frc.robot.subsystems.CoralEndEffector;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
-import com.ctre.phoenix6.controls.NeutralOut;
+import com.ctre.phoenix6.controls.StaticBrake;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -17,9 +17,12 @@ import frc.robot.util.LoggedTalon.LoggedTalonFX;
 import frc.robot.util.LoggedTunableNumber;
 
 public class CoralEndEffector extends SubsystemBase {
-  private final LoggedTunableNumber dutyCycle = new LoggedTunableNumber("Coral/Duty Cycle", 0.15);
+  private final LoggedTunableNumber intakeDutyCycle =
+      new LoggedTunableNumber("Coral/Intake Duty Cycle", 0.15);
+  private final LoggedTunableNumber outtakeDutyCycle =
+      new LoggedTunableNumber("Coral/Outtake Duty Cycle", 0.05);
   private final DutyCycleOut dutyCycleOut = new DutyCycleOut(0).withEnableFOC(true);
-  private final NeutralOut coastOut = new NeutralOut();
+  private final StaticBrake brake = new StaticBrake();
   private final LoggedTalonFX talon;
   private final LoggedDIO beamBreak;
 
@@ -33,13 +36,24 @@ public class CoralEndEffector extends SubsystemBase {
 
   public Command runIntake() {
     return runEnd(
-        () -> talon.setControl(dutyCycleOut.withOutput(dutyCycle.get())), // Start the motor
-        () -> talon.setControl(coastOut) // Stop the motor
+        () -> talon.setControl(dutyCycleOut.withOutput(intakeDutyCycle.get())), // Start the motor
+        () -> talon.setControl(brake) // Stop the motor
+        );
+  }
+
+  public Command runOuttake() {
+    return runEnd(
+        () -> talon.setControl(dutyCycleOut.withOutput(outtakeDutyCycle.get())), // Start the motor
+        () -> talon.setControl(brake) // Stop the motor
         );
   }
 
   public Trigger beamBreakTrigger() {
-    return new Trigger(() -> !beamBreak.get());
+    return new Trigger(this::getBeamBreak);
+  }
+
+  public boolean getBeamBreak() {
+    return !beamBreak.get();
   }
 
   @Override

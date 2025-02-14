@@ -37,8 +37,8 @@ public abstract class BaseTalonFXSim extends PhoenixTalonFX {
   @Override
   protected void updateInputs(TalonFXInputs inputs) {
     motorSimState.setSupplyVoltage(RobotController.getBatteryVoltage());
-    super.updateInputs(inputs);
     simulationPeriodic(inputs);
+    super.updateInputs(inputs);
   }
 
   protected abstract void simulationPeriodic(TalonFXInputs inputs);

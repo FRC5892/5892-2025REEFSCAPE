@@ -1,0 +1,135 @@
+{
+ "name":"path1",
+ "version":1,
+ "type":"Swerve",
+ "variables":{
+  "expressions":{
+   "duzina":{
+    "dimension":"Length",
+    "var":{
+     "exp":"3 m",
+     "val":3.0
+    }
+   },
+   "endAngle":{
+    "dimension":"Angle",
+    "var":{
+     "exp":"-53 deg",
+     "val":-0.9250245035569946
+    }
+   },
+   "refx":{
+    "dimension":"Number",
+    "var":{
+     "exp":"1.12",
+     "val":1.12
+    }
+   },
+   "refy":{
+    "dimension":"Number",
+    "var":{
+     "exp":"7.1",
+     "val":7.1
+    }
+   },
+   "startAngleLeftMiddle":{
+    "dimension":"Angle",
+    "var":{
+     "exp":"180 deg",
+     "val":3.141592653589793
+    }
+   },
+   "startAngleLeftUp":{
+    "dimension":"Angle",
+    "var":{
+     "exp":"-120 deg",
+     "val":-2.0943951023931953
+    }
+   },
+   "startAngleMiddle":{
+    "dimension":"Angle",
+    "var":{
+     "exp":"0 deg",
+     "val":0.0
+    }
+   },
+   "startAngleRightUp":{
+    "dimension":"Angle",
+    "var":{
+     "exp":"-60 deg",
+     "val":-1.0471975511965976
+    }
+   }
+  },
+  "poses":{}
+ },
+ "config":{
+  "frontLeft":{
+   "x":{
+    "exp":"11 in",
+    "val":0.2794
+   },
+   "y":{
+    "exp":"11 in",
+    "val":0.2794
+   }
+  },
+  "backLeft":{
+   "x":{
+    "exp":"-11 in",
+    "val":-0.2794
+   },
+   "y":{
+    "exp":"11 in",
+    "val":0.2794
+   }
+  },
+  "mass":{
+   "exp":"150 lbs",
+   "val":68.0388555
+  },
+  "inertia":{
+   "exp":"6 kg m ^ 2",
+   "val":6.0
+  },
+  "gearing":{
+   "exp":"6.5",
+   "val":6.5
+  },
+  "radius":{
+   "exp":"2 in",
+   "val":0.0508
+  },
+  "vmax":{
+   "exp":"6000 RPM",
+   "val":628.3185307179587
+  },
+  "tmax":{
+   "exp":"1.2 N * m",
+   "val":1.2
+  },
+  "cof":{
+   "exp":"1.5",
+   "val":1.5
+  },
+  "bumper":{
+   "front":{
+    "exp":"16 in",
+    "val":0.4064
+   },
+   "side":{
+    "exp":"16 in",
+    "val":0.4064
+   },
+   "back":{
+    "exp":"16 in",
+    "val":0.4064
+   }
+  },
+  "differentialTrackWidth":{
+   "exp":"22 in",
+   "val":0.5588
+  }
+ },
+ "generationFeatures":[]
+}

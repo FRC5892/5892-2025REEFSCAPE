@@ -10,7 +10,5 @@ public class FlywheelSim extends BaseTalonFXSim {
   }
 
   @Override
-  protected void simulationPeriodic(TalonFXInputs inputs) {
-
-  }
+  protected void simulationPeriodic(TalonFXInputs inputs) {}
 }

@@ -5,21 +5,28 @@
 package frc.robot.subsystems.Climb;
 
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.StaticBrake;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.LoggedTalon.LoggedTalonFX;
+import frc.robot.util.LoggedTunableNumber;
 
 public class Climb extends SubsystemBase {
   private final LoggedTalonFX talon;
-  // change val if needed
-  public static final double DEFAULT_DUTY_CYCLE = 0.75;
-  public final DutyCycleOut ClimbDutyCycle = new DutyCycleOut(DEFAULT_DUTY_CYCLE);
-  public final DutyCycleOut StopDutyCycleOut = new DutyCycleOut(0);
+  private final LoggedTunableNumber climbSpeed = new LoggedTunableNumber("Climb/dutyCycle", 0.25);
+  public final DutyCycleOut climbDutyCycle = new DutyCycleOut(0);
+  public final StaticBrake brake = new StaticBrake();
 
   public Climb(LoggedTalonFX talon) {
-    var config = new TalonFXConfiguration();
+    var config =
+        new TalonFXConfiguration()
+            .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))
+            .withCurrentLimits(
+                new CurrentLimitsConfigs().withStatorCurrentLimit(40).withSupplyCurrentLimit(40));
     this.talon =
         talon
             .withConfig(config)
@@ -33,12 +40,13 @@ public class Climb extends SubsystemBase {
   }
 
   public Command runAtDutyCycle() {
-    return runEnd(() -> talon.setControl(ClimbDutyCycle), () -> talon.setControl(StopDutyCycleOut));
+    return runEnd(
+        () -> talon.setControl(climbDutyCycle.withOutput(climbSpeed.get())),
+        () -> talon.setControl(brake));
   }
 
   @Override
   public void periodic() {
     talon.periodic();
-    talon.setControl(new DutyCycleOut(DEFAULT_DUTY_CYCLE));
   }
 }

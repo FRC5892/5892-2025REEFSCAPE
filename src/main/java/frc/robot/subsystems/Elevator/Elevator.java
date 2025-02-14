@@ -30,6 +30,7 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 public class Elevator extends SubsystemBase {
   private final LoggedTalonFX talon;
@@ -37,6 +38,7 @@ public class Elevator extends SubsystemBase {
       new LoggedTunableMeasure<>("Elevator/homing/Threshold", RotationsPerSecond.mutable(0.25));
   private final LoggedTunableNumber homingVoltage =
       new LoggedTunableNumber("Elevator/homing/Speed V", -0.5);
+  private final LoggedNetworkBoolean eStop = new LoggedNetworkBoolean("Elevator/E Stop", false);
 
   @AutoLogOutput private final LoggedMechanism2d mechanism = new LoggedMechanism2d(0, 3);
   private final LoggedMechanismRoot2d mechanism2dRoot = mechanism.getRoot("Elevator Root", 0, 0);
@@ -101,12 +103,18 @@ public class Elevator extends SubsystemBase {
 
   public Command moveDutyCycle(DoubleSupplier dutyCycle) {
     return runEnd(
-        () -> {
-          voltageOut.withOutput(dutyCycle.getAsDouble() * 12);
-          Logger.recordOutput("Elevator/VoltageOut", voltageOut.Output);
-          talon.setControl(voltageOut);
-        },
-        () -> talon.setControl(voltageOut.withOutput(0)));
+            () -> {
+              if (!eStop.get()) {
+                voltageOut.withOutput(dutyCycle.getAsDouble() * 12);
+              } else {
+                voltageOut.withOutput(0);
+              }
+              Logger.recordOutput("Elevator/VoltageOut", voltageOut.Output);
+
+              talon.setControl(voltageOut);
+            },
+            () -> talon.setControl(voltageOut.withOutput(0)))
+        .unless(eStop::get);
   }
 
   /**
@@ -118,12 +126,17 @@ public class Elevator extends SubsystemBase {
   public Command goToPosition(ElevatorPosition position) {
     return runOnce(
             () -> {
-              talon.setControl(
-                  motionMagicControl.withPosition(distanceToAngle(position.height.get())));
+              if (!eStop.get()) {
+                talon.setControl(
+                    motionMagicControl.withPosition(distanceToAngle(position.height.get())));
+              } else {
+                talon.setControl(voltageOut.withOutput(0));
+              }
               Logger.recordOutput(
                   "Elevator/MotorPositionSetpoint", Rotations.of(motionMagicControl.Position));
               setPoint = position;
             })
+        .unless(eStop::get)
         .andThen(Commands.waitUntil(this::isAtSetpoint));
   }
 
@@ -133,12 +146,17 @@ public class Elevator extends SubsystemBase {
               homingDebouncer = new Debouncer(0.25);
             },
             () -> {
-              talon.setControl(voltageOut.withOutput(homingVoltage.get()));
+              if (!eStop.get()) {
+                talon.setControl(voltageOut.withOutput(homingVoltage.get()));
+              } else {
+                talon.setControl(voltageOut.withOutput(0));
+              }
               homed =
                   homingDebouncer.calculate(
                       Math.abs(talon.getVelocity().baseUnitMagnitude())
                           <= homedThreshold.get().baseUnitMagnitude());
             })
+        .unless(eStop::get)
         .until(() -> homed)
         .andThen(
             () -> {

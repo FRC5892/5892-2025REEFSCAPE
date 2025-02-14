@@ -1,8 +1,7 @@
 package frc.robot.util.LoggedDIO;
 
-import edu.wpi.first.networktables.BooleanSubscriber;
-import edu.wpi.first.networktables.NetworkTableInstance;
 import java.util.function.BooleanSupplier;
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 public class SimDIO extends LoggedDIO {
 
@@ -19,10 +18,8 @@ public class SimDIO extends LoggedDIO {
   }
 
   public static SimDIO fromNT(String name) {
-    BooleanSubscriber subscriber =
-        NetworkTableInstance.getDefault()
-            .getBooleanTopic("DigitalInput/" + name + "/simInput")
-            .subscribe(false);
-    return new SimDIO(name, subscriber);
+    LoggedNetworkBoolean networkValue =
+        new LoggedNetworkBoolean("DigitalInput/" + name + "/simInput", false);
+    return new SimDIO(name, networkValue::get);
   }
 }

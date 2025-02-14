@@ -37,7 +37,7 @@ public class ElevatorSimulation extends BaseTalonFXSim {
   }
 
   @Override
-  protected void simulationPeriodic(TalonFXInputs inputs) {
+  protected void updateInputs(TalonFXInputs inputs) {
     elevatorSim.update(Robot.defaultPeriodSecs);
 
     double rawRotorPositionRotations =
@@ -49,7 +49,13 @@ public class ElevatorSimulation extends BaseTalonFXSim {
         Elevator.distanceToAngle(Meters.of(elevatorSim.getVelocityMetersPerSecond())).in(Rotations)
             * ElevatorConstants.GEAR_RATIO;
     super.motorSimState.setRotorVelocity(rawRotorVelocityRotationsPerSec);
+
+    super.updateInputs(inputs);
+    elevatorSim.setInputVoltage(super.motorSimState.getMotorVoltage());
     Logger.recordOutput("Elevator/ElevatorRawPosition", elevatorSim.getPositionMeters());
     Logger.recordOutput("Elevator/ElevatorMotorPosition", rawRotorPositionRotations);
   }
+
+  protected void simulationPeriodic(TalonFXInputs inputs) {}
+  ;
 }

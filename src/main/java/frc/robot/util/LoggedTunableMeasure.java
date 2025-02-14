@@ -36,7 +36,7 @@ public class LoggedTunableMeasure<M extends MutableMeasure<? extends Unit, ? ext
   public LoggedTunableMeasure(String dashboardKey, M defaultValue) {
     this.defaultValue = defaultValue;
     if (Constants.tuningMode) {
-      //TODO: replace / in unit so it doesn't look weird on nt
+      // TODO: replace / in unit so it doesn't look weird on nt
       String key = tableKey + "/" + dashboardKey + " " + defaultValue.unit().symbol();
       dashboardNumber = new LoggedNetworkNumber(key, defaultValue.magnitude());
       lastHasChangedValues = new HashMap<>();

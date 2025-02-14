@@ -4,9 +4,11 @@
 
 package frc.robot.subsystems.CoralEndEffector;
 
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.NeutralOut;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -15,14 +17,16 @@ import frc.robot.util.LoggedTalon.LoggedTalonFX;
 import frc.robot.util.LoggedTunableNumber;
 
 public class CoralEndEffector extends SubsystemBase {
-  private final LoggedTunableNumber dutyCycle = new LoggedTunableNumber("Coral/Duty Cycle", 0.75);
+  private final LoggedTunableNumber dutyCycle = new LoggedTunableNumber("Coral/Duty Cycle", 0.15);
   private final DutyCycleOut dutyCycleOut = new DutyCycleOut(0).withEnableFOC(true);
   private final NeutralOut coastOut = new NeutralOut();
   private final LoggedTalonFX talon;
   private final LoggedDIO beamBreak;
 
   public CoralEndEffector(LoggedTalonFX talon, LoggedDIO beambreak) {
-    var config = new TalonFXConfiguration();
+    var config =
+        new TalonFXConfiguration()
+            .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
     this.talon = talon.withConfig(config).withTunable(config.Slot0);
     this.beamBreak = beambreak;
   }
@@ -35,7 +39,7 @@ public class CoralEndEffector extends SubsystemBase {
   }
 
   public Trigger beamBreakTrigger() {
-    return new Trigger(beamBreak::get);
+    return new Trigger(() -> !beamBreak.get());
   }
 
   @Override

@@ -18,16 +18,13 @@ import frc.robot.subsystems.Elevator.ElevatorConstants.ElevatorPosition;
 /** Add your docs here. */
 public class Autos {
   public static void registerTriggers(Elevator elevator) {
-    new EventTrigger("Extend L4").onTrue(elevator.goToPosition(ElevatorPosition.L4));
-    new EventTrigger("Extend L3").onTrue(elevator.goToPosition(ElevatorPosition.L3));
-    new EventTrigger("Extend L2").onTrue(elevator.goToPosition(ElevatorPosition.L2));
-    new EventTrigger("Extend Intake").onTrue(elevator.goToPosition(ElevatorPosition.INTAKE));
+    new EventTrigger("Extend Score").onTrue(elevator.goToPosition(ElevatorPosition.L4));
   }
 
   public static final Command upCoralAuto() {
     try {
 
-      PathPlannerPath preloadPath = PathPlannerPath.fromPathFile("UP Preload - I");
+      PathPlannerPath preloadPath = PathPlannerPath.fromChoreoTrajectory("UP Preload - I");
       PathPlannerPath iToStation = PathPlannerPath.fromPathFile("I - UP Far Station");
       PathPlannerPath stationToJ = PathPlannerPath.fromPathFile("I - UP Far Station");
       PathPlannerPath jToStation = PathPlannerPath.fromPathFile("I - UP Far Station");

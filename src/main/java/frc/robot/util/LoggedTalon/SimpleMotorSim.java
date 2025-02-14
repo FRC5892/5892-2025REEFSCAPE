@@ -7,16 +7,21 @@ import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.util.LoggedTalon.Follower.PhoenixTalonFollower;
 
 public class SimpleMotorSim extends BaseTalonFXSim {
-    private final DCMotorSim motorSim;
+  private final DCMotorSim motorSim;
 
-  public SimpleMotorSim(int canID, CANBus canBus, String name,double JKgMetersSquared, double gearReduction ,PhoenixTalonFollower... followers) {
+  public SimpleMotorSim(
+      int canID,
+      CANBus canBus,
+      String name,
+      double JKgMetersSquared,
+      double gearReduction,
+      PhoenixTalonFollower... followers) {
     super(canID, canBus, name, followers);
     motorSim =
-              new DCMotorSim(
-                      LinearSystemId.createDCMotorSystem(
-                              DCMotor.getKrakenX60Foc(followers.length+1), JKgMetersSquared, gearReduction),
-                      DCMotor.getKrakenX60Foc(followers.length+1));
-
+        new DCMotorSim(
+            LinearSystemId.createDCMotorSystem(
+                DCMotor.getKrakenX60Foc(followers.length + 1), JKgMetersSquared, gearReduction),
+            DCMotor.getKrakenX60Foc(followers.length + 1));
   }
 
   @Override

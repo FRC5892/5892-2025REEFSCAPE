@@ -6,6 +6,7 @@ package frc.robot.commands;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.events.EventTrigger;
+import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
@@ -33,16 +34,34 @@ public class Autos {
       PathPlannerPath pathSL = PathPlannerPath.fromChoreoTrajectory("SL");
       PathPlannerPath pathLS = PathPlannerPath.fromChoreoTrajectory("LS");
       PathPlannerPath pathSA = PathPlannerPath.fromChoreoTrajectory("SA");
-      return AutoBuilder.followPath(pathLPreI)
+      return AutoBuilder.pathfindThenFollowPath(pathLPreI, new PathConstraints(10, 10, 10, 10))
           .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.L4))
           .andThen(
               outtakeCoral(coralSubsystem),
               AutoBuilder.followPath(pathIS)
                   .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
+              // waitForCoral(coralSubsystem),
+              AutoBuilder.followPath(pathSJ),
+              // .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.L4)),
+              outtakeCoral(coralSubsystem),
+              AutoBuilder.followPath(pathJS)
+                  .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
               waitForCoral(coralSubsystem),
-              AutoBuilder.followPath(pathSJ)
-                  .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.L4)));
-
+              AutoBuilder.followPath(pathSK)
+                  .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.L4)),
+              outtakeCoral(coralSubsystem),
+              AutoBuilder.followPath(pathKS)
+                  .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
+              waitForCoral(coralSubsystem),
+              AutoBuilder.followPath(pathSL)
+                  .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.L4)),
+              outtakeCoral(coralSubsystem),
+              AutoBuilder.followPath(pathLS)
+                  .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
+              waitForCoral(coralSubsystem),
+              AutoBuilder.followPath(pathSA)
+                  .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.L4)),
+              outtakeCoral(coralSubsystem));
     } catch (Exception e) {
       @SuppressWarnings("resource")
       Alert alert = new Alert("Failed to load upCoral Auto", AlertType.kError);

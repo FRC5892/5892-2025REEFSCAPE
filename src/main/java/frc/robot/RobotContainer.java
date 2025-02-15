@@ -15,8 +15,10 @@ package frc.robot;
 
 import com.ctre.phoenix6.CANBus;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.revrobotics.servohub.ServoChannel.ChannelId;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -27,16 +29,18 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.Autos;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.Climb.Climb;
 import frc.robot.subsystems.CoralEndEffector.CoralEndEffector;
 import frc.robot.subsystems.Elevator.Elevator;
 import frc.robot.subsystems.Elevator.ElevatorConstants.ElevatorPosition;
 import frc.robot.subsystems.Elevator.ElevatorSimulation;
 import frc.robot.subsystems.drive.*;
+import frc.robot.subsystems.funnel.Funnel;
+import frc.robot.subsystems.funnel.FunnelServoHub;
 import frc.robot.subsystems.vision.*;
 import frc.robot.util.LoggedDIO.HardwareDIO;
 import frc.robot.util.LoggedDIO.NoOppDio;
 import frc.robot.util.LoggedDIO.SimDIO;
+import frc.robot.util.LoggedServo.NoOppServo;
 import frc.robot.util.LoggedTalon.NoOppTalonFX;
 import frc.robot.util.LoggedTalon.PhoenixTalonFX;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -53,8 +57,9 @@ public class RobotContainer {
   private final Drive drive;
   private final Vision vision;
   private final Elevator elevator;
-  private final Climb climb;
+  //   private final Climb climb;
   private final CoralEndEffector coralEndEffector;
+  private final Funnel funnel;
 
   // Controllers
   private final CommandXboxController driverController = new CommandXboxController(0);
@@ -66,37 +71,41 @@ public class RobotContainer {
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     switch (Constants.currentMode) {
-      case DEV:
-        // Disabled IO for everything but the tested subsystem
-        // drive =
-        //     new Drive(
-        //         new GyroIO() {},
-        //         new ModuleIO() {},
-        //         new ModuleIO() {},
-        //         new ModuleIO() {},
-        //         new ModuleIO() {});
-        drive =
-            new Drive(
-                new GyroIOPigeon2(),
-                new ModuleIOTalonFX(TunerConstants.FrontLeft),
-                new ModuleIOTalonFX(TunerConstants.FrontRight),
-                new ModuleIOTalonFX(TunerConstants.BackLeft),
-                new ModuleIOTalonFX(TunerConstants.BackRight));
-        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {});
-        // coralEndEffector =
-        //     new CoralEndEffector(
-        //         new NoOppTalonFX("coralEffector", 0), new NoOppDio("intakeBeamBreak"));
-        climb = new Climb(new NoOppTalonFX("climb", 0));
+      //   case DEV:
+      //     // Disabled IO for everything but the tested subsystem
+      //     // drive =
+      //     //     new Drive(
+      //     //         new GyroIO() {},
+      //     //         new ModuleIO() {},
+      //     //         new ModuleIO() {},
+      //     //         new ModuleIO() {},
+      //     //         new ModuleIO() {});
+      //     drive =
+      //         new Drive(
+      //             new GyroIOPigeon2(),
+      //             new ModuleIOTalonFX(TunerConstants.FrontLeft),
+      //             new ModuleIOTalonFX(TunerConstants.FrontRight),
+      //             new ModuleIOTalonFX(TunerConstants.BackLeft),
+      //             new ModuleIOTalonFX(TunerConstants.BackRight));
+      //     vision = new Vision(drive::addVisionMeasurement, new VisionIO() {});
+      //     // coralEndEffector =
+      //     //     new CoralEndEffector(
+      //     //         new NoOppTalonFX("coralEffector", 0), new NoOppDio("intakeBeamBreak"));
+      //     climb =
+      //         new Climb(
+      //             new PhoenixTalonFX(-3, defaultCanBus, "climb"),
+      //             new HardwareDIO("climbForwardLimit", 1),
+      //             new HardwareDIO("climbReverseLimit", 2));
+      //     // Instantiate the tested subsystem
 
-        // Instantiate the tested subsystem
+      //     elevator = new Elevator(new PhoenixTalonFX(20, defaultCanBus, "elevator"));
+      //     coralEndEffector =
+      //         new CoralEndEffector(
+      //             new PhoenixTalonFX(22, defaultCanBus, "coralEffector"),
+      //             new HardwareDIO("intakeBeamBreak", 0));
+      //     funnel = new Funnel(new FunnelServoHub(-1, 500, 2500).getServo(ChannelId.kChannelId0));
 
-        elevator = new Elevator(new PhoenixTalonFX(20, defaultCanBus, "elevator"));
-        coralEndEffector =
-            new CoralEndEffector(
-                new PhoenixTalonFX(22, defaultCanBus, "coralEffector"),
-                new HardwareDIO("intakeBeamBreak", 0));
-
-        break;
+      //     break;
       case REAL:
         // Real robot, instantiate hardware IO implementations
         drive =
@@ -106,17 +115,23 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
-        vision =
-            new Vision(
-                drive::addVisionMeasurement,
-                new VisionIOPhotonVision(
-                    VisionConstants.camera0Name, VisionConstants.robotToCamera0));
+        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {});
+        // vision =
+        //     new Vision(
+        //         drive::addVisionMeasurement,
+        //         new VisionIOPhotonVision(
+        //             VisionConstants.camera0Name, VisionConstants.robotToCamera0));
         elevator = new Elevator(new PhoenixTalonFX(20, defaultCanBus, "elevator"));
         coralEndEffector =
             new CoralEndEffector(
-                new PhoenixTalonFX(-2, defaultCanBus, "coralEffector"),
-                new HardwareDIO("intakeBeamBreak", 2));
-        climb = new Climb(new PhoenixTalonFX(-3, defaultCanBus, "climb"));
+                new PhoenixTalonFX(22, defaultCanBus, "coralEffector"),
+                new HardwareDIO("intakeBeamBreak", 0));
+        funnel = new Funnel(new FunnelServoHub(-1, 500, 2500).getServo(ChannelId.kChannelId0));
+        // climb =
+        //     new Climb(
+        //         new PhoenixTalonFX(-3, defaultCanBus, "climb"),
+        //         new HardwareDIO("climbForwardLimit", 1),
+        //         new HardwareDIO("climbReverseLimit", 2));
         break;
 
       case SIM:
@@ -138,7 +153,12 @@ public class RobotContainer {
             new CoralEndEffector(
                 new PhoenixTalonFX(22, defaultCanBus, "coralEffector"),
                 SimDIO.fromNT("intakeBeamBreak"));
-        climb = new Climb(new PhoenixTalonFX(-3, defaultCanBus, "climb"));
+        // climb =
+        //     new Climb(
+        //         new PhoenixTalonFX(-3, defaultCanBus, "climb"),
+        //         SimDIO.fromNT("climbForwardLimit"),
+        //         SimDIO.fromNT("climbReverseLimit"));
+        funnel = new Funnel(new NoOppServo(500, 2500));
         break;
 
       default:
@@ -155,7 +175,12 @@ public class RobotContainer {
         coralEndEffector =
             new CoralEndEffector(
                 new NoOppTalonFX("coralEffector", 0), new NoOppDio("intakeBeamBreak"));
-        climb = new Climb(new NoOppTalonFX("climb", 0));
+        // climb =
+        //     new Climb(
+        //         new NoOppTalonFX("climb", 0),
+        //         new NoOppDio("climbForwardLimit"),
+        //         new NoOppDio("climbReverseLimit"));
+        funnel = new Funnel(new NoOppServo(500, 2500));
         break;
     }
 
@@ -199,6 +224,7 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     /* Driver Controls */
+    DriverStation.silenceJoystickConnectionWarning(true);
 
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
@@ -227,6 +253,8 @@ public class RobotContainer {
     codriverController.leftBumper().whileTrue(coralEndEffector.runOuttake());
     codriverController.rightBumper().onTrue(elevator.goToPosition(ElevatorPosition.INTAKE));
     codriverController.start().whileTrue(elevator.homeCommand());
+    // codriverController.pov(0).onTrue(funnel.foldUp().alongWith(climb.climbExtend()));
+    // codriverController.pov(180).whileTrue(climb.climbRetract());
   }
 
   /**

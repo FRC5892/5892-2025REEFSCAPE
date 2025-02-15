@@ -12,16 +12,27 @@ import com.ctre.phoenix6.controls.StaticBrake;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.util.LoggedDIO.LoggedDIO;
 import frc.robot.util.LoggedTalon.LoggedTalonFX;
 import frc.robot.util.LoggedTunableNumber;
+import java.util.function.DoubleSupplier;
 
 public class Climb extends SubsystemBase {
   private final LoggedTalonFX talon;
-  private final LoggedTunableNumber climbSpeed = new LoggedTunableNumber("Climb/dutyCycle", 0.25);
-  public final DutyCycleOut climbDutyCycle = new DutyCycleOut(0);
-  public final StaticBrake brake = new StaticBrake();
+  private final LoggedTunableNumber climbExtendSpeed =
+      new LoggedTunableNumber("Climb/ExtendDutyCycle", 0.25);
+  private final LoggedTunableNumber climbRetractSpeed =
+      new LoggedTunableNumber("Climb/RetractDutyCycle", -0.25);
 
-  public Climb(LoggedTalonFX talon) {
+  private final DutyCycleOut climbDutyCycle = new DutyCycleOut(0).withEnableFOC(true);
+  private final StaticBrake brake = new StaticBrake();
+
+  private final LoggedDIO forwardLimit;
+  private final LoggedDIO reverseLimit;
+
+  public Climb(LoggedTalonFX talon, LoggedDIO forwardLimit, LoggedDIO reverseLimit) {
+    this.forwardLimit = forwardLimit;
+    this.reverseLimit = reverseLimit;
     var config =
         new TalonFXConfiguration()
             .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))
@@ -39,10 +50,23 @@ public class Climb extends SubsystemBase {
             .withTunable(config.Slot0);
   }
 
-  public Command runAtDutyCycle() {
+  public Command runAtDutyCycle(DoubleSupplier dutyCycleSupplier) {
     return runEnd(
-        () -> talon.setControl(climbDutyCycle.withOutput(climbSpeed.get())),
+        () ->
+            talon.setControl(
+                climbDutyCycle
+                    .withOutput(dutyCycleSupplier.getAsDouble())
+                    .withLimitForwardMotion(forwardLimit.get())
+                    .withLimitReverseMotion(reverseLimit.get())),
         () -> talon.setControl(brake));
+  }
+
+  public Command climbExtend() {
+    return runAtDutyCycle(climbExtendSpeed).until(forwardLimit::get);
+  }
+
+  public Command climbRetract() {
+    return runAtDutyCycle(climbRetractSpeed).until(reverseLimit::get);
   }
 
   @Override

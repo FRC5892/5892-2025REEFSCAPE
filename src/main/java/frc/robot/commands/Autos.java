@@ -38,15 +38,15 @@ public class Autos {
           .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.L4))
           .andThen(
               outtakeCoral(coralSubsystem),
-              AutoBuilder.followPath(pathIS)
-                  .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
+              AutoBuilder.followPath(pathIS),
+              // .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
               // waitForCoral(coralSubsystem),
-              AutoBuilder.followPath(pathSJ),
+              // AutoBuilder.followPath(pathSJ),
               // .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.L4)),
-              outtakeCoral(coralSubsystem),
-              AutoBuilder.followPath(pathJS)
-                  .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
-              waitForCoral(coralSubsystem),
+              // outtakeCoral(coralSubsystem),
+              // AutoBuilder.followPath(pathJS)
+              //     .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
+              // waitForCoral(coralSubsystem),
               AutoBuilder.followPath(pathSK)
                   .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.L4)),
               outtakeCoral(coralSubsystem),

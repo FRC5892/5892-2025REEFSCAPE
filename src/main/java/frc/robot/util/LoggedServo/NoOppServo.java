@@ -7,9 +7,10 @@ package frc.robot.util.LoggedServo;
 /** Add your docs here. */
 public class NoOppServo extends LoggedServo {
 
-  @Override
-  public void setPosition(double position) {}
+  public NoOppServo(int minPulse, int maxPulse) {
+    super(minPulse, maxPulse);
+  }
 
   @Override
-  public void setAngle(double angleDegrees) {}
+  public void setPulse(int pulse) {}
 }

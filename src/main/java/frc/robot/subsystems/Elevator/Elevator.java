@@ -158,18 +158,19 @@ public class Elevator extends SubsystemBase {
             })
         .unless(eStop::get)
         .until(() -> homed)
-        .andThen(
-            () -> {
-              // Success!
-              talon.setPosition(Rotations.of(0));
-              homed = true;
-            })
         .finallyDo(
             () -> {
               // Success or interrupted, just clean up
               talon.setControl(voltageOut.withOutput(0));
               // Let the GC take it away
               homingDebouncer = null;
+            })
+        .andThen(Commands.waitSeconds(1))
+        .andThen(
+            () -> {
+              // Success!
+              talon.setPosition(Rotations.of(0));
+              homed = true;
             });
   }
 

@@ -7,9 +7,13 @@ package frc.robot.subsystems.funnel;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.LoggedServo.LoggedServo;
+import frc.robot.util.LoggedTunableNumber;
+import org.littletonrobotics.junction.Logger;
 
 public class Funnel extends SubsystemBase {
-  private final double FOLD_UP_POSITION = 1.0;
+  private final LoggedTunableNumber upPosition = new LoggedTunableNumber("Funnel/upPosition", 0.25);
+  private final LoggedTunableNumber downPosition =
+      new LoggedTunableNumber("Funnel/downPosition", 0);
   private final LoggedServo servo;
 
   public Funnel(LoggedServo servo) {
@@ -19,15 +23,20 @@ public class Funnel extends SubsystemBase {
   public Command foldUp() {
     return runOnce(
         () -> {
-          servo.setPosition(FOLD_UP_POSITION);
+          logAndSetPercent(upPosition.get());
         });
   }
 
   public Command foldDown() {
     return runOnce(
         () -> {
-          servo.setPosition(0);
+          logAndSetPercent(downPosition.get());
         });
+  }
+
+  public void logAndSetPercent(double percent) {
+    Logger.recordOutput("Funnel/setpoint", percent);
+    servo.setPercent(percent);
   }
 
   @Override

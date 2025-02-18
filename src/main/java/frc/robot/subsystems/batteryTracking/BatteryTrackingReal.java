@@ -31,7 +31,7 @@ public class BatteryTrackingReal implements BatteryTrackingIO {
     writePub = table.getBooleanTopic("triggerWrite").publish();
     usageSupplier = table.getDoubleTopic("usageAH").publish();
     failedSub = table.getBooleanTopic("failed").subscribe(false);
-    idSub = table.getIntegerTopic("batteryID").subscribe(-1);
+    idSub = table.getIntegerTopic("batteryId").subscribe(-1);
   }
 
   @Override
@@ -49,7 +49,7 @@ public class BatteryTrackingReal implements BatteryTrackingIO {
       try (StringSubscriber nameSub = table.getStringTopic("batteryName").subscribe("Unknown");
           IntegerSubscriber yearSub = table.getIntegerTopic("batteryYear").subscribe(-1);
           RawSubscriber logSub =
-              table.getRawTopic("log").subscribe("BatteryTrackingLogEntry[]", new byte[0])) {
+              table.getRawTopic("log").subscribe("struct:BatteryTrackingLogEntry[]", new byte[0])) {
         inputs.batteryName = nameSub.get();
         inputs.batteryYear = (int) yearSub.get();
         inputs.serializedLog = logSub.get();

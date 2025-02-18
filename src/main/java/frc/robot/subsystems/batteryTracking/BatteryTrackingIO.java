@@ -42,8 +42,10 @@ public interface BatteryTrackingIO {
           DriverStation.reportError("Failed to publish struct schema", e.getStackTrace());
         }
       }
-      table.put(
-          "batteryLog", new LogTable.LogValue(serializedLog, "struct:BatteryTrackingLogEntry[]"));
+      if (serializedLog != null) {
+        table.put(
+            "batteryLog", new LogTable.LogValue(serializedLog, "struct:BatteryTrackingLogEntry[]"));
+      }
       table.put("reusedBattery", reusedBattery);
     }
 

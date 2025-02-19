@@ -23,6 +23,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.generated.TunerConstants;
 import frc.robot.util.BatteryTracking.FrcBatteryTracking;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiConsumer;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -104,6 +107,26 @@ public class Robot extends LoggedRobot {
             "You are using an unsupported swerve configuration, which this template does not support without manual customization. The 2025 release of Phoenix supports some swerve configurations which were not available during 2025 beta testing, preventing any development and support from the AdvantageKit developers.");
       }
     }
+    // Thank you 6328 Mechanical Advantage
+    // Copyright (c) 2025 FRC 6328
+    // Mit-style license
+    Map<String, Integer> commandCounts = new HashMap<>();
+    BiConsumer<Command, Boolean> logCommandFunction =
+        (Command command, Boolean active) -> {
+          String name = command.getName();
+          int count = commandCounts.getOrDefault(name, 0) + (active ? 1 : -1);
+          commandCounts.put(name, count);
+          Logger.recordOutput(
+              "CommandsUnique/" + name + "_" + Integer.toHexString(command.hashCode()), active);
+          Logger.recordOutput("CommandsAll/" + name, count > 0);
+        };
+    CommandScheduler.getInstance()
+        .onCommandInitialize((Command command) -> logCommandFunction.accept(command, true));
+    CommandScheduler.getInstance()
+        .onCommandFinish((Command command) -> logCommandFunction.accept(command, false));
+    CommandScheduler.getInstance()
+        .onCommandInterrupt((Command command) -> logCommandFunction.accept(command, false));
+    // End 6328
 
     // Instantiate our RobotContainer. This will perform all our button bindings,
     // and put our autonomous chooser on the dashboard.

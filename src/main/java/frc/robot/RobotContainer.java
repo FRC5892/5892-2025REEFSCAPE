@@ -115,12 +115,13 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
-        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {});
-        // vision =
-        //     new Vision(
-        //         drive::addVisionMeasurement,
-        //         new VisionIOPhotonVision(
-        //             VisionConstants.camera0Name, VisionConstants.robotToCamera0));
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVision(
+                    VisionConstants.camera0Name, VisionConstants.robotToCamera0),
+                new VisionIOPhotonVision(
+                    VisionConstants.camera1Name, VisionConstants.robotToCamera1));
         elevator = new Elevator(new PhoenixTalonFX(20, defaultCanBus, "elevator"));
         coralEndEffector =
             new CoralEndEffector(
@@ -147,7 +148,9 @@ public class RobotContainer {
             new Vision(
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVisionSim(
-                    VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose));
+                    VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
+                new VisionIOPhotonVisionSim(
+                    VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose));
         elevator = new Elevator(new ElevatorSimulation(20, defaultCanBus, "elevator"));
         coralEndEffector =
             new CoralEndEffector(
@@ -183,7 +186,6 @@ public class RobotContainer {
         funnel = new Funnel(new NoOppServo(500, 2500));
         break;
     }
-
     coralEndEffector
         .beamBreakTrigger()
         .and(() -> elevator.atPosition(ElevatorPosition.INTAKE))

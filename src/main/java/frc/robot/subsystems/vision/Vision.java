@@ -37,6 +37,9 @@ public class Vision extends SubsystemBase {
   private final Alert[] disconnectedAlerts;
 
   public Vision(VisionConsumer consumer, VisionIO... io) {
+    Logger.recordOutput("Vision/camera0Offset", VisionConstants.robotToCamera0);
+    Logger.recordOutput("Vision/camera1Offset", VisionConstants.robotToCamera1);
+
     this.consumer = consumer;
     this.io = io;
 

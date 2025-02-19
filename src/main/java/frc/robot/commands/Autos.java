@@ -38,9 +38,9 @@ public class Autos {
           .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.L4))
           .andThen(
               outtakeCoral(coralSubsystem),
-              AutoBuilder.followPath(pathIS),
-              // .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
-              // waitForCoral(coralSubsystem),
+              AutoBuilder.followPath(pathIS)
+                  .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
+              waitForCoral(coralSubsystem),
               // AutoBuilder.followPath(pathSJ),
               // .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.L4)),
               // outtakeCoral(coralSubsystem),
@@ -72,10 +72,13 @@ public class Autos {
   }
 
   public static Command waitForCoral(CoralEndEffector coralSubsystem) {
-    return Commands.waitUntil(coralSubsystem::getBeamBreak);
+    return Commands.waitUntil(
+        () -> {
+          return coralSubsystem.getBeamBreak();
+        });
   }
 
   public static Command outtakeCoral(CoralEndEffector coralSubsystem) {
-    return coralSubsystem.runOuttake().withTimeout(0.25);
+    return coralSubsystem.runOuttake().withTimeout(0.25).asProxy();
   }
 }

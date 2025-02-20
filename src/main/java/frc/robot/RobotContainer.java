@@ -130,11 +130,15 @@ public class RobotContainer {
                 new PhoenixTalonFX(22, defaultCanBus, "coralEffector"),
                 new HardwareDIO("intakeBeamBreak", 0));
         funnel = new Funnel(new FunnelServoHub(-1, 500, 2500).getServo(ChannelId.kChannelId0));
-         climb =
-             new Climb(
-                 new PhoenixTalonFX(-3, defaultCanBus, "climb"),
-                 new HardwareDIO("climbForwardLimit", 1),
-                 new HardwareDIO("climbReverseLimit", 2));
+        climb =
+            new Climb(
+                /*new PhoenixTalonFX(-3, defaultCanBus, "climb"),
+                new HardwareDIO("climbForwardLimit", 1),
+                new HardwareDIO("climbReverseLimit", 2)*/
+
+                new NoOppTalonFX("climb", 0),
+                new NoOppDio("climbForwardLimit"),
+                new NoOppDio("climbReverseLimit"));
         break;
 
       case SIM:
@@ -158,11 +162,11 @@ public class RobotContainer {
             new CoralEndEffector(
                 new PhoenixTalonFX(22, defaultCanBus, "coralEffector"),
                 SimDIO.fromNT("intakeBeamBreak"));
-         climb =
-             new Climb(
-                 new PhoenixTalonFX(-3, defaultCanBus, "climb"),
-                 SimDIO.fromNT("climbForwardLimit"),
-                 SimDIO.fromNT("climbReverseLimit"));
+        climb =
+            new Climb(
+                new PhoenixTalonFX(-3, defaultCanBus, "climb"),
+                SimDIO.fromNT("climbForwardLimit"),
+                SimDIO.fromNT("climbReverseLimit"));
         funnel = new Funnel(new NoOppServo(500, 2500));
         break;
 
@@ -180,11 +184,11 @@ public class RobotContainer {
         coralEndEffector =
             new CoralEndEffector(
                 new NoOppTalonFX("coralEffector", 0), new NoOppDio("intakeBeamBreak"));
-         climb =
-             new Climb(
-                 new NoOppTalonFX("climb", 0),
-                 new NoOppDio("climbForwardLimit"),
-                 new NoOppDio("climbReverseLimit"));
+        climb =
+            new Climb(
+                new NoOppTalonFX("climb", 0),
+                new NoOppDio("climbForwardLimit"),
+                new NoOppDio("climbReverseLimit"));
         funnel = new Funnel(new NoOppServo(500, 2500));
         break;
     }
@@ -244,7 +248,9 @@ public class RobotContainer {
             Commands.runOnce(
                     () ->
                         drive.setPose(
-                            new Pose2d(drive.getPose().getTranslation(), AllianceFlipUtil.apply(new Rotation2d()))),
+                            new Pose2d(
+                                drive.getPose().getTranslation(),
+                                AllianceFlipUtil.apply(new Rotation2d()))),
                     drive)
                 .ignoringDisable(true));
     driverController.leftBumper().whileTrue(drive.driveToReefCommand(Drive.ReefBranch.LEFT));

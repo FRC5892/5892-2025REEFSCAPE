@@ -39,28 +39,44 @@ public class Autos {
           .andThen(
               outtakeCoral(coralSubsystem),
               AutoBuilder.followPath(pathIS)
-                  .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
+                  .alongWith(
+                      elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE),
+                      Commands.print("pathIS")),
               waitForCoral(coralSubsystem),
-              // AutoBuilder.followPath(pathSJ),
-              // .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.L4)),
-              // outtakeCoral(coralSubsystem),
-              // AutoBuilder.followPath(pathJS)
-              //     .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
-              // waitForCoral(coralSubsystem),
+              AutoBuilder.followPath(pathSJ)
+                  .alongWith(
+                      elevatorSubsystem.goToPosition(ElevatorPosition.L4),
+                      Commands.print("pathSJ")),
+              outtakeCoral(coralSubsystem),
+              AutoBuilder.followPath(pathJS)
+                  .alongWith(
+                      elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE),
+                      Commands.print("pathJS")),
+              waitForCoral(coralSubsystem),
               AutoBuilder.followPath(pathSK)
-                  .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.L4)),
+                  .alongWith(
+                      elevatorSubsystem.goToPosition(ElevatorPosition.L4),
+                      Commands.print("pathSK")),
               outtakeCoral(coralSubsystem),
               AutoBuilder.followPath(pathKS)
-                  .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
+                  .alongWith(
+                      elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE),
+                      Commands.print("pathKS")),
               waitForCoral(coralSubsystem),
               AutoBuilder.followPath(pathSL)
-                  .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.L4)),
+                  .alongWith(
+                      elevatorSubsystem.goToPosition(ElevatorPosition.L4),
+                      Commands.print("pathSL")),
               outtakeCoral(coralSubsystem),
               AutoBuilder.followPath(pathLS)
-                  .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
+                  .alongWith(
+                      elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE),
+                      Commands.print("pathLS")),
               waitForCoral(coralSubsystem),
               AutoBuilder.followPath(pathSA)
-                  .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.L4)),
+                  .alongWith(
+                      elevatorSubsystem.goToPosition(ElevatorPosition.L4),
+                      Commands.print("pathSA")),
               outtakeCoral(coralSubsystem));
     } catch (Exception e) {
       @SuppressWarnings("resource")

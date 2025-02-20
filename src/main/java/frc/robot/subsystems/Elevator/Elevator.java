@@ -44,7 +44,7 @@ public class Elevator extends SubsystemBase {
       new LoggedTunableMeasure<>("Elevator/Tolerance", Meters.mutable(0.02));
   private final LoggedTunableMeasure<MutAngularVelocity> toleranceVelocity =
       new LoggedTunableMeasure<>("Elevator/ToleranceVelocity", RPM.mutable(1));
-  @AutoLogOutput private final LoggedMechanism2d mechanism = new LoggedMechanism2d(0, 3);
+  @AutoLogOutput private final LoggedMechanism2d mechanism = new LoggedMechanism2d(0.25, 3);
   private final LoggedMechanismRoot2d mechanism2dRoot = mechanism.getRoot("Elevator Root", 0, 0);
   private final LoggedMechanismLigament2d mechanism2dLigament =
       mechanism2dRoot.append(new LoggedMechanismLigament2d("Elevator Ligament", 0, 90));
@@ -100,7 +100,9 @@ public class Elevator extends SubsystemBase {
                 setPoint.height.get().baseUnitMagnitude(),
                 height.baseUnitMagnitude(),
                 tolerance.get().baseUnitMagnitude())
-            && talon.getVelocity().lt(toleranceVelocity.get()); // TODO: This also needs to be isNear
+            && talon
+                .getVelocity()
+                .lt(toleranceVelocity.get()); // TODO: This also needs to be isNear
     mechanism2dLigament.setLength(height.in(Meters));
     homedAlert.set(!homed);
   }

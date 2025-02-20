@@ -29,6 +29,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.Autos;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.Climb.Climb;
 import frc.robot.subsystems.CoralEndEffector.CoralEndEffector;
 import frc.robot.subsystems.Elevator.Elevator;
 import frc.robot.subsystems.Elevator.ElevatorConstants.ElevatorPosition;
@@ -37,6 +38,7 @@ import frc.robot.subsystems.drive.*;
 import frc.robot.subsystems.funnel.Funnel;
 import frc.robot.subsystems.funnel.FunnelServoHub;
 import frc.robot.subsystems.vision.*;
+import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.LoggedDIO.HardwareDIO;
 import frc.robot.util.LoggedDIO.NoOppDio;
 import frc.robot.util.LoggedDIO.SimDIO;
@@ -57,7 +59,7 @@ public class RobotContainer {
   private final Drive drive;
   private final Vision vision;
   private final Elevator elevator;
-  //   private final Climb climb;
+  private final Climb climb;
   private final CoralEndEffector coralEndEffector;
   private final Funnel funnel;
 
@@ -128,11 +130,11 @@ public class RobotContainer {
                 new PhoenixTalonFX(22, defaultCanBus, "coralEffector"),
                 new HardwareDIO("intakeBeamBreak", 0));
         funnel = new Funnel(new FunnelServoHub(-1, 500, 2500).getServo(ChannelId.kChannelId0));
-        // climb =
-        //     new Climb(
-        //         new PhoenixTalonFX(-3, defaultCanBus, "climb"),
-        //         new HardwareDIO("climbForwardLimit", 1),
-        //         new HardwareDIO("climbReverseLimit", 2));
+         climb =
+             new Climb(
+                 new PhoenixTalonFX(-3, defaultCanBus, "climb"),
+                 new HardwareDIO("climbForwardLimit", 1),
+                 new HardwareDIO("climbReverseLimit", 2));
         break;
 
       case SIM:
@@ -156,11 +158,11 @@ public class RobotContainer {
             new CoralEndEffector(
                 new PhoenixTalonFX(22, defaultCanBus, "coralEffector"),
                 SimDIO.fromNT("intakeBeamBreak"));
-        // climb =
-        //     new Climb(
-        //         new PhoenixTalonFX(-3, defaultCanBus, "climb"),
-        //         SimDIO.fromNT("climbForwardLimit"),
-        //         SimDIO.fromNT("climbReverseLimit"));
+         climb =
+             new Climb(
+                 new PhoenixTalonFX(-3, defaultCanBus, "climb"),
+                 SimDIO.fromNT("climbForwardLimit"),
+                 SimDIO.fromNT("climbReverseLimit"));
         funnel = new Funnel(new NoOppServo(500, 2500));
         break;
 
@@ -178,11 +180,11 @@ public class RobotContainer {
         coralEndEffector =
             new CoralEndEffector(
                 new NoOppTalonFX("coralEffector", 0), new NoOppDio("intakeBeamBreak"));
-        // climb =
-        //     new Climb(
-        //         new NoOppTalonFX("climb", 0),
-        //         new NoOppDio("climbForwardLimit"),
-        //         new NoOppDio("climbReverseLimit"));
+         climb =
+             new Climb(
+                 new NoOppTalonFX("climb", 0),
+                 new NoOppDio("climbForwardLimit"),
+                 new NoOppDio("climbReverseLimit"));
         funnel = new Funnel(new NoOppServo(500, 2500));
         break;
     }
@@ -232,8 +234,8 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> driverController.getLeftY(),
-            () -> driverController.getLeftX(),
+            () -> -driverController.getLeftY(),
+            () -> -driverController.getLeftX(),
             () -> -driverController.getRightX()));
     // Reset gyro to 0° when B button is pressed
     driverController
@@ -242,7 +244,7 @@ public class RobotContainer {
             Commands.runOnce(
                     () ->
                         drive.setPose(
-                            new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
+                            new Pose2d(drive.getPose().getTranslation(), AllianceFlipUtil.apply(new Rotation2d()))),
                     drive)
                 .ignoringDisable(true));
     driverController.leftBumper().whileTrue(drive.driveToReefCommand(Drive.ReefBranch.LEFT));

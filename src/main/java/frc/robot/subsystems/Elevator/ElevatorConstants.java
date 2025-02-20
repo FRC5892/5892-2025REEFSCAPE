@@ -21,7 +21,6 @@ public class ElevatorConstants {
   // 5.5 in per rotation
   // 2:1 elevator gearing
   public static final Distance DISTANCE_PER_ROTATION = Inches.of(5.5);
-  public static final double DISTANCE_TOLERANCE_METERS = 0.01;
   public static final double VELOCITY_TOLERANCE_RPM = 0.1;
 
   public enum ElevatorPosition {

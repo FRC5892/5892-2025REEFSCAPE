@@ -38,8 +38,12 @@ public class Elevator extends SubsystemBase {
       new LoggedTunableMeasure<>("Elevator/homing/Threshold", RotationsPerSecond.mutable(0.25));
   private final LoggedTunableNumber homingVoltage =
       new LoggedTunableNumber("Elevator/homing/Speed V", -0.5);
-  private final LoggedNetworkBoolean eStop = new LoggedNetworkBoolean("Elevator/E Stop", false);
 
+  private final LoggedNetworkBoolean eStop = new LoggedNetworkBoolean("Elevator/E Stop", false);
+  private final LoggedTunableMeasure<MutDistance> tolerance =
+      new LoggedTunableMeasure<>("Elevator/Tolerance", Meters.mutable(0.02));
+  private final LoggedTunableMeasure<MutAngularVelocity> toleranceVelocity =
+      new LoggedTunableMeasure<>("Elevator/ToleranceVelocity", RPM.mutable(1));
   @AutoLogOutput private final LoggedMechanism2d mechanism = new LoggedMechanism2d(0, 3);
   private final LoggedMechanismRoot2d mechanism2dRoot = mechanism.getRoot("Elevator Root", 0, 0);
   private final LoggedMechanismLigament2d mechanism2dLigament =
@@ -95,8 +99,8 @@ public class Elevator extends SubsystemBase {
         MathUtil.isNear(
                 setPoint.height.get().baseUnitMagnitude(),
                 height.baseUnitMagnitude(),
-                ElevatorConstants.DISTANCE_TOLERANCE_METERS)
-            && talon.getVelocity().in(RPM) < ElevatorConstants.VELOCITY_TOLERANCE_RPM;
+                tolerance.get().baseUnitMagnitude())
+            && talon.getVelocity().lt(toleranceVelocity.get()); // TODO: This also needs to be isNear
     mechanism2dLigament.setLength(height.in(Meters));
     homedAlert.set(!homed);
   }

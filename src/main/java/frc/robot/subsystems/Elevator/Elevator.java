@@ -100,9 +100,7 @@ public class Elevator extends SubsystemBase {
                 setPoint.height.get().baseUnitMagnitude(),
                 height.baseUnitMagnitude(),
                 tolerance.get().baseUnitMagnitude())
-            && talon
-                .getVelocity()
-                .lt(toleranceVelocity.get()); // TODO: This also needs to be isNear
+            && MathUtil.isNear(0, talon.getVelocity().baseUnitMagnitude(), toleranceVelocity.get().baseUnitMagnitude());
     mechanism2dLigament.setLength(height.in(Meters));
     homedAlert.set(!homed);
   }

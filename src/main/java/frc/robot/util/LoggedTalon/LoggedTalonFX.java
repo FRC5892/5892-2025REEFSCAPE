@@ -2,11 +2,11 @@ package frc.robot.util.LoggedTalon;
 
 import static edu.wpi.first.units.Units.*;
 
-import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.ControlRequest;
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.Constants;
 // import frc.robot.util.LoggedTalon.Follower.TalonFXFollower;
 import frc.robot.util.LoggedTunableNumber;
@@ -21,16 +21,11 @@ public abstract class LoggedTalonFX {
   protected final String name;
   private final TalonFXInputsAutoLogged inputs = new TalonFXInputsAutoLogged();
   private final Alert[] connectionAlerts;
-  private boolean tuning = false;
+  private boolean pidTuning = false;
+  private boolean mmTuning = false;
 
-  private LoggedTunableNumber kPTunable = null;
-  private LoggedTunableNumber kITunable = null;
-  private LoggedTunableNumber kDTunable = null;
-  private LoggedTunableNumber kGTunable = null;
-  private LoggedTunableNumber kSTunable = null;
-  private LoggedTunableNumber kVTunable = null;
-  private LoggedTunableNumber kATunable = null;
-  private Slot0Configs tunedConfigs = null;
+  private LoggedTunableNumber[] tunableNumbers = null;
+  private TalonFXConfiguration tunedConfigs = null;
   private LoggedTalonFX[] tuningFollowers = null;
   protected final int followers;
 
@@ -59,17 +54,8 @@ public abstract class LoggedTalonFX {
   public void periodic() {
     this.updateInputs(inputs);
     Logger.processInputs("Motors/" + name, inputs);
-    if (tuning) {
-      LoggedTunableNumber.ifChanged(
-          this,
-          this::applyAllTuningChanges,
-          kPTunable,
-          kITunable,
-          kDTunable,
-          kGTunable,
-          kSTunable,
-          kVTunable,
-          kATunable);
+    if (pidTuning) {
+      LoggedTunableNumber.ifChanged(this, this::applyAllTuningChanges, tunableNumbers);
     }
     for (int i = 0; i < followers + 1; i++) {
       connectionAlerts[i].set(!inputs.connected[i]);
@@ -77,37 +63,78 @@ public abstract class LoggedTalonFX {
   }
 
   private void applyAllTuningChanges(double[] values) {
-    applyTuningChange(values);
+    applyTuningChange(values, pidTuning, mmTuning);
     for (LoggedTalonFX tuningFollower : tuningFollowers) {
-      tuningFollower.applyTuningChange(values);
+      tuningFollower.applyTuningChange(values, pidTuning, mmTuning);
     }
   }
 
-  private void applyTuningChange(double[] values) {
-    tunedConfigs.kP = values[0];
-    tunedConfigs.kI = values[1];
-    tunedConfigs.kD = values[2];
-    tunedConfigs.kG = values[3];
-    tunedConfigs.kS = values[4];
-    tunedConfigs.kV = values[5];
-    tunedConfigs.kA = values[6];
-    quickApplySlot0Config(tunedConfigs);
+  private void applyTuningChange(double[] values, boolean pid, boolean mm) {
+    if (pid) {
+      tunedConfigs.Slot0.kP = values[0];
+      tunedConfigs.Slot0.kI = values[1];
+      tunedConfigs.Slot0.kD = values[2];
+      tunedConfigs.Slot0.kG = values[3];
+      tunedConfigs.Slot0.kS = values[4];
+      tunedConfigs.Slot0.kV = values[5];
+      tunedConfigs.Slot0.kA = values[6];
+    }
+    if (mm) {
+      tunedConfigs.MotionMagic.MotionMagicCruiseVelocity = values[7];
+      tunedConfigs.MotionMagic.MotionMagicAcceleration = values[8];
+      tunedConfigs.MotionMagic.MotionMagicJerk = values[9];
+    }
+    quickApplyConfig(tunedConfigs);
   }
 
-  public LoggedTalonFX withTunable(Slot0Configs defaultValues, LoggedTalonFX... followers) {
+  public LoggedTalonFX withPIDTunable(
+      TalonFXConfiguration defaultValues, LoggedTalonFX... followers) {
     if (!Constants.tuningMode) return this;
-    kPTunable = new LoggedTunableNumber(name + "/kP", defaultValues.kP);
-    kITunable = new LoggedTunableNumber(name + "/kI", defaultValues.kI);
-    kDTunable = new LoggedTunableNumber(name + "/kD", defaultValues.kD);
-    kGTunable = new LoggedTunableNumber(name + "/kG", defaultValues.kG);
-    kSTunable = new LoggedTunableNumber(name + "/kS", defaultValues.kS);
-    kVTunable = new LoggedTunableNumber(name + "/kV", defaultValues.kV);
-    kATunable = new LoggedTunableNumber(name + "/kA", defaultValues.kA);
+    if (pidTuning) {
+      DriverStation.reportWarning("Attempted to initiate PID tuning twice", true);
+    }
+    pidTuning = true;
+
+    this.tunableNumbers =
+        new LoggedTunableNumber[] {
+          new LoggedTunableNumber(name + "/kP", defaultValues.Slot0.kP),
+          new LoggedTunableNumber(name + "/kI", defaultValues.Slot0.kI),
+          new LoggedTunableNumber(name + "/kD", defaultValues.Slot0.kD),
+          new LoggedTunableNumber(name + "/kG", defaultValues.Slot0.kG),
+          new LoggedTunableNumber(name + "/kS", defaultValues.Slot0.kS),
+          new LoggedTunableNumber(name + "/kV", defaultValues.Slot0.kV),
+          new LoggedTunableNumber(name + "/kA", defaultValues.Slot0.kA),
+        };
 
     tunedConfigs = defaultValues;
     tuningFollowers = followers;
 
-    tuning = true;
+    return this;
+  }
+
+  public LoggedTalonFX withMMPIDTuning(
+      TalonFXConfiguration defaultValues, LoggedTalonFX... followers) {
+    withPIDTunable(defaultValues, followers);
+    if (!Constants.tuningMode) return this;
+    if (mmTuning) {
+      DriverStation.reportWarning("Attempted to initiate Motion Magic tuning twice", true);
+    }
+    mmTuning = true;
+
+    final LoggedTunableNumber[] mmTunableNumbers =
+        new LoggedTunableNumber[] {
+          new LoggedTunableNumber(
+              name + "/MM Cruise Velocity", defaultValues.MotionMagic.MotionMagicCruiseVelocity),
+          new LoggedTunableNumber(
+              name + "/MM Acceleration", defaultValues.MotionMagic.MotionMagicAcceleration),
+          new LoggedTunableNumber(name + "/MM Jerk", defaultValues.MotionMagic.MotionMagicJerk),
+        };
+    final LoggedTunableNumber[] copy =
+        new LoggedTunableNumber[this.tunableNumbers.length + mmTunableNumbers.length];
+    System.arraycopy(this.tunableNumbers, 0, copy, 0, this.tunableNumbers.length);
+    System.arraycopy(
+        mmTunableNumbers, 0, copy, this.tunableNumbers.length, mmTunableNumbers.length);
+    this.tunableNumbers = copy;
     return this;
   }
 
@@ -129,7 +156,7 @@ public abstract class LoggedTalonFX {
   public abstract LoggedTalonFX withSimConfig(
       Function<TalonFXConfiguration, TalonFXConfiguration> config);
 
-  public abstract void quickApplySlot0Config(Slot0Configs config);
+  public abstract void quickApplyConfig(TalonFXConfiguration config);
 
   public Voltage getPrimaryAppliedVoltage() {
     return getAppliedVoltage(0);

@@ -30,7 +30,7 @@ public class CoralEndEffector extends SubsystemBase {
     var config =
         new TalonFXConfiguration()
             .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
-    this.talon = talon.withConfig(config).withTunable(config.Slot0);
+    this.talon = talon.withConfig(config);
     this.beamBreak = beambreak;
   }
 

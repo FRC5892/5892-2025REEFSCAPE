@@ -195,6 +195,7 @@ public class RobotContainer {
     coralEndEffector
         .beamBreakTrigger()
         .and(() -> elevator.atPosition(ElevatorPosition.INTAKE))
+        .and(DriverStation::isTeleop)
         .whileTrue(
             coralEndEffector
                 .runIntake()

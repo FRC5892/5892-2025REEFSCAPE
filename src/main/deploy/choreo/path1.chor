@@ -4,18 +4,25 @@
  "type":"Swerve",
  "variables":{
   "expressions":{
-   "duzina":{
-    "dimension":"Length",
-    "var":{
-     "exp":"3 m",
-     "val":3.0
-    }
-   },
    "endAngle":{
     "dimension":"Angle",
     "var":{
      "exp":"-53 deg",
      "val":-0.9250245035569946
+    }
+   },
+   "preloadAngle":{
+    "dimension":"Angle",
+    "var":{
+     "exp":"-120 deg",
+     "val":-2.0943951023931953
+    }
+   },
+   "preloadRed":{
+    "dimension":"Angle",
+    "var":{
+     "exp":"60 deg",
+     "val":1.0471975511965976
     }
    },
    "refx":{
@@ -32,69 +39,77 @@
      "val":7.1
     }
    },
-   "startAngleLeftMiddle":{
+   "startAngle":{
     "dimension":"Angle",
     "var":{
      "exp":"180 deg",
      "val":3.141592653589793
     }
-   },
-   "startAngleLeftUp":{
-    "dimension":"Angle",
-    "var":{
-     "exp":"-120 deg",
-     "val":-2.0943951023931953
-    }
-   },
-   "startAngleMiddle":{
-    "dimension":"Angle",
-    "var":{
-     "exp":"0 deg",
-     "val":0.0
-    }
-   },
-   "startAngleRightUp":{
-    "dimension":"Angle",
-    "var":{
-     "exp":"-60 deg",
-     "val":-1.0471975511965976
-    }
    }
   },
-  "poses":{}
+  "poses":{
+   "LStation":{
+    "x":{
+     "exp":"refx m",
+     "val":1.12
+    },
+    "y":{
+     "exp":"refy m",
+     "val":7.1
+    },
+    "heading":{
+     "exp":"endAngle",
+     "val":-0.9250245035569946
+    }
+   },
+   "LStationAlign":{
+    "x":{
+     "exp":"1.6842823028564453 m",
+     "val":1.684282302856445
+    },
+    "y":{
+     "exp":"6.352985858917236 m",
+     "val":6.352985858917236
+    },
+    "heading":{
+     "exp":"LStation.heading",
+     "val":-0.9250245035569946
+    }
+   }
+  }
  },
  "config":{
   "frontLeft":{
    "x":{
-    "exp":"11 in",
-    "val":0.2794
+    "exp":"11.6875 in",
+    "val":0.2968625
    },
    "y":{
-    "exp":"11 in",
-    "val":0.2794
+    "exp":"10.8125 in",
+    "val":0.2746375
    }
   },
   "backLeft":{
    "x":{
-    "exp":"-11 in",
-    "val":-0.2794
+    "exp":"-11.6875 in",
+    "val":-0.2968625
    },
    "y":{
-    "exp":"11 in",
-    "val":0.2794
+    "exp":"10.8125 in",
+    "val":0.2746375
    }
   },
   "mass":{
-   "exp":"150 lbs",
-   "val":68.0388555
+   "exp":"120 lbs",
+   "val":54.4310844
   },
   "inertia":{
    "exp":"6 kg m ^ 2",
    "val":6.0
   },
   "gearing":{
-   "exp":"6.5",
-   "val":6.5
+   "exp":"6.1224",
+   "val":6.1224
   },
   "radius":{
    "exp":"2 in",
@@ -105,8 +120,8 @@
    "val":628.3185307179587
   },
   "tmax":{
-   "exp":"1.2 N * m",
-   "val":1.2
+   "exp":"7.09 N * m",
+   "val":7.09
   },
   "cof":{
    "exp":"1.5",
@@ -114,16 +129,16 @@
   },
   "bumper":{
    "front":{
-    "exp":"16 in",
-    "val":0.4064
+    "exp":"18.5 in",
+    "val":0.4699
    },
    "side":{
-    "exp":"16 in",
-    "val":0.4064
+    "exp":"17.5 in",
+    "val":0.4445
    },
    "back":{
-    "exp":"16 in",
-    "val":0.4064
+    "exp":"18.5 in",
+    "val":0.4699
    }
   },
   "differentialTrackWidth":{

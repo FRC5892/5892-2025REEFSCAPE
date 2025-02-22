@@ -8,14 +8,18 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.events.EventTrigger;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.Constants;
 import frc.robot.subsystems.CoralEndEffector.CoralEndEffector;
 import frc.robot.subsystems.Elevator.Elevator;
 import frc.robot.subsystems.Elevator.ElevatorConstants.ElevatorPosition;
+import frc.robot.util.AllianceFlipUtil;
+import org.littletonrobotics.junction.Logger;
 
 /** Add your docs here. */
 public class Autos {
@@ -34,6 +38,23 @@ public class Autos {
       PathPlannerPath pathSL = PathPlannerPath.fromChoreoTrajectory("SL");
       PathPlannerPath pathLS = PathPlannerPath.fromChoreoTrajectory("LS");
       PathPlannerPath pathSA = PathPlannerPath.fromChoreoTrajectory("SA");
+      if (Constants.currentMode == Constants.Mode.SIM) {
+        var points = pathLPreI.getAllPathPoints();
+        points.addAll(pathIS.getAllPathPoints());
+        points.addAll(pathSJ.getAllPathPoints());
+        points.addAll(pathJS.getAllPathPoints());
+        points.addAll(pathSK.getAllPathPoints());
+        points.addAll(pathKS.getAllPathPoints());
+        points.addAll(pathSL.getAllPathPoints());
+        points.addAll(pathLS.getAllPathPoints());
+        points.addAll(pathSA.getAllPathPoints());
+        Logger.recordOutput(
+            "Autos/LeftCoralAuto/Path",
+            points.stream()
+                .map((p) -> p.position)
+                .toArray(Translation2d[]::new));
+      }
+
       return AutoBuilder.pathfindThenFollowPath(pathLPreI, new PathConstraints(10, 10, 10, 10))
           .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.L4))
           .andThen(
@@ -45,7 +66,7 @@ public class Autos {
               waitForCoral(coralSubsystem),
               AutoBuilder.followPath(pathSJ)
                   .alongWith(
-                      elevatorSubsystem.goToPosition(ElevatorPosition.L4),
+                      intakeThenExtend(elevatorSubsystem, coralSubsystem, ElevatorPosition.L4),
                       Commands.print("pathSJ")),
               outtakeCoral(coralSubsystem),
               AutoBuilder.followPath(pathJS)
@@ -55,7 +76,7 @@ public class Autos {
               waitForCoral(coralSubsystem),
               AutoBuilder.followPath(pathSK)
                   .alongWith(
-                      elevatorSubsystem.goToPosition(ElevatorPosition.L4),
+                      intakeThenExtend(elevatorSubsystem, coralSubsystem, ElevatorPosition.L4),
                       Commands.print("pathSK")),
               outtakeCoral(coralSubsystem),
               AutoBuilder.followPath(pathKS)
@@ -65,7 +86,7 @@ public class Autos {
               waitForCoral(coralSubsystem),
               AutoBuilder.followPath(pathSL)
                   .alongWith(
-                      elevatorSubsystem.goToPosition(ElevatorPosition.L4),
+                      intakeThenExtend(elevatorSubsystem, coralSubsystem, ElevatorPosition.L4),
                       Commands.print("pathSL")),
               outtakeCoral(coralSubsystem),
               AutoBuilder.followPath(pathLS)
@@ -75,7 +96,7 @@ public class Autos {
               waitForCoral(coralSubsystem),
               AutoBuilder.followPath(pathSA)
                   .alongWith(
-                      elevatorSubsystem.goToPosition(ElevatorPosition.L4),
+                      intakeThenExtend(elevatorSubsystem, coralSubsystem, ElevatorPosition.L4),
                       Commands.print("pathSA")),
               outtakeCoral(coralSubsystem));
     } catch (Exception e) {
@@ -88,13 +109,18 @@ public class Autos {
   }
 
   public static Command waitForCoral(CoralEndEffector coralSubsystem) {
-    return Commands.waitUntil(
-        () -> {
-          return coralSubsystem.getBeamBreak();
-        });
+    return Commands.waitUntil(coralSubsystem::getBeamBreak);
   }
 
   public static Command outtakeCoral(CoralEndEffector coralSubsystem) {
-    return coralSubsystem.runOuttake().withTimeout(0.25).asProxy();
+    return coralSubsystem.runOuttake().withTimeout(0.25);
+  }
+
+  public static Command intakeThenExtend(
+      Elevator elevatorSubsystem, CoralEndEffector coralSubsystem, ElevatorPosition position) {
+    return coralSubsystem
+        .runIntake()
+        .until(() -> !coralSubsystem.getBeamBreak())
+        .andThen(elevatorSubsystem.goToPosition(position));
   }
 }

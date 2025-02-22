@@ -1,6 +1,5 @@
 package frc.robot.util.LoggedTalon;
 
-import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.ControlRequest;
 import edu.wpi.first.units.measure.Angle;
@@ -29,7 +28,7 @@ public class NoOppTalonFX extends LoggedTalonFX {
   }
 
   @Override
-  public void quickApplySlot0Config(Slot0Configs config) {}
+  public void quickApplyConfig(TalonFXConfiguration config) {}
 
   @Override
   public void setPosition(Angle position) {}

@@ -88,7 +88,7 @@ public class Elevator extends SubsystemBase {
                                 .withSupplyCurrentLimitEnable(false))
                         .withSlot0(
                             new Slot0Configs().withKG(0.15).withKV(1.29).withKA(0.03).withKP(2.5)))
-            .withTunable(config.Slot0);
+            .withMMPIDTuning(config, talon);
   }
 
   @Override
@@ -100,7 +100,10 @@ public class Elevator extends SubsystemBase {
                 setPoint.height.get().baseUnitMagnitude(),
                 height.baseUnitMagnitude(),
                 tolerance.get().baseUnitMagnitude())
-            && MathUtil.isNear(0, talon.getVelocity().baseUnitMagnitude(), toleranceVelocity.get().baseUnitMagnitude());
+            && MathUtil.isNear(
+                0,
+                talon.getVelocity().baseUnitMagnitude(),
+                toleranceVelocity.get().baseUnitMagnitude());
     mechanism2dLigament.setLength(height.in(Meters));
     homedAlert.set(!homed);
   }

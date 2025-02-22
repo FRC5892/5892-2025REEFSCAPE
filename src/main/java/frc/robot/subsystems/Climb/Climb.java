@@ -46,8 +46,7 @@ public class Climb extends SubsystemBase {
                     c.withCurrentLimits(
                         new CurrentLimitsConfigs()
                             .withStatorCurrentLimitEnable(false)
-                            .withSupplyCurrentLimitEnable(false)))
-            .withTunable(config.Slot0);
+                            .withSupplyCurrentLimitEnable(false)));
   }
 
   public Command runAtDutyCycle(DoubleSupplier dutyCycleSupplier) {

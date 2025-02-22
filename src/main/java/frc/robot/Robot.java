@@ -16,13 +16,10 @@ package frc.robot;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.DriveMotorArrangement;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.SteerMotorArrangement;
-import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.generated.TunerConstants;
-import frc.robot.util.BatteryTracking.FrcBatteryTracking;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -42,7 +39,8 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 public class Robot extends LoggedRobot {
   private Command autonomousCommand;
   private final RobotContainer robotContainer;
-  private FrcBatteryTracking batteryTracking;
+
+  // private FrcBatteryTracking batteryTracking;
 
   public Robot() {
     // Record metadata
@@ -90,7 +88,7 @@ public class Robot extends LoggedRobot {
     Logger.start();
 
     // Start battery tracking
-    batteryTracking = new FrcBatteryTracking(new PowerDistribution(1, ModuleType.kRev));
+    // batteryTracking = new FrcBatteryTracking(new PowerDistribution(1, ModuleType.kRev));
 
     // Check for valid swerve config
     var modules =
@@ -148,7 +146,7 @@ public class Robot extends LoggedRobot {
     // the Command-based framework to work.
     CommandScheduler.getInstance().run();
 
-    batteryTracking.periodic();
+    // batteryTracking.periodic();
 
     // Return to normal thread priority
     Threads.setCurrentThreadPriority(false, 10);

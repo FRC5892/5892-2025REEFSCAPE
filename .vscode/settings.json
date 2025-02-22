@@ -69,5 +69,12 @@
   "[java]": {
     "editor.defaultFormatter": "richardwillis.vscode-spotless-gradle"
   },
-  "java.debug.settings.onBuildFailureProceed": true
+  "java.debug.settings.onBuildFailureProceed": true,
+  "cSpell.words": [
+    "codriver",
+    "Debouncer",
+    "Feedforward",
+    "Setpoint",
+    "Teleop"
+  ]
 }

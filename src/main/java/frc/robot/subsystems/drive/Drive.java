@@ -448,7 +448,7 @@ public class Drive extends SubsystemBase {
   private final double FRONT_TO_CENTER_METERS = 0.47;
   private final Transform2d START_POINT_TRANSFORM =
       new Transform2d(-1, 0.0, Rotation2d.fromDegrees(0.0));
-  private final PathConstraints PATH_CONSTRAINTS = new PathConstraints(5, 10, 5, 10);
+  private final PathConstraints PATH_CONSTRAINTS = new PathConstraints(1, 0.25, 1, 0.25);
 
   public Command driveToReefCommand(ReefBranch branch) {
     return defer(

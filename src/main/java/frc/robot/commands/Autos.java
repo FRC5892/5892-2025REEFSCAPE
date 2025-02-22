@@ -18,7 +18,6 @@ import frc.robot.Constants;
 import frc.robot.subsystems.CoralEndEffector.CoralEndEffector;
 import frc.robot.subsystems.Elevator.Elevator;
 import frc.robot.subsystems.Elevator.ElevatorConstants.ElevatorPosition;
-import frc.robot.util.AllianceFlipUtil;
 import org.littletonrobotics.junction.Logger;
 
 /** Add your docs here. */
@@ -50,9 +49,7 @@ public class Autos {
         points.addAll(pathSA.getAllPathPoints());
         Logger.recordOutput(
             "Autos/LeftCoralAuto/Path",
-            points.stream()
-                .map((p) -> p.position)
-                .toArray(Translation2d[]::new));
+            points.stream().map((p) -> p.position).toArray(Translation2d[]::new));
       }
 
       return AutoBuilder.pathfindThenFollowPath(pathLPreI, new PathConstraints(10, 10, 10, 10))

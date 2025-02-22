@@ -1,0 +1,23 @@
+{
+  "name": "HERO 2025",
+  "sourceUrl": "https://cad.onshape.com/documents/d1d8a74cdad94615e6265909/w/d173f5c242a2bf0fdc1ca946/e/c17f437f2c40923b29cb45e3",
+  "rotations": [
+    {
+      "axis": "x",
+      "degrees": 90
+    },
+    {
+      "axis": "y",
+      "degrees": 0
+    },
+    {
+      "axis": "z",
+      "degrees": -90
+    }
+  ],
+  "position": [
+    -0.381,
+    0.3556,
+    0.0422148
+  ]
+}

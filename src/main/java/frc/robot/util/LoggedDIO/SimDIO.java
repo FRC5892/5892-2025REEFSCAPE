@@ -19,7 +19,7 @@ public class SimDIO extends LoggedDIO {
 
   public static SimDIO fromNT(String name) {
     LoggedNetworkBoolean networkValue =
-        new LoggedNetworkBoolean("DigitalInput/" + name + "/simInput", false);
+        new LoggedNetworkBoolean("/Tuning/simInput/dio" + name, false);
     return new SimDIO(name, networkValue::get);
   }
 }

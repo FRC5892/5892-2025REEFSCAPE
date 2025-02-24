@@ -16,6 +16,7 @@ package frc.robot;
 import com.ctre.phoenix6.CANBus;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.revrobotics.servohub.ServoChannel.ChannelId;
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -129,14 +130,14 @@ public class RobotContainer {
             new CoralEndEffector(
                 new PhoenixTalonFX(22, defaultCanBus, "coralEffector"),
                 new HardwareDIO("intakeBeamBreak", 0));
-        funnel = new Funnel(new FunnelServoHub(-1, 500, 2500).getServo(ChannelId.kChannelId0));
+        funnel = new Funnel(new FunnelServoHub(30, 500, 2500).getServo(ChannelId.kChannelId0));
         climb =
             new Climb(
                 /*new PhoenixTalonFX(-3, defaultCanBus, "climb"),
                 new HardwareDIO("climbForwardLimit", 1),
                 new HardwareDIO("climbReverseLimit", 2)*/
 
-                new NoOppTalonFX("climb", 0),
+                new PhoenixTalonFX(23, defaultCanBus, "climb"),
                 new NoOppDio("climbForwardLimit"),
                 new NoOppDio("climbReverseLimit"));
         break;
@@ -221,6 +222,7 @@ public class RobotContainer {
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
     autoChooser.addDefaultOption("Left5", Autos.leftCoralAuto(elevator, coralEndEffector));
 
+    CameraServer.startAutomaticCapture();
     // Configure the button bindings
     configureButtonBindings();
   }
@@ -264,8 +266,11 @@ public class RobotContainer {
     codriverController.leftBumper().whileTrue(coralEndEffector.runOuttake());
     codriverController.rightBumper().onTrue(elevator.goToPosition(ElevatorPosition.INTAKE));
     codriverController.start().whileTrue(elevator.homeCommand());
-    // codriverController.pov(0).onTrue(funnel.foldUp().alongWith(climb.climbExtend()));
-    // codriverController.pov(180).whileTrue(climb.climbRetract());
+    codriverController
+        .pov(0)
+        .whileTrue(funnel.foldUp().andThen(Commands.waitSeconds(2), climb.climbExtend()));
+    codriverController.pov(180).whileTrue(climb.climbRetract());
+    codriverController.pov(90).onTrue(funnel.foldDown());
   }
 
   /**

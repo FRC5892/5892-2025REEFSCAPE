@@ -36,16 +36,16 @@ public class VisionConstants {
   // (Not used by Limelight, configure in web UI instead)
   public static Transform3d robotToCamera0 =
       new Transform3d(
-          Inches.of(12.875),
-          Inches.of(10.75),
-          Inches.of(12.5),
-          new Rotation3d(Degrees.of(0), Degrees.of(-10), Degrees.of(-20)));
+          Inches.of(12.75),
+          Inches.of(10.25),
+          Inches.of(12.375),
+          new Rotation3d(Degrees.of(0), Degrees.of(-10), Degrees.of(-45)));
   public static Transform3d robotToCamera1 =
       new Transform3d(
-          Inches.of(12.875),
-          Inches.of(-10.75),
-          Inches.of(12.5),
-          new Rotation3d(Degrees.of(0), Degrees.of(-10), Degrees.of(20)));
+          Inches.of(12.75),
+          Inches.of(-10.25),
+          Inches.of(12.375),
+          new Rotation3d(Degrees.of(0), Degrees.of(-10), Degrees.of(45)));
   public static Transform3d robotToCamera2 =
       new Transform3d(
           Inches.of(-12.875),

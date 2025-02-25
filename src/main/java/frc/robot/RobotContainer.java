@@ -221,6 +221,7 @@ public class RobotContainer {
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
     autoChooser.addDefaultOption("Left5", Autos.leftCoralAuto(elevator, coralEndEffector));
+    autoChooser.addOption("test", Autos.testAuto());
 
     CameraServer.startAutomaticCapture();
     // Configure the button bindings

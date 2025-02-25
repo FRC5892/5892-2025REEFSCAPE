@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.Servo;
 
 public class RioServo extends LoggedServo {
   private final Servo servo;
+  private boolean enabled = true;
 
   public RioServo(int id, int maxPulse, int minPulse) {
     super(minPulse, maxPulse);
@@ -17,5 +18,18 @@ public class RioServo extends LoggedServo {
   @Override
   public void setPulse(int pulse_us) {
     servo.setPulseTimeMicroseconds(pulse_us);
+  }
+
+  @Override
+  public void setEnabled(boolean enabled) {
+    if (enabled != this.enabled) {
+      this.enabled = enabled;
+      servo.setDisabled();
+    }
+  }
+
+  @Override
+  public void setPowered(boolean powered) {
+    // TODO: IDK what to do here
   }
 }

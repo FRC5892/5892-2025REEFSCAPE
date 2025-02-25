@@ -105,6 +105,20 @@ public class Autos {
     }
   }
 
+  public static Command testAuto() {
+    try {
+      PathPlannerPath test = PathPlannerPath.fromChoreoTrajectory("test");
+      return AutoBuilder.followPath(test);
+
+    } catch (Exception e) {
+      @SuppressWarnings("resource")
+      Alert alert = new Alert("Failed to load test Auto", AlertType.kError);
+      alert.set(true);
+      DriverStation.reportError("Big oops: " + e.getMessage(), e.getStackTrace());
+      return Commands.none();
+    }
+  }
+
   public static Command waitForCoral(CoralEndEffector coralSubsystem) {
     return Commands.waitUntil(coralSubsystem::getBeamBreak);
   }

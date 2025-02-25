@@ -21,6 +21,10 @@ public abstract class LoggedServo {
 
   public abstract void setPulse(int pulse);
 
+  public abstract void setEnabled(boolean enabled);
+
+  public abstract void setPowered(boolean powered);
+
   public void setPercent(double percent) {
     final int pulse = minPulse + (int) (halfPulse * percent);
     this.setPulse(pulse);

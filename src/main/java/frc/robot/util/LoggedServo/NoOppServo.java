@@ -13,4 +13,10 @@ public class NoOppServo extends LoggedServo {
 
   @Override
   public void setPulse(int pulse) {}
+
+  @Override
+  public void setEnabled(boolean enabled) {}
+
+  @Override
+  public void setPowered(boolean powered) {}
 }

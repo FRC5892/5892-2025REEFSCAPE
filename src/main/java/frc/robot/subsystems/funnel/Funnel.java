@@ -36,6 +36,8 @@ public class Funnel extends SubsystemBase {
 
   public void logAndSetPercent(double percent) {
     Logger.recordOutput("Funnel/setpoint", percent);
+    servo.setEnabled(true);
+    servo.setPowered(true);
     servo.setPercent(percent);
   }
 

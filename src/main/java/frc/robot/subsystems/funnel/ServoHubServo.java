@@ -22,4 +22,14 @@ public class ServoHubServo extends LoggedServo {
   public void setPulse(int pulse) {
     channel.setPulseWidth(pulse);
   }
+
+  @Override
+  public void setEnabled(boolean enabled) {
+    channel.setEnabled(enabled);
+  }
+
+  @Override
+  public void setPowered(boolean powered) {
+    channel.setPowered(powered);
+  }
 }

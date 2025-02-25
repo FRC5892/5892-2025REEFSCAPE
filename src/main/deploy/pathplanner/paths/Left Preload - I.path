@@ -16,12 +16,12 @@
     },
     {
       "anchor": {
-        "x": 5.345,
-        "y": 5.102112676056337
+        "x": 5.290796221017411,
+        "y": 5.088469663767436
       },
       "prevControl": {
-        "x": 5.903042201729885,
-        "y": 5.315891376684888
+        "x": 5.8488384227472965,
+        "y": 5.302248364395987
       },
       "nextControl": null,
       "isLocked": false,
@@ -31,17 +31,10 @@
   "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [
-    {
-      "name": "Extend L4",
-      "waypointRelativePos": 0,
-      "endWaypointRelativePos": null,
-      "command": null
-    }
-  ],
+  "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 7.0,
-    "maxAcceleration": 3.0,
+    "maxVelocity": 8.0,
+    "maxAcceleration": 4.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -52,7 +45,7 @@
     "rotation": -119.99999999999999
   },
   "reversed": false,
-  "folder": null,
+  "folder": "Left Station",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 180.0

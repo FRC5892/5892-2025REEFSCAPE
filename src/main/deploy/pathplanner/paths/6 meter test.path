@@ -3,42 +3,35 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.647921905415256,
-        "y": 7.339167718260517
+        "x": 0.0,
+        "y": 0.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.4988995322592684,
-        "y": 6.8336214918919955
+        "x": 1.0,
+        "y": 0.0
       },
       "isLocked": false,
-      "linkedName": "UP Far"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 5.005105633802817,
-        "y": 5.258010563380281
+        "x": 6.0,
+        "y": 0.0
       },
       "prevControl": {
-        "x": 3.2140227527456373,
-        "y": 6.461489653044584
+        "x": 5.0,
+        "y": 1.2246467991473532e-16
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "J"
+      "linkedName": null
     }
   ],
   "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [
-    {
-      "name": "Extend L4",
-      "waypointRelativePos": 0.8985074626865671,
-      "endWaypointRelativePos": null,
-      "command": null
-    }
-  ],
+  "eventMarkers": [],
   "globalConstraints": {
     "maxVelocity": 8.0,
     "maxAcceleration": 4.0,
@@ -49,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -119.99999999999999
+    "rotation": 0.0
   },
   "reversed": false,
-  "folder": "Left Station",
+  "folder": "Tests",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -54.0
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }

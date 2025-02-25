@@ -1,0 +1,55 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right Preload - F"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "F - Right Far Station"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right Far Station - E"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "E - Right Far Station"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right Far Station - D"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "D - Right Far Station "
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right Far Station - C"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}

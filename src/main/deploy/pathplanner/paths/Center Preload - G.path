@@ -8,40 +8,33 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.520947844241228,
-        "y": 4.039172535211267
+        "x": 6.499702115755024,
+        "y": 3.9030417452327124
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 5.855457746478873,
-        "y": 3.854929577464788
+        "x": 5.814535459384616,
+        "y": 3.865097880351413
       },
       "prevControl": {
-        "x": 6.578812614430686,
-        "y": 3.854929577464788
+        "x": 6.851143789275906,
+        "y": 3.9451860094457185
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "G"
     }
   ],
   "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [
-    {
-      "name": "Extend L4",
-      "waypointRelativePos": 0.41791044776119396,
-      "endWaypointRelativePos": null,
-      "command": null
-    }
-  ],
+  "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 7.0,
-    "maxAcceleration": 3.0,
+    "maxVelocity": 8.0,
+    "maxAcceleration": 4.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -52,7 +45,7 @@
     "rotation": 180.0
   },
   "reversed": false,
-  "folder": null,
+  "folder": "Preload",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 180.0

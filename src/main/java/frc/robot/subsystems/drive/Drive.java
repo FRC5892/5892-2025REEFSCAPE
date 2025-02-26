@@ -116,6 +116,7 @@ public class Drive extends SubsystemBase {
   private final LoggedTunableNumber driveKVTunableNumber;
 
   @Getter @AutoLogOutput private int reefSector = -1;
+  @Getter private double distanceToReefM = -1;
 
   // End 5892
 
@@ -275,6 +276,8 @@ public class Drive extends SubsystemBase {
                         * 6 /* 6 sides, so on a scale of 0-6 */)
                 % 6 /*Wrap around if it's more than 6 */
             + 1 /*Driver count from one :( */;
+
+    distanceToReefM = robotToReef.getNorm();
 
     Logger.recordOutput(
         "Drive/ReefSectorSide",

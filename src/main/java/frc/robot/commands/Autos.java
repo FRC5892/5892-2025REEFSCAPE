@@ -18,101 +18,74 @@ import frc.robot.Constants;
 import frc.robot.subsystems.CoralEndEffector.CoralEndEffector;
 import frc.robot.subsystems.Elevator.Elevator;
 import frc.robot.subsystems.Elevator.ElevatorConstants.ElevatorPosition;
+import frc.robot.subsystems.drive.Drive;
+import frc.robot.util.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
 
 /** Add your docs here. */
 public class Autos {
+  private static LoggedTunableNumber extendDistance =
+      new LoggedTunableNumber("Elevator/autoExtendDistanceFromReef", 2);
+
   public static void registerTriggers(Elevator elevator) {
     new EventTrigger("Extend Score").onTrue(elevator.goToPosition(ElevatorPosition.L4));
   }
 
-  public static Command leftCoralAuto(Elevator elevatorSubsystem, CoralEndEffector coralSubsystem) {
+  public static Command leftCoralAuto(
+      Elevator elevatorSubsystem, CoralEndEffector coralSubsystem, Drive drive) {
     try {
-      PathPlannerPath pathLPreI = PathPlannerPath.fromChoreoTrajectory("LPreI");
-      PathPlannerPath pathIS = PathPlannerPath.fromChoreoTrajectory("IS");
-      PathPlannerPath pathSJ = PathPlannerPath.fromChoreoTrajectory("SJ");
-      PathPlannerPath pathJS = PathPlannerPath.fromChoreoTrajectory("JS");
-      PathPlannerPath pathSK = PathPlannerPath.fromChoreoTrajectory("SK");
-      PathPlannerPath pathKS = PathPlannerPath.fromChoreoTrajectory("KS");
-      PathPlannerPath pathSL = PathPlannerPath.fromChoreoTrajectory("SL");
-      PathPlannerPath pathLS = PathPlannerPath.fromChoreoTrajectory("LS");
-      PathPlannerPath pathSA = PathPlannerPath.fromChoreoTrajectory("SA");
+      PathPlannerPath pathLeft_Preload_I = PathPlannerPath.fromPathFile("Left Preload - I");
+      PathPlannerPath pathI_Left_Far_Station = PathPlannerPath.fromPathFile("I - Left Far Station");
+      PathPlannerPath pathLeft_Far_Station_J = PathPlannerPath.fromPathFile("Left Far Station - J");
+      PathPlannerPath pathJ_Left_Far_Station = PathPlannerPath.fromPathFile("J - Left Far Station");
+      PathPlannerPath pathLeft_Far_Station_K = PathPlannerPath.fromPathFile("Left Far Station - K");
+      PathPlannerPath pathK_Left_Far_Station = PathPlannerPath.fromPathFile("K - Left Far Station");
+      PathPlannerPath pathLeft_Far_Station_L = PathPlannerPath.fromPathFile("Left Far Station - L");
+
       if (Constants.currentMode == Constants.Mode.SIM) {
-        var points = pathLPreI.getAllPathPoints();
-        points.addAll(pathIS.getAllPathPoints());
-        points.addAll(pathSJ.getAllPathPoints());
-        points.addAll(pathJS.getAllPathPoints());
-        points.addAll(pathSK.getAllPathPoints());
-        points.addAll(pathKS.getAllPathPoints());
-        points.addAll(pathSL.getAllPathPoints());
-        points.addAll(pathLS.getAllPathPoints());
-        points.addAll(pathSA.getAllPathPoints());
+        var points = pathLeft_Preload_I.getAllPathPoints();
+        points.addAll(pathI_Left_Far_Station.getAllPathPoints());
+        points.addAll(pathLeft_Far_Station_J.getAllPathPoints());
+        points.addAll(pathJ_Left_Far_Station.getAllPathPoints());
+        points.addAll(pathLeft_Far_Station_K.getAllPathPoints());
+        points.addAll(pathK_Left_Far_Station.getAllPathPoints());
+        points.addAll(pathLeft_Far_Station_L.getAllPathPoints());
         Logger.recordOutput(
             "Autos/LeftCoralAuto/Path",
             points.stream().map((p) -> p.position).toArray(Translation2d[]::new));
       }
 
-      return AutoBuilder.pathfindThenFollowPath(pathLPreI, new PathConstraints(10, 10, 10, 10))
+      return AutoBuilder.pathfindThenFollowPath(
+              pathLeft_Preload_I, new PathConstraints(10, 10, 10, 10))
           .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.L4))
           .andThen(
               outtakeCoral(coralSubsystem),
-              AutoBuilder.followPath(pathIS)
-                  .alongWith(
-                      elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE),
-                      Commands.print("pathIS")),
+              AutoBuilder.followPath(pathI_Left_Far_Station)
+                  .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
               waitForCoral(coralSubsystem),
-              AutoBuilder.followPath(pathSJ)
+              AutoBuilder.followPath(pathLeft_Far_Station_J)
                   .alongWith(
-                      intakeThenExtend(elevatorSubsystem, coralSubsystem, ElevatorPosition.L4),
-                      Commands.print("pathSJ")),
+                      intakeThenExtend(
+                          elevatorSubsystem, coralSubsystem, drive, ElevatorPosition.L4)),
               outtakeCoral(coralSubsystem),
-              AutoBuilder.followPath(pathJS)
-                  .alongWith(
-                      elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE),
-                      Commands.print("pathJS")),
+              AutoBuilder.followPath(pathJ_Left_Far_Station)
+                  .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
               waitForCoral(coralSubsystem),
-              AutoBuilder.followPath(pathSK)
+              AutoBuilder.followPath(pathLeft_Far_Station_K)
                   .alongWith(
-                      intakeThenExtend(elevatorSubsystem, coralSubsystem, ElevatorPosition.L4),
-                      Commands.print("pathSK")),
+                      intakeThenExtend(
+                          elevatorSubsystem, coralSubsystem, drive, ElevatorPosition.L4)),
               outtakeCoral(coralSubsystem),
-              AutoBuilder.followPath(pathKS)
-                  .alongWith(
-                      elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE),
-                      Commands.print("pathKS")),
+              AutoBuilder.followPath(pathK_Left_Far_Station)
+                  .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
               waitForCoral(coralSubsystem),
-              AutoBuilder.followPath(pathSL)
+              AutoBuilder.followPath(pathLeft_Far_Station_L)
                   .alongWith(
-                      intakeThenExtend(elevatorSubsystem, coralSubsystem, ElevatorPosition.L4),
-                      Commands.print("pathSL")),
-              outtakeCoral(coralSubsystem),
-              AutoBuilder.followPath(pathLS)
-                  .alongWith(
-                      elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE),
-                      Commands.print("pathLS")),
-              waitForCoral(coralSubsystem),
-              AutoBuilder.followPath(pathSA)
-                  .alongWith(
-                      intakeThenExtend(elevatorSubsystem, coralSubsystem, ElevatorPosition.L4),
-                      Commands.print("pathSA")),
-              outtakeCoral(coralSubsystem));
+                      intakeThenExtend(
+                          elevatorSubsystem, coralSubsystem, drive, ElevatorPosition.L4)));
     } catch (Exception e) {
       @SuppressWarnings("resource")
       Alert alert = new Alert("Failed to load upCoral Auto", AlertType.kError);
-      alert.set(true);
-      DriverStation.reportError("Big oops: " + e.getMessage(), e.getStackTrace());
-      return Commands.none();
-    }
-  }
-
-  public static Command testAuto() {
-    try {
-      PathPlannerPath test = PathPlannerPath.fromChoreoTrajectory("test");
-      return AutoBuilder.followPath(test);
-
-    } catch (Exception e) {
-      @SuppressWarnings("resource")
-      Alert alert = new Alert("Failed to load test Auto", AlertType.kError);
       alert.set(true);
       DriverStation.reportError("Big oops: " + e.getMessage(), e.getStackTrace());
       return Commands.none();
@@ -128,10 +101,15 @@ public class Autos {
   }
 
   public static Command intakeThenExtend(
-      Elevator elevatorSubsystem, CoralEndEffector coralSubsystem, ElevatorPosition position) {
+      Elevator elevatorSubsystem,
+      CoralEndEffector coralSubsystem,
+      Drive drive,
+      ElevatorPosition position) {
     return coralSubsystem
         .runIntake()
         .until(() -> !coralSubsystem.getBeamBreak())
-        .andThen(elevatorSubsystem.goToPosition(position));
+        .andThen(
+            Commands.waitUntil(() -> drive.getDistanceToReefM() < extendDistance.get()),
+            elevatorSubsystem.goToPosition(position));
   }
 }

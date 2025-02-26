@@ -116,7 +116,7 @@ public class Drive extends SubsystemBase {
   private final LoggedTunableNumber driveKVTunableNumber;
 
   @Getter @AutoLogOutput private int reefSector = -1;
-  @Getter private double distanceToReefM = -1;
+  @Getter @AutoLogOutput private double distanceToReefM = -1;
 
   // End 5892
 

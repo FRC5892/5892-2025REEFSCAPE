@@ -33,7 +33,7 @@ public class ModuleIOSim implements ModuleIO {
   // TunerConstants doesn't support separate sim constants, so they are declared locally
   protected static final double DRIVE_KP = 0.25;
   protected static final double DRIVE_KD = 0.0;
-  protected static double DRIVE_KS = 0.00541;
+  protected static double DRIVE_KS = 0.00293;
   protected static double DRIVE_KV_ROT =
       0.75688; // Same units as TunerConstants: (volt * secs) / rotation
   protected static double DRIVE_KV = 1.0 / Units.rotationsToRadians(1.0 / DRIVE_KV_ROT);
@@ -61,12 +61,16 @@ public class ModuleIOSim implements ModuleIO {
         new DCMotorSim(
             LinearSystemId.createDCMotorSystem(
                 DRIVE_GEARBOX, constants.DriveInertia, constants.DriveMotorGearRatio),
-            DRIVE_GEARBOX);
+            DRIVE_GEARBOX,
+            0,
+            0);
     turnSim =
         new DCMotorSim(
             LinearSystemId.createDCMotorSystem(
                 TURN_GEARBOX, constants.SteerInertia, constants.SteerMotorGearRatio),
-            TURN_GEARBOX);
+            TURN_GEARBOX,
+            0,
+            0);
 
     // Enable wrapping for turn PID
     turnController.enableContinuousInput(-Math.PI, Math.PI);

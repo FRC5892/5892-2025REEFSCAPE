@@ -20,12 +20,13 @@ import frc.robot.subsystems.Elevator.Elevator;
 import frc.robot.subsystems.Elevator.ElevatorConstants.ElevatorPosition;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.util.LoggedTunableNumber;
+import java.util.ArrayList;
 import org.littletonrobotics.junction.Logger;
 
 /** Add your docs here. */
 public class Autos {
-  private static LoggedTunableNumber extendDistance =
-      new LoggedTunableNumber("Elevator/autoExtendDistanceFromReef", 2);
+  private static final LoggedTunableNumber extendDistance =
+      new LoggedTunableNumber("Elevator/autoExtendDistanceFromReef", 2.5);
 
   public static void registerTriggers(Elevator elevator) {
     new EventTrigger("Extend Score").onTrue(elevator.goToPosition(ElevatorPosition.L4));
@@ -43,7 +44,7 @@ public class Autos {
       PathPlannerPath pathLeft_Far_Station_L = PathPlannerPath.fromPathFile("Left Far Station - L");
 
       if (Constants.currentMode == Constants.Mode.SIM) {
-        var points = pathLeft_Preload_I.getAllPathPoints();
+        var points = new ArrayList<>(pathLeft_Preload_I.getAllPathPoints());
         points.addAll(pathI_Left_Far_Station.getAllPathPoints());
         points.addAll(pathLeft_Far_Station_J.getAllPathPoints());
         points.addAll(pathJ_Left_Far_Station.getAllPathPoints());
@@ -82,7 +83,9 @@ public class Autos {
               AutoBuilder.followPath(pathLeft_Far_Station_L)
                   .alongWith(
                       intakeThenExtend(
-                          elevatorSubsystem, coralSubsystem, drive, ElevatorPosition.L4)));
+                          elevatorSubsystem, coralSubsystem, drive, ElevatorPosition.L4)),
+              outtakeCoral(coralSubsystem),
+              elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE));
     } catch (Exception e) {
       @SuppressWarnings("resource")
       Alert alert = new Alert("Failed to load upCoral Auto", AlertType.kError);

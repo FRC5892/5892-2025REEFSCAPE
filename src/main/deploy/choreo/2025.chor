@@ -1,5 +1,5 @@
 {
- "name":"path1",
+ "name":"2025",
  "version":1,
  "type":"Swerve",
  "variables":{
@@ -100,12 +100,12 @@
    }
   },
   "mass":{
-   "exp":"125 lbs",
-   "val":56.69904625
+   "exp":"150 lbs",
+   "val":68.0388555
   },
   "inertia":{
-   "exp":"6 kg m ^ 2",
-   "val":6.0
+   "exp":"8 kg m ^ 2",
+   "val":8.0
   },
   "gearing":{
    "exp":"6.1224",
@@ -116,8 +116,8 @@
    "val":0.0508
   },
   "vmax":{
-   "exp":"4000 RPM",
-   "val":418.87902047863906
+   "exp":"6000 RPM",
+   "val":628.3185307179587
   },
   "tmax":{
    "exp":"7.09 N * m",

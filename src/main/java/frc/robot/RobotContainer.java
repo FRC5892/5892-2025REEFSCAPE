@@ -14,7 +14,6 @@
 package frc.robot;
 
 import com.ctre.phoenix6.CANBus;
-import com.pathplanner.lib.auto.AutoBuilder;
 import com.revrobotics.servohub.ServoChannel.ChannelId;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -202,7 +201,9 @@ public class RobotContainer {
                 .andThen(rumbleBoth(GenericHID.RumbleType.kLeftRumble, 1, 0.25))
                 .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf));
     // Set up auto routines
-    autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
+    autoChooser =
+        new LoggedDashboardChooser<>(
+            "Auto Choices", Autos.buildAutoChooser(elevator, coralEndEffector, drive));
 
     // Set up SysId routines
     autoChooser.addOption(
@@ -219,7 +220,6 @@ public class RobotContainer {
         "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-    autoChooser.addDefaultOption("Left5", Autos.leftCoralAuto(elevator, coralEndEffector, drive));
 
     // CameraServer.startAutomaticCapture();
     // Configure the button bindings

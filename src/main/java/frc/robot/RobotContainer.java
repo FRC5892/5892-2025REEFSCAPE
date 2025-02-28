@@ -272,10 +272,10 @@ public class RobotContainer {
     codriverController.rightBumper().onTrue(elevator.goToPosition(ElevatorPosition.INTAKE));
     codriverController.start().whileTrue(elevator.homeCommand());
     codriverController
-        .pov(0)
+        .povUp()
         .whileTrue(funnel.foldUp().andThen(Commands.waitSeconds(2), climb.climbExtend()));
-    codriverController.pov(180).whileTrue(climb.climbRetract());
-    codriverController.pov(90).onTrue(funnel.foldDown());
+    codriverController.povDown().whileTrue(climb.climbRetract());
+    codriverController.povRight().onTrue(funnel.foldDown());
   }
 
   /**

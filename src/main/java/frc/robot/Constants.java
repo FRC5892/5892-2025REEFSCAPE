@@ -13,6 +13,7 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.util.PPLibTelemetry;
 import edu.wpi.first.wpilibj.RobotBase;
 
 /**
@@ -26,6 +27,12 @@ public final class Constants {
   public static final Mode currentMode = RobotBase.isReal() ? realMode : simMode;
 
   public static final boolean tuningMode = true;
+
+  static {
+    if (!tuningMode) {
+      PPLibTelemetry.enableCompetitionMode();
+    }
+  }
 
   public static enum Mode {
     /** Running on a real robot. */

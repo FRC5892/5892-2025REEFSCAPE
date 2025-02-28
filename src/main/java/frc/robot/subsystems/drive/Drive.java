@@ -145,7 +145,12 @@ public class Drive extends SubsystemBase {
         this::getChassisSpeeds,
         this::runVelocity,
         new PPHolonomicDriveController(
-            new PIDConstants(1.5, 0.0, 0.0), new PIDConstants(1.5, 0.0, 0.0)),
+            Constants.currentMode == Mode.SIM
+                ? new PIDConstants(5, 0.0, 0.0)
+                : new PIDConstants(1.5, 0.0, 0.0),
+            Constants.currentMode == Mode.SIM
+                ? new PIDConstants(5, 0.0, 0.0)
+                : new PIDConstants(1.5, 0.0, 0.0)),
         PP_CONFIG,
         () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
         this);
@@ -450,7 +455,20 @@ public class Drive extends SubsystemBase {
   private final double FRONT_TO_CENTER_METERS = 0.47;
   private final Transform2d START_POINT_TRANSFORM =
       new Transform2d(-1, 0.0, Rotation2d.fromDegrees(0.0));
-  private final PathConstraints PATH_CONSTRAINTS = new PathConstraints(1, 0.25, 1, 0.25);
+  private final LoggedTunableNumber maxLinearVelocity =
+      new LoggedTunableNumber("Drive/MaxLinearVelocityMPS", 1.0);
+  private final LoggedTunableNumber maxLinearAccel =
+      new LoggedTunableNumber("Drive/MaxLinearAccelMPSSq", 0.25);
+  private final LoggedTunableNumber maxAngularVelocity =
+      new LoggedTunableNumber("Drive/MaxAngularVelocityRadPS", 1.0);
+  private final LoggedTunableNumber maxAngularAccel =
+      new LoggedTunableNumber("Drive/MaxAngularAccelRadPSSq", 0.25);
+  private PathConstraints PATH_CONSTRAINTS =
+      new PathConstraints(
+          maxLinearVelocity.get(),
+          maxLinearAccel.get(),
+          maxAngularVelocity.get(),
+          maxAngularAccel.get());
 
   public Command driveToReefCommand(ReefBranch branch) {
     return defer(
@@ -464,8 +482,17 @@ public class Drive extends SubsystemBase {
                           : FieldConstants.Reef.centerToBranchAdjustY,
                       Rotation2d.k180deg));
           Logger.recordOutput("Drive/ReefTarget", AllianceFlipUtil.apply(target));
+          LoggedTunableNumber.ifChanged(
+              this,
+              (c) -> PATH_CONSTRAINTS = new PathConstraints(c[0], c[1], c[2], c[3]),
+              maxLinearVelocity,
+              maxLinearAccel,
+              maxAngularVelocity,
+              maxAngularAccel);
+
           Pose2d start = target.transformBy(START_POINT_TRANSFORM);
           List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(start, target);
+
           PathPlannerPath path =
               new PathPlannerPath(
                   waypoints, PATH_CONSTRAINTS, null, new GoalEndState(0, target.getRotation()));

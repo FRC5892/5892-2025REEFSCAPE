@@ -241,8 +241,8 @@ public class RobotContainer {
         .whileTrue(
             coralEndEffector
                 .runIntake()
-                .andThen(rumbleBoth(GenericHID.RumbleType.kLeftRumble, 1, 0.25))
-                .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf));
+                .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf))
+        .onFalse(rumbleBoth(GenericHID.RumbleType.kLeftRumble, 0, 0.25));
     /* Driver Controls */
     DriverStation.silenceJoystickConnectionWarning(true);
 
@@ -272,12 +272,16 @@ public class RobotContainer {
     codriverController.b().onTrue(elevator.goToPosition(ElevatorPosition.L2));
     codriverController.x().onTrue(elevator.goToPosition(ElevatorPosition.L3));
     codriverController.y().onTrue(elevator.goToPosition(ElevatorPosition.L4));
-    codriverController.leftBumper().whileTrue(coralEndEffector.runOuttake());
+
     codriverController.rightBumper().onTrue(elevator.goToPosition(ElevatorPosition.INTAKE));
     codriverController.start().whileTrue(elevator.homeCommand());
+
+    codriverController.leftBumper().whileTrue(coralEndEffector.runOuttake());
+
     codriverController
         .povUp()
         .whileTrue(funnel.foldUp().andThen(Commands.waitSeconds(2), climb.climbExtend()));
+
     codriverController.povDown().whileTrue(climb.climbRetract());
     codriverController.povRight().onTrue(funnel.foldDown());
   }

@@ -197,15 +197,7 @@ public class RobotContainer {
         algaeRemover = new AlgaeRemover(new NoOppServo(500, 2500), new NoOppTalonFX("algaeRemover", 0));
         break;
     }
-    coralEndEffector
-        .beamBreakTrigger()
-        .and(() -> elevator.atPosition(ElevatorPosition.INTAKE))
-        .and(DriverStation::isTeleop)
-        .whileTrue(
-            coralEndEffector
-                .runIntake()
-                .andThen(rumbleBoth(GenericHID.RumbleType.kLeftRumble, 1, 0.25))
-                .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf));
+
     // Set up auto routines
     autoChooser =
         new LoggedDashboardChooser<>(
@@ -239,6 +231,16 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
+    /* Robot Controls */
+    coralEndEffector
+    .beamBreakTrigger()
+    .and(() -> elevator.atPosition(ElevatorPosition.INTAKE))
+    .and(DriverStation::isTeleop)
+    .whileTrue(
+        coralEndEffector
+            .runIntake()
+            .andThen(rumbleBoth(GenericHID.RumbleType.kLeftRumble, 1, 0.25))
+            .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf));
     /* Driver Controls */
     DriverStation.silenceJoystickConnectionWarning(true);
 

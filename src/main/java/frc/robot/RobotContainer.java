@@ -171,7 +171,8 @@ public class RobotContainer {
                 SimDIO.fromNT("climbForwardLimit"),
                 SimDIO.fromNT("climbReverseLimit"));
         funnel = new Funnel(new NoOppServo(500, 2500));
-        algaeRemover = new AlgaeRemover(new NoOppServo(500, 2500), new NoOppTalonFX("algaeRemover", 0));
+        algaeRemover =
+            new AlgaeRemover(new NoOppServo(500, 2500), new NoOppTalonFX("algaeRemover", 0));
         break;
 
       default:
@@ -194,7 +195,8 @@ public class RobotContainer {
                 new NoOppDio("climbForwardLimit"),
                 new NoOppDio("climbReverseLimit"));
         funnel = new Funnel(new NoOppServo(500, 2500));
-        algaeRemover = new AlgaeRemover(new NoOppServo(500, 2500), new NoOppTalonFX("algaeRemover", 0));
+        algaeRemover =
+            new AlgaeRemover(new NoOppServo(500, 2500), new NoOppTalonFX("algaeRemover", 0));
         break;
     }
 
@@ -233,14 +235,14 @@ public class RobotContainer {
   private void configureButtonBindings() {
     /* Robot Controls */
     coralEndEffector
-    .beamBreakTrigger()
-    .and(() -> elevator.atPosition(ElevatorPosition.INTAKE))
-    .and(DriverStation::isTeleop)
-    .whileTrue(
-        coralEndEffector
-            .runIntake()
-            .andThen(rumbleBoth(GenericHID.RumbleType.kLeftRumble, 1, 0.25))
-            .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf));
+        .beamBreakTrigger()
+        .and(() -> elevator.atPosition(ElevatorPosition.INTAKE))
+        .and(DriverStation::isTeleop)
+        .whileTrue(
+            coralEndEffector
+                .runIntake()
+                .andThen(rumbleBoth(GenericHID.RumbleType.kLeftRumble, 1, 0.25))
+                .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf));
     /* Driver Controls */
     DriverStation.silenceJoystickConnectionWarning(true);
 

@@ -1,6 +1,6 @@
 plugins {
     id "java"
-    id "edu.wpi.first.GradleRIO" version "2025.2.1"
+    id "edu.wpi.first.GradleRIO" version "2025.3.1"
     id "com.peterabeles.gversion" version "1.10"
     id "com.diffplug.spotless" version "7.0.2"
     id "io.freefair.lombok" version "8.4"
@@ -52,14 +52,14 @@ deploy {
                     // longer exist in deploy directory on roboRIO
                     deleteOldFiles = false
                 }
-                PCSCInstall(getArtifactTypeClass('FileCollectionArtifact')) {
-                    files = project.fileTree('libraries')
-                    onlyIf = { context ->
-                        context.execute('[ -f /usr/sbin/pcscd ] && [ -f /usr/lib/libpcsclite.so.1 ]').exitCode != 0
-                    }
-                    directory = '/tmp'
-                    postdeploy << {execute 'opkg install --nodeps --force-reinstall /tmp/BATTERY-*.ipk && sudo mv /tmp/BATTERY-pcsc /etc/init.d/pcsc && chmod +x /etc/init.d/pcsc && ln -s /etc/init.d/pcsc /etc/rc5.d/S10pcsc && /etc/init.d/pcsc start'}
-                }
+                // PCSCInstall(getArtifactTypeClass('FileCollectionArtifact')) {
+                //     files = project.fileTree('libraries')
+                //     onlyIf = { context ->
+                //         context.execute('[ -f /usr/sbin/pcscd ] && [ -f /usr/lib/libpcsclite.so.1 ]').exitCode != 0
+                //     }
+                //     directory = '/tmp'
+                //     postdeploy << {execute 'opkg install --nodeps --force-reinstall /tmp/BATTERY-*.ipk && sudo mv /tmp/BATTERY-pcsc /etc/init.d/pcsc && chmod +x /etc/init.d/pcsc && ln -s /etc/init.d/pcsc /etc/rc5.d/S10pcsc && /etc/init.d/pcsc start'}
+                // }
             }
         }
     }

@@ -36,8 +36,7 @@ public class Autos {
   public static SendableChooser<Command> buildAutoChooser(
       Elevator elevatorSubsystem, CoralEndEffector coralSubsystem, Drive drive) {
     SendableChooser<Command> chooser = new SendableChooser<>();
-    chooser.setDefaultOption(
-        "Left Auto", leftCoralAuto(elevatorSubsystem, coralSubsystem, drive));
+    chooser.setDefaultOption("Left Auto", leftCoralAuto(elevatorSubsystem, coralSubsystem, drive));
     chooser.addOption("Right Auto", rightCoralAuto(elevatorSubsystem, coralSubsystem, drive));
     chooser.addOption(
         "Center Right Auto", centerRightPreload(elevatorSubsystem, coralSubsystem, drive));

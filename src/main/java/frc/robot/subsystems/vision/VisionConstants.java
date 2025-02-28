@@ -24,7 +24,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 public class VisionConstants {
   // AprilTag layout
   public static AprilTagFieldLayout aprilTagLayout =
-      AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
+      AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeAndyMark);
 
   // Camera names, must match names configured on coprocessor
   public static String camera0Name = "leftFront";

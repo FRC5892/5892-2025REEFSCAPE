@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Algae.AlgaeRemover;
 import frc.robot.commands.Autos;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
@@ -61,6 +62,7 @@ public class RobotContainer {
   private final Climb climb;
   private final CoralEndEffector coralEndEffector;
   private final Funnel funnel;
+  private final AlgaeRemover algaeRemover;
 
   // Controllers
   private final CommandXboxController driverController = new CommandXboxController(0);
@@ -109,6 +111,7 @@ public class RobotContainer {
       //     break;
       case REAL:
         // Real robot, instantiate hardware IO implementations
+        final FunnelServoHub servoHub = new FunnelServoHub(30, 500, 2500);
         drive =
             new Drive(
                 new GyroIOPigeon2(),
@@ -128,16 +131,17 @@ public class RobotContainer {
             new CoralEndEffector(
                 new PhoenixTalonFX(22, defaultCanBus, "coralEffector"),
                 new HardwareDIO("intakeBeamBreak", 0));
-        funnel = new Funnel(new FunnelServoHub(30, 500, 2500).getServo(ChannelId.kChannelId0));
+        funnel = new Funnel(servoHub.getServo(ChannelId.kChannelId0));
         climb =
             new Climb(
-                /*new PhoenixTalonFX(-3, defaultCanBus, "climb"),
-                new HardwareDIO("climbForwardLimit", 1),
-                new HardwareDIO("climbReverseLimit", 2)*/
-
                 new PhoenixTalonFX(23, defaultCanBus, "climb"),
                 new NoOppDio("climbForwardLimit"),
                 new NoOppDio("climbReverseLimit"));
+        algaeRemover =
+            new AlgaeRemover(
+                servoHub.getServo(ChannelId.kChannelId1),
+                new PhoenixTalonFX(24, defaultCanBus, "algaeRemover"));
+
         break;
 
       case SIM:
@@ -167,6 +171,7 @@ public class RobotContainer {
                 SimDIO.fromNT("climbForwardLimit"),
                 SimDIO.fromNT("climbReverseLimit"));
         funnel = new Funnel(new NoOppServo(500, 2500));
+        algaeRemover = new AlgaeRemover(new NoOppServo(500, 2500), new NoOppTalonFX("algaeRemover", 0));
         break;
 
       default:
@@ -189,6 +194,7 @@ public class RobotContainer {
                 new NoOppDio("climbForwardLimit"),
                 new NoOppDio("climbReverseLimit"));
         funnel = new Funnel(new NoOppServo(500, 2500));
+        algaeRemover = new AlgaeRemover(new NoOppServo(500, 2500), new NoOppTalonFX("algaeRemover", 0));
         break;
     }
     coralEndEffector

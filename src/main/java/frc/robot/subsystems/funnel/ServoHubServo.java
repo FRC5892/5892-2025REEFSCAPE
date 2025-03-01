@@ -14,8 +14,6 @@ public class ServoHubServo extends LoggedServo {
   public ServoHubServo(ServoChannel channel, int minPulse, int maxPulse) {
     super(minPulse, maxPulse);
     this.channel = channel;
-    channel.setEnabled(true);
-    channel.setPowered(true);
   }
 
   @Override

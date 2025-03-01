@@ -453,16 +453,19 @@ public class Drive extends SubsystemBase {
   }
 
   private final double FRONT_TO_CENTER_METERS = 0.47;
-  private final Transform2d START_POINT_TRANSFORM =
-      new Transform2d(-1, 0.0, Rotation2d.fromDegrees(0.0));
+
+  private final LoggedTunableNumber startingDistance =
+      new LoggedTunableNumber("Drive/macroDistance", -1);
+  private Transform2d startingPointTransform =
+      new Transform2d(startingDistance.get(), 0.0, Rotation2d.fromDegrees(0.0));
   private final LoggedTunableNumber maxLinearVelocity =
-      new LoggedTunableNumber("Drive/MaxLinearVelocityMPS", 1.0);
+      new LoggedTunableNumber("Drive/MaxLinearVelocityMPS", 8.0);
   private final LoggedTunableNumber maxLinearAccel =
-      new LoggedTunableNumber("Drive/MaxLinearAccelMPSSq", 0.25);
+      new LoggedTunableNumber("Drive/MaxLinearAccelMPSSq", 1.5);
   private final LoggedTunableNumber maxAngularVelocity =
-      new LoggedTunableNumber("Drive/MaxAngularVelocityRadPS", 1.0);
+      new LoggedTunableNumber("Drive/MaxAngularVelocityRadPS", 8.0);
   private final LoggedTunableNumber maxAngularAccel =
-      new LoggedTunableNumber("Drive/MaxAngularAccelRadPSSq", 0.25);
+      new LoggedTunableNumber("Drive/MaxAngularAccelRadPSSq", 1.5);
   private PathConstraints PATH_CONSTRAINTS =
       new PathConstraints(
           maxLinearVelocity.get(),
@@ -489,8 +492,13 @@ public class Drive extends SubsystemBase {
               maxLinearAccel,
               maxAngularVelocity,
               maxAngularAccel);
-
-          Pose2d start = target.transformBy(START_POINT_TRANSFORM);
+          LoggedTunableNumber.ifChanged(
+              this,
+              (d) -> {
+                startingPointTransform = new Transform2d(d[0], 0.0, Rotation2d.fromDegrees(0));
+              },
+              startingDistance);
+          Pose2d start = target.transformBy(startingPointTransform);
           List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(start, target);
 
           PathPlannerPath path =

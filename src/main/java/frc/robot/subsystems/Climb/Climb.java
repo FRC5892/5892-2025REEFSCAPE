@@ -16,6 +16,7 @@ import frc.robot.util.LoggedDIO.LoggedDIO;
 import frc.robot.util.LoggedTalon.LoggedTalonFX;
 import frc.robot.util.LoggedTunableNumber;
 import java.util.function.DoubleSupplier;
+import org.littletonrobotics.junction.Logger;
 
 public class Climb extends SubsystemBase {
   private final LoggedTalonFX talon;
@@ -31,8 +32,8 @@ public class Climb extends SubsystemBase {
   private final LoggedDIO reverseLimit;
 
   public Climb(LoggedTalonFX talon, LoggedDIO forwardLimit, LoggedDIO reverseLimit) {
-    this.forwardLimit = forwardLimit;
-    this.reverseLimit = reverseLimit;
+    this.forwardLimit = forwardLimit.withReversed(true);
+    this.reverseLimit = reverseLimit.withReversed(true);
     var config =
         new TalonFXConfiguration()
             .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))
@@ -51,25 +52,46 @@ public class Climb extends SubsystemBase {
 
   public Command runAtDutyCycle(DoubleSupplier dutyCycleSupplier) {
     return runEnd(
-        () ->
-            talon.setControl(
-                climbDutyCycle
-                    .withOutput(dutyCycleSupplier.getAsDouble())
-                    .withLimitForwardMotion(forwardLimit.get())
-                    .withLimitReverseMotion(reverseLimit.get())),
-        () -> talon.setControl(brake));
+            () ->
+                talon.setControl(
+                    climbDutyCycle
+                        .withOutput(dutyCycleSupplier.getAsDouble())
+                        .withLimitForwardMotion(forwardLimit.get())
+                        .withLimitReverseMotion(reverseLimit.get())),
+            () -> talon.setControl(brake))
+        .until(forwardLimit::get);
   }
 
   public Command climbExtend() {
-    return runAtDutyCycle(climbExtendSpeed).until(forwardLimit::get);
+    return runEnd(
+            () ->
+                talon.setControl(
+                    climbDutyCycle
+                        .withOutput(climbExtendSpeed.getAsDouble())
+                        .withLimitForwardMotion(forwardLimit.get())
+                        .withLimitReverseMotion(reverseLimit.get())),
+            () -> talon.setControl(brake))
+        .until(forwardLimit::get);
   }
 
   public Command climbRetract() {
-    return runAtDutyCycle(climbRetractSpeed).until(reverseLimit::get);
+    return runEnd(
+            () ->
+                talon.setControl(
+                    climbDutyCycle
+                        .withOutput(climbRetractSpeed.getAsDouble())
+                        .withLimitForwardMotion(forwardLimit.get())
+                        .withLimitReverseMotion(reverseLimit.get())),
+            () -> talon.setControl(brake))
+        .until(reverseLimit::get);
   }
 
   @Override
   public void periodic() {
     talon.periodic();
+    forwardLimit.periodic();
+    reverseLimit.periodic();
+    Logger.recordOutput("Climb/forwardLimit", forwardLimit.get());
+    Logger.recordOutput("Climb/reverseLimit", reverseLimit.get());
   }
 }

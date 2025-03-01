@@ -17,7 +17,7 @@ public class AlgaeRemover extends SubsystemBase {
 
   private final LoggedTunableNumber speed = new LoggedTunableNumber("Algae/Speed", 0.5);
   private final LoggedTunableNumber extendPosition =
-      new LoggedTunableNumber("Algae/ExtendPosition", 1);
+      new LoggedTunableNumber("Algae/ExtendPosition", 800);
   private final LoggedTunableNumber retractPosition =
       new LoggedTunableNumber("Algae/RetractPosition", 0);
 
@@ -51,18 +51,18 @@ public class AlgaeRemover extends SubsystemBase {
         });
   }
 
-  public Command setServo(DoubleSupplier percent) {
+  public Command setServo(DoubleSupplier pulse) {
     return runOnce(
         () -> {
           algaeServo.setEnabled(true);
           algaeServo.setPowered(true);
-          logAndSetServo(percent.getAsDouble());
+          logAndSetServo((int) pulse.getAsDouble());
         });
   }
 
-  public void logAndSetServo(double percent) {
-    Logger.recordOutput("Algae/ServoSetpoint", percent);
-    algaeServo.setPercent(percent);
+  public void logAndSetServo(int pulse) {
+    Logger.recordOutput("Algae/ServoSetpoint", pulse);
+    algaeServo.setPulse(pulse);
   }
 
   @Override

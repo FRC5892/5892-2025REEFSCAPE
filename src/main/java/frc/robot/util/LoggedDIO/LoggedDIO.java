@@ -4,15 +4,17 @@
 
 package frc.robot.util.LoggedDIO;
 
+import java.util.function.BooleanSupplier;
 import lombok.RequiredArgsConstructor;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
 
 /** Add your docs here. */
 @RequiredArgsConstructor
-public abstract class LoggedDIO {
+public abstract class LoggedDIO implements BooleanSupplier {
   private final DIOInputsAutoLogged inputs = new DIOInputsAutoLogged();
   private final String name;
+  private boolean reversed = false;
 
   public void periodic() {
     updateInputs(inputs);
@@ -27,6 +29,16 @@ public abstract class LoggedDIO {
   }
 
   public boolean get() {
-    return inputs.value;
+    return inputs.value ^ reversed;
+  }
+
+  public LoggedDIO withReversed(boolean reversed) {
+    this.reversed = reversed;
+    return this;
+  }
+
+  @Override
+  public boolean getAsBoolean() {
+    return get();
   }
 }

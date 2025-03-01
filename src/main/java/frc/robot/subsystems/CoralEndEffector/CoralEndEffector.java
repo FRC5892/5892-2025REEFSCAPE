@@ -31,7 +31,7 @@ public class CoralEndEffector extends SubsystemBase {
         new TalonFXConfiguration()
             .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
     this.talon = talon.withConfig(config);
-    this.beamBreak = beambreak;
+    this.beamBreak = beambreak.withReversed(true);
   }
 
   public Command runIntake() {
@@ -53,7 +53,7 @@ public class CoralEndEffector extends SubsystemBase {
   }
 
   public boolean getBeamBreak() {
-    return !beamBreak.get();
+    return beamBreak.get();
   }
 
   @Override

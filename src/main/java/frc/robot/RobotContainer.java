@@ -15,6 +15,7 @@ package frc.robot;
 
 import com.ctre.phoenix6.CANBus;
 import com.revrobotics.servohub.ServoChannel.ChannelId;
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -24,6 +25,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Algae.AlgaeRemover;
 import frc.robot.commands.Autos;
@@ -135,8 +137,8 @@ public class RobotContainer {
         climb =
             new Climb(
                 new PhoenixTalonFX(23, defaultCanBus, "climb"),
-                new NoOppDio("climbForwardLimit"),
-                new NoOppDio("climbReverseLimit"));
+                new HardwareDIO("climbForwardLimit", 1),
+                new HardwareDIO("climbReverseLimit", 2));
         algaeRemover =
             new AlgaeRemover(
                 servoHub.getServo(ChannelId.kChannelId1),
@@ -221,7 +223,7 @@ public class RobotContainer {
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
-    // CameraServer.startAutomaticCapture();
+    CameraServer.startAutomaticCapture();
     // Configure the button bindings
     configureButtonBindings();
   }
@@ -246,6 +248,7 @@ public class RobotContainer {
     /* Driver Controls */
     DriverStation.silenceJoystickConnectionWarning(true);
 
+    RobotModeTriggers.autonomous().or(DriverStation::isTeleopEnabled).onTrue(funnel.foldDown());
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
@@ -278,9 +281,7 @@ public class RobotContainer {
 
     codriverController.leftBumper().whileTrue(coralEndEffector.runOuttake());
 
-    codriverController
-        .povUp()
-        .whileTrue(funnel.foldUp().andThen(Commands.waitSeconds(2), climb.climbExtend()));
+    codriverController.povUp().whileTrue(funnel.foldUp().alongWith(climb.climbExtend()));
 
     codriverController.povDown().whileTrue(climb.climbRetract());
     codriverController.povRight().onTrue(funnel.foldDown());

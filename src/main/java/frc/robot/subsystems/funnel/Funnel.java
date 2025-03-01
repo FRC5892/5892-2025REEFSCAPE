@@ -11,9 +11,9 @@ import frc.robot.util.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
 
 public class Funnel extends SubsystemBase {
-  private final LoggedTunableNumber upPosition = new LoggedTunableNumber("Funnel/upPosition", 0.25);
+  private final LoggedTunableNumber upPosition = new LoggedTunableNumber("Funnel/upPosition", 800);
   private final LoggedTunableNumber downPosition =
-      new LoggedTunableNumber("Funnel/downPosition", 0);
+      new LoggedTunableNumber("Funnel/downPosition", 2200);
   private final LoggedServo servo;
 
   public Funnel(LoggedServo servo) {
@@ -38,11 +38,15 @@ public class Funnel extends SubsystemBase {
     Logger.recordOutput("Funnel/setpoint", percent);
     servo.setEnabled(true);
     servo.setPowered(true);
-    servo.setPercent(percent);
+    servo.setPulse((int) percent);
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
+
   }
+  //
+  // 2200
+  // 800
 }

@@ -28,6 +28,7 @@ import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -118,6 +119,15 @@ public class Drive extends SubsystemBase {
   @Getter @AutoLogOutput private int reefSector = -1;
   @Getter @AutoLogOutput private double distanceToReefM = -1;
 
+  private final LoggedTunableNumber autoLinearP =
+      new LoggedTunableNumber("Drive/AutoLinearP", Constants.currentMode != Mode.SIM ? 1.5 : 5.0);
+  private final LoggedTunableNumber autoLinearD =
+      new LoggedTunableNumber("Drive/AutoLinearD", Constants.currentMode != Mode.SIM ? 0 : 0);
+  private final LoggedTunableNumber autoAngularP =
+      new LoggedTunableNumber("Drive/AutoAngularP", Constants.currentMode != Mode.SIM ? 1.5 : 5.0);
+  private final LoggedTunableNumber autoAngularD =
+      new LoggedTunableNumber("Drive/AutoAngularD", Constants.currentMode != Mode.SIM ? 0 : 0);
+
   // End 5892
 
   public Drive(
@@ -145,12 +155,8 @@ public class Drive extends SubsystemBase {
         this::getChassisSpeeds,
         this::runVelocity,
         new PPHolonomicDriveController(
-            Constants.currentMode == Mode.SIM
-                ? new PIDConstants(5, 0.0, 0.0)
-                : new PIDConstants(1.5, 0.0, 0.0),
-            Constants.currentMode == Mode.SIM
-                ? new PIDConstants(5, 0.0, 0.0)
-                : new PIDConstants(1.5, 0.0, 0.0)),
+            new PIDConstants(autoLinearP.get(), 0, autoLinearD.get()),
+            new PIDConstants(autoAngularP.get(), 0, autoAngularD.get())),
         PP_CONFIG,
         () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
         this);
@@ -164,6 +170,23 @@ public class Drive extends SubsystemBase {
         (targetPose) -> {
           Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
         });
+    // 5892
+
+    if (Constants.tuningMode) {
+
+      @SuppressWarnings("resource")
+      final PIDController xController = new PIDController(autoLinearP.get(), 0, autoLinearD.get());
+      @SuppressWarnings("resource")
+      final PIDController yController = new PIDController(autoLinearP.get(), 0, autoLinearD.get());
+      @SuppressWarnings("resource")
+      final PIDController thetaController = new PIDController(autoAngularP.get(), 0, autoAngularD.get());
+
+      PPHolonomicDriveController.overrideRotationFeedback(
+            () -> thetaController.calculate(target.getRadians(), this.getPose().getRotation().getRadians())
+      );
+
+    }
+    // end 5892
     // Configure SysId
     sysId =
         new SysIdRoutine(

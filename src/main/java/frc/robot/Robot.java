@@ -16,7 +16,8 @@ package frc.robot;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.DriveMotorArrangement;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.SteerMotorArrangement;
-import edu.wpi.first.wpilibj.Threads;
+import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.generated.TunerConstants;
@@ -39,6 +40,7 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 public class Robot extends LoggedRobot {
   private Command autonomousCommand;
   private final RobotContainer robotContainer;
+  private final PowerDistribution powerDistribution = new PowerDistribution(63, ModuleType.kRev);
 
   // private FrcBatteryTracking batteryTracking;
 
@@ -137,7 +139,7 @@ public class Robot extends LoggedRobot {
   @Override
   public void robotPeriodic() {
     // Switch thread to high priority to improve loop timing
-    Threads.setCurrentThreadPriority(true, 99);
+    // Threads.setCurrentThreadPriority(true, 99);
 
     // Runs the Scheduler. This is responsible for polling buttons, adding
     // newly-scheduled commands, running already-scheduled commands, removing
@@ -146,10 +148,12 @@ public class Robot extends LoggedRobot {
     // the Command-based framework to work.
     CommandScheduler.getInstance().run();
 
+    Logger.recordOutput("Power/TotalCurrent", powerDistribution.getTotalCurrent());
+
     // batteryTracking.periodic();
 
     // Return to normal thread priority
-    Threads.setCurrentThreadPriority(false, 10);
+    // Threads.setCurrentThreadPriority(false, 10);
   }
 
   /** This function is called once when the robot is disabled. */

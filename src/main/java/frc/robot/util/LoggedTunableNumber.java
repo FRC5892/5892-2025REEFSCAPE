@@ -37,6 +37,8 @@ public class LoggedTunableNumber implements DoubleSupplier {
     if (Constants.tuningMode) {
       String key = tableKey + "/" + dashboardKey;
       dashboardNumber = new LoggedNetworkNumber(key, defaultValue);
+    } else {
+      dashboardNumber = null;
     }
   }
 

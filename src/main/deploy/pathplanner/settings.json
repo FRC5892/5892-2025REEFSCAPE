@@ -9,8 +9,8 @@
     "Right Station"
   ],
   "autoFolders": [],
-  "defaultMaxVel": 8.0,
-  "defaultMaxAccel": 4.0,
+  "defaultMaxVel": 20.0,
+  "defaultMaxAccel": 2.6,
   "defaultMaxAngVel": 540.0,
   "defaultMaxAngAccel": 720.0,
   "defaultNominalVoltage": 12.0,

@@ -1,4 +1,4 @@
-package frc.robot.Algae;
+package frc.robot.subsystems.Algae;
 
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;

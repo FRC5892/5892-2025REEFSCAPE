@@ -27,7 +27,7 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Algae.AlgaeRemover;
+import frc.robot.subsystems.Algae.AlgaeRemover;
 import frc.robot.commands.Autos;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
@@ -248,7 +248,9 @@ public class RobotContainer {
     /* Driver Controls */
     DriverStation.silenceJoystickConnectionWarning(true);
 
-    RobotModeTriggers.autonomous().or(DriverStation::isTeleopEnabled).onTrue(funnel.foldDown());
+    RobotModeTriggers.autonomous()
+        .or(DriverStation::isTeleopEnabled)
+        .onTrue(funnel.move(Funnel.FunnelPosition.DOWN));
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
@@ -281,10 +283,12 @@ public class RobotContainer {
 
     codriverController.leftBumper().whileTrue(coralEndEffector.runOuttake());
 
-    codriverController.povUp().whileTrue(funnel.foldUp().alongWith(climb.climbExtend()));
-
+    codriverController
+        .povUp()
+        .whileTrue(funnel.move(Funnel.FunnelPosition.UP).alongWith(climb.climbExtend()));
+    codriverController.povRight().onTrue(funnel.move(Funnel.FunnelPosition.DOWN));
     codriverController.povDown().whileTrue(climb.climbRetract());
-    codriverController.povRight().onTrue(funnel.foldDown());
+    codriverController.povLeft().onTrue(funnel.move(Funnel.FunnelPosition.STARTING));
   }
 
   /**

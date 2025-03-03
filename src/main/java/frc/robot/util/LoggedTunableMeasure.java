@@ -40,6 +40,9 @@ public class LoggedTunableMeasure<M extends MutableMeasure<? extends Unit, ? ext
       String key = tableKey + "/" + dashboardKey + " " + defaultValue.unit().symbol();
       dashboardNumber = new LoggedNetworkNumber(key, defaultValue.magnitude());
       lastHasChangedValues = new HashMap<>();
+    } else {
+      dashboardNumber = null;
+      lastHasChangedValues = null;
     }
   }
 

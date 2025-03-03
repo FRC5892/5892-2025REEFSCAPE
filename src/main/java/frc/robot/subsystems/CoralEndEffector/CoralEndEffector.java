@@ -9,12 +9,15 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.StaticBrake;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.util.LoggedDIO.LoggedDIO;
 import frc.robot.util.LoggedTalon.LoggedTalonFX;
 import frc.robot.util.LoggedTunableNumber;
+import lombok.Getter;
+import org.littletonrobotics.junction.AutoLogOutput;
 
 public class CoralEndEffector extends SubsystemBase {
   private final LoggedTunableNumber intakeDutyCycle =
@@ -25,6 +28,8 @@ public class CoralEndEffector extends SubsystemBase {
   private final StaticBrake brake = new StaticBrake();
   private final LoggedTalonFX talon;
   private final LoggedDIO beamBreak;
+  private final Debouncer beamBreakDebouncer = new Debouncer(0.25);
+  @AutoLogOutput @Getter private boolean debouncedBeamBreak = false;
 
   public CoralEndEffector(LoggedTalonFX talon, LoggedDIO beambreak) {
     var config =
@@ -60,6 +65,7 @@ public class CoralEndEffector extends SubsystemBase {
   public void periodic() {
     talon.periodic();
     beamBreak.periodic();
+    debouncedBeamBreak = beamBreakDebouncer.calculate(beamBreak.get());
     // This method will be called once per scheduler run
   }
 }

@@ -69,7 +69,7 @@ public class Elevator extends SubsystemBase {
                     .withMotionMagicAcceleration(100)
                     .withMotionMagicJerk(100))
             .withCurrentLimits(
-                new CurrentLimitsConfigs().withSupplyCurrentLimit(40).withStatorCurrentLimit(40))
+                new CurrentLimitsConfigs().withSupplyCurrentLimit(40).withStatorCurrentLimit(60))
             .withFeedback(
                 new FeedbackConfigs().withSensorToMechanismRatio(ElevatorConstants.GEAR_RATIO))
             .withMotorOutput(
@@ -95,6 +95,7 @@ public class Elevator extends SubsystemBase {
   public void periodic() {
     talon.periodic();
     height.mut_replace(Elevator.angleToDistance(talon.getPosition()));
+    Logger.recordOutput("Elevator/SetpointHeight", setPoint.height.get());
     atSetpoint =
         MathUtil.isNear(
                 setPoint.height.get().baseUnitMagnitude(),

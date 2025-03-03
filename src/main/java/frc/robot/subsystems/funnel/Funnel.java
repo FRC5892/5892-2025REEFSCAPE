@@ -8,30 +8,32 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.LoggedServo.LoggedServo;
 import frc.robot.util.LoggedTunableNumber;
+import java.util.function.DoubleSupplier;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.littletonrobotics.junction.Logger;
 
 public class Funnel extends SubsystemBase {
-  private final LoggedTunableNumber upPosition = new LoggedTunableNumber("Funnel/upPosition", 800);
-  private final LoggedTunableNumber downPosition =
-      new LoggedTunableNumber("Funnel/downPosition", 2200);
   private final LoggedServo servo;
 
   public Funnel(LoggedServo servo) {
     this.servo = servo;
   }
 
-  public Command foldUp() {
+  public Command move(FunnelPosition position) {
     return runOnce(
         () -> {
-          logAndSetPercent(upPosition.get());
+          logAndSetPercent(position.getPosition().getAsDouble());
         });
   }
 
-  public Command foldDown() {
-    return runOnce(
-        () -> {
-          logAndSetPercent(downPosition.get());
-        });
+  @Getter
+  @RequiredArgsConstructor
+  public enum FunnelPosition {
+    UP(new LoggedTunableNumber("Funnel/upPosition", 800)),
+    STARTING(new LoggedTunableNumber("Funnel/startingPosition", 1500)),
+    DOWN(new LoggedTunableNumber("Funnel/downPosition", 2200));
+    private final DoubleSupplier position;
   }
 
   public void logAndSetPercent(double percent) {

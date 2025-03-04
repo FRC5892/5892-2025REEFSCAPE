@@ -27,10 +27,10 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.subsystems.Algae.AlgaeRemover;
 import frc.robot.commands.Autos;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.Algae.AlgaeRemover;
 import frc.robot.subsystems.Climb.Climb;
 import frc.robot.subsystems.CoralEndEffector.CoralEndEffector;
 import frc.robot.subsystems.Elevator.Elevator;
@@ -141,7 +141,7 @@ public class RobotContainer {
                 new HardwareDIO("climbReverseLimit", 2));
         algaeRemover =
             new AlgaeRemover(
-                servoHub.getServo(ChannelId.kChannelId1),
+                // servoHub.getServo(ChannelId.kChannelId1),
                 new PhoenixTalonFX(24, defaultCanBus, "algaeRemover"));
 
         break;
@@ -174,7 +174,7 @@ public class RobotContainer {
                 SimDIO.fromNT("climbReverseLimit"));
         funnel = new Funnel(new NoOppServo(500, 2500));
         algaeRemover =
-            new AlgaeRemover(new NoOppServo(500, 2500), new NoOppTalonFX("algaeRemover", 0));
+            new AlgaeRemover(/*new NoOppServo(500, 2500),*/ new NoOppTalonFX("algaeRemover", 0));
         break;
 
       default:
@@ -198,7 +198,7 @@ public class RobotContainer {
                 new NoOppDio("climbReverseLimit"));
         funnel = new Funnel(new NoOppServo(500, 2500));
         algaeRemover =
-            new AlgaeRemover(new NoOppServo(500, 2500), new NoOppTalonFX("algaeRemover", 0));
+            new AlgaeRemover(/*new NoOppServo(500, 2500),*/ new NoOppTalonFX("algaeRemover", 0));
         break;
     }
 
@@ -222,7 +222,6 @@ public class RobotContainer {
         "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-    autoChooser.addOption("Elevator extend", Autos.elevatorExtendAuto(elevator));
     CameraServer.startAutomaticCapture();
     // Configure the button bindings
     configureButtonBindings();
@@ -289,6 +288,8 @@ public class RobotContainer {
     codriverController.povRight().onTrue(funnel.move(Funnel.FunnelPosition.DOWN));
     codriverController.povDown().whileTrue(climb.climbRetract());
     codriverController.povLeft().onTrue(funnel.move(Funnel.FunnelPosition.STARTING));
+
+    codriverController.rightTrigger(0.25).whileTrue(algaeRemover.runMotor());
   }
 
   /**

@@ -47,6 +47,7 @@ import frc.robot.util.LoggedDIO.SimDIO;
 import frc.robot.util.LoggedServo.NoOppServo;
 import frc.robot.util.LoggedTalon.NoOppTalonFX;
 import frc.robot.util.LoggedTalon.PhoenixTalonFX;
+import frc.robot.util.LoggedTalon.SimpleMotorSim;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -174,7 +175,9 @@ public class RobotContainer {
                 SimDIO.fromNT("climbReverseLimit"));
         funnel = new Funnel(new NoOppServo(500, 2500));
         algaeRemover =
-            new AlgaeRemover(/*new NoOppServo(500, 2500),*/ new NoOppTalonFX("algaeRemover", 0));
+            new AlgaeRemover(
+                /*new NoOppServo(500, 2500),*/ new SimpleMotorSim(
+                    24, defaultCanBus, "algaeRemover", 2, 1));
         break;
 
       default:

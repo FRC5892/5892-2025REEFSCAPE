@@ -28,8 +28,8 @@ public class CoralEndEffector extends SubsystemBase {
   private final StaticBrake brake = new StaticBrake();
   private final LoggedTalonFX talon;
   private final LoggedDIO beamBreak;
-  private final Debouncer beamBreakDebouncer = new Debouncer(0.25);
-  @AutoLogOutput @Getter private boolean debouncedBeamBreak = false;
+  private Debouncer beamBreakDebouncer = new Debouncer(0.25);
+  @AutoLogOutput @Getter private boolean debouncedBeamBreakTripped = false;
 
   public CoralEndEffector(LoggedTalonFX talon, LoggedDIO beambreak) {
     var config =
@@ -65,7 +65,7 @@ public class CoralEndEffector extends SubsystemBase {
   public void periodic() {
     talon.periodic();
     beamBreak.periodic();
-    debouncedBeamBreak = beamBreakDebouncer.calculate(beamBreak.get());
+    debouncedBeamBreakTripped = beamBreakDebouncer.calculate(beamBreak.get());
     // This method will be called once per scheduler run
   }
 }

@@ -41,8 +41,6 @@ public class Robot extends LoggedRobot {
   private Command autonomousCommand;
   private final RobotContainer robotContainer;
 
-  // private final PowerDistribution powerDistribution = new PowerDistribution(63, ModuleType.kRev);
-
   // private FrcBatteryTracking batteryTracking;
 
   public Robot() {
@@ -152,7 +150,6 @@ public class Robot extends LoggedRobot {
     // the Command-based framework to work.
     CommandScheduler.getInstance().run();
 
-    // Logger.recordOutput("Power/TotalCurrent", powerDistribution.getTotalCurrent());
 
     // batteryTracking.periodic();
 

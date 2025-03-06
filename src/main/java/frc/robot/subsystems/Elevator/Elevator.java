@@ -39,7 +39,8 @@ public class Elevator extends SubsystemBase {
   private final LoggedTunableNumber homingVoltage =
       new LoggedTunableNumber("Elevator/homing/Speed V", -0.5);
 
-  private final LoggedNetworkBoolean eStop = new LoggedNetworkBoolean("Elevator/E Stop", false);
+  private final LoggedNetworkBoolean eStop =
+      new LoggedNetworkBoolean("SmartDashboard/Elevator/E Stop", false);
   private final LoggedTunableMeasure<MutDistance> tolerance =
       new LoggedTunableMeasure<>("Elevator/Tolerance", Meters.mutable(0.02));
   private final LoggedTunableMeasure<MutAngularVelocity> toleranceVelocity =

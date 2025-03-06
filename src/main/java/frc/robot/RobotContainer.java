@@ -20,7 +20,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -149,10 +148,7 @@ public class RobotContainer {
             new AlgaeRemover(
                 // servoHub.getServo(ChannelId.kChannelId1),
                 new PhoenixTalonFX(24, defaultCanBus, "algaeRemover"));
-        batteryTracking =
-            new BatteryTracking(
-                new BatteryTrackingReal(),
-                new PowerDistribution(63, PowerDistribution.ModuleType.kRev));
+        batteryTracking = new BatteryTracking(new BatteryTrackingReal());
 
         break;
 

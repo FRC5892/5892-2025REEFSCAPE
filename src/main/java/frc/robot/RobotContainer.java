@@ -20,6 +20,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
+import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -36,6 +37,9 @@ import frc.robot.subsystems.CoralEndEffector.CoralEndEffector;
 import frc.robot.subsystems.Elevator.Elevator;
 import frc.robot.subsystems.Elevator.ElevatorConstants.ElevatorPosition;
 import frc.robot.subsystems.Elevator.ElevatorSimulation;
+import frc.robot.subsystems.batteryTracking.BatteryTracking;
+import frc.robot.subsystems.batteryTracking.BatteryTrackingNoOpp;
+import frc.robot.subsystems.batteryTracking.BatteryTrackingReal;
 import frc.robot.subsystems.drive.*;
 import frc.robot.subsystems.funnel.Funnel;
 import frc.robot.subsystems.funnel.FunnelServoHub;
@@ -66,6 +70,7 @@ public class RobotContainer {
   private final CoralEndEffector coralEndEffector;
   private final Funnel funnel;
   private final AlgaeRemover algaeRemover;
+  private final BatteryTracking batteryTracking;
 
   // Controllers
   private final CommandXboxController driverController = new CommandXboxController(0);
@@ -144,6 +149,10 @@ public class RobotContainer {
             new AlgaeRemover(
                 // servoHub.getServo(ChannelId.kChannelId1),
                 new PhoenixTalonFX(24, defaultCanBus, "algaeRemover"));
+        batteryTracking =
+            new BatteryTracking(
+                new BatteryTrackingReal(),
+                new PowerDistribution(63, PowerDistribution.ModuleType.kRev));
 
         break;
 
@@ -178,6 +187,7 @@ public class RobotContainer {
             new AlgaeRemover(
                 /*new NoOppServo(500, 2500),*/ new SimpleMotorSim(
                     24, defaultCanBus, "algaeRemover", 2, 1));
+        batteryTracking = new BatteryTracking(new BatteryTrackingReal(), () -> Math.random() * 40);
         break;
 
       default:
@@ -202,9 +212,22 @@ public class RobotContainer {
         funnel = new Funnel(new NoOppServo(500, 2500));
         algaeRemover =
             new AlgaeRemover(/*new NoOppServo(500, 2500),*/ new NoOppTalonFX("algaeRemover", 0));
+        batteryTracking = new BatteryTracking(new BatteryTrackingNoOpp() {}, () -> 0);
         break;
     }
 
+    coralEndEffector
+        .beamBreakTrigger()
+        .and(() -> elevator.atPosition(ElevatorPosition.INTAKE))
+        .whileTrue(
+            coralEndEffector
+                .runIntake()
+                .andThen(rumbleBoth(GenericHID.RumbleType.kLeftRumble, 1, 0.25))
+                .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf));
+    RobotModeTriggers.teleop().onFalse(batteryTracking.writeCommand());
+    RobotModeTriggers.autonomous()
+        .and(() -> !DriverStation.isFMSAttached())
+        .onFalse(batteryTracking.writeCommand());
     // Set up auto routines
     autoChooser =
         new LoggedDashboardChooser<>(

@@ -150,8 +150,8 @@ public class Autos {
       }
       final Command auto =
           loadLogFollow("Center Preload - G", points)
-              .alongWith(
-                  extendAtPosition(elevatorSubsystem, drive, ElevatorPosition.L4),
+              .alongWith(extendAtPosition(elevatorSubsystem, drive, ElevatorPosition.L4))
+              .andThen(
                   outtakeCoral(coralSubsystem),
                   elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE));
       if (Constants.currentMode == Constants.Mode.SIM) {
@@ -162,7 +162,7 @@ public class Autos {
       return auto;
     } catch (Exception e) {
       @SuppressWarnings("resource")
-      Alert alert = new Alert("Failed to load rightCoral Auto", AlertType.kError);
+      Alert alert = new Alert("Failed to load Center Right Auto", AlertType.kError);
       alert.set(true);
       DriverStation.reportError("Big oops: " + e.getMessage(), e.getStackTrace());
       return Commands.none();

@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import java.time.LocalDateTime;
 import java.util.function.DoubleSupplier;
+import org.littletonrobotics.conduit.ConduitApi;
 import org.littletonrobotics.junction.Logger;
 
 public class BatteryTracking extends SubsystemBase {
@@ -35,8 +36,8 @@ public class BatteryTracking extends SubsystemBase {
     writeTimer.start();
   }
 
-  public BatteryTracking(BatteryTrackingIO io, PowerDistribution powerDistribution) {
-    this(io, powerDistribution::getTotalCurrent);
+  public BatteryTracking(BatteryTrackingIO io) {
+    this(io, ConduitApi.getInstance()::getPDPTotalCurrent);
   }
 
   public Command writeCommand() {

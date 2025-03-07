@@ -21,9 +21,9 @@ import org.littletonrobotics.junction.Logger;
 public class Climb extends SubsystemBase {
   private final LoggedTalonFX talon;
   private final LoggedTunableNumber climbExtendSpeed =
-      new LoggedTunableNumber("Climb/ExtendDutyCycle", 0.25);
+      new LoggedTunableNumber("Climb/ExtendDutyCycle", 0.75);
   private final LoggedTunableNumber climbRetractSpeed =
-      new LoggedTunableNumber("Climb/RetractDutyCycle", -0.25);
+      new LoggedTunableNumber("Climb/RetractDutyCycle", -0.75);
 
   private final DutyCycleOut climbDutyCycle = new DutyCycleOut(0).withEnableFOC(true);
   private final StaticBrake brake = new StaticBrake();

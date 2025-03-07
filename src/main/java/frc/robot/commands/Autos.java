@@ -200,8 +200,8 @@ public class Autos {
   public static Command intake(CoralEndEffector coralSubsystem) {
     return coralSubsystem
         .runIntake()
-        .alongWith(Commands.waitUntil(coralSubsystem::isDebouncedBeamBreakTripped))
-        .until(() -> !coralSubsystem.isDebouncedBeamBreakTripped());
+        .alongWith(Commands.waitUntil(coralSubsystem::isDebouncedBeamBreakTripped)
+            .andThen(Commands.waitUntil(() -> !coralSubsystem.isDebouncedBeamBreakTripped())));
   }
 
   public static PathPlannerPath loadPath(String name, List<PathPoint> points)

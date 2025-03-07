@@ -52,7 +52,7 @@ public class Autos {
       }
       final Command auto =
           AutoBuilder.followPath(loadPath("Left Preload - I", points))
-              .alongWith(extendAtPosition(elevatorSubsystem, drive, ElevatorPosition.L4))
+              .alongWith(Commands.waitSeconds(0.25).andThen(extendAtPosition(elevatorSubsystem, drive, ElevatorPosition.L4)))
               .andThen(
                   outtakeCoral(coralSubsystem),
                   loadLogFollow("I - Left Far Station", points)

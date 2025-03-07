@@ -28,7 +28,7 @@ public class CoralEndEffector extends SubsystemBase {
   private final StaticBrake brake = new StaticBrake();
   private final LoggedTalonFX talon;
   private final LoggedDIO beamBreak;
-  private Debouncer beamBreakDebouncer = new Debouncer(0.25);
+  @AutoLogOutput private Debouncer beamBreakDebouncer = new Debouncer(0.25);
   @AutoLogOutput @Getter private boolean debouncedBeamBreakTripped = false;
 
   public CoralEndEffector(LoggedTalonFX talon, LoggedDIO beambreak) {

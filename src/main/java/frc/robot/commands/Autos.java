@@ -200,7 +200,7 @@ public class Autos {
   public static Command intake(CoralEndEffector coralSubsystem) {
     return coralSubsystem
         .runIntake()
-        .alongWith(
+        .raceWith(
             Commands.waitUntil(coralSubsystem::isDebouncedBeamBreakTripped)
                 .andThen(Commands.waitUntil(() -> !coralSubsystem.isDebouncedBeamBreakTripped())));
   }

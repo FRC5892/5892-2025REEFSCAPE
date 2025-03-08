@@ -101,7 +101,7 @@ public class Autos {
       final Command auto =
           loadLogFollow("Right Preload - Pre F", points)
               .andThen(
-                 elevatorSubsystem.goToPosition(ElevatorPosition.L4),
+                  elevatorSubsystem.goToPosition(ElevatorPosition.L4),
                   loadLogFollow("Pre F - F", points),
                   outtakeCoral(coralSubsystem),
                   loadLogFollow("F - Right Far Station", points)
@@ -203,8 +203,9 @@ public class Autos {
         .runIntake()
         .raceWith(
             Commands.waitUntil(coralSubsystem::isDebouncedBeamBreakTripped)
-                .andThen(Commands.waitUntil(() -> !coralSubsystem.isDebouncedBeamBreakTripped())),
-            Commands.waitSeconds(7));
+                .andThen(
+                    Commands.waitUntil(
+                        () -> coralSubsystem.isDebouncedBeamBreakTripped() == false)));
   }
 
   public static PathPlannerPath loadPath(String name, List<PathPoint> points)

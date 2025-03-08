@@ -30,7 +30,7 @@ public class Funnel extends SubsystemBase {
   @Getter
   @RequiredArgsConstructor
   public enum FunnelPosition {
-    UP(new LoggedTunableNumber("Funnel/upPosition", 650)),
+    UP(new LoggedTunableNumber("Funnel/upPosition", 500)),
     STARTING(new LoggedTunableNumber("Funnel/startingPosition", 2000)),
     DOWN(new LoggedTunableNumber("Funnel/downPosition", 2500));
     private final DoubleSupplier position;

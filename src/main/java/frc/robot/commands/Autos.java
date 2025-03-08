@@ -99,9 +99,10 @@ public class Autos {
         points = null;
       }
       final Command auto =
-          loadLogFollow("Right Preload - F", points)
-              .alongWith(extendAtPosition(elevatorSubsystem, drive, ElevatorPosition.L4))
+          loadLogFollow("Right Preload - Pre F", points)
               .andThen(
+                 elevatorSubsystem.goToPosition(ElevatorPosition.L4),
+                  loadLogFollow("Pre F - F", points),
                   outtakeCoral(coralSubsystem),
                   loadLogFollow("F - Right Far Station", points)
                       .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
@@ -202,7 +203,8 @@ public class Autos {
         .runIntake()
         .raceWith(
             Commands.waitUntil(coralSubsystem::isDebouncedBeamBreakTripped)
-                .andThen(Commands.waitUntil(() -> !coralSubsystem.isDebouncedBeamBreakTripped())));
+                .andThen(Commands.waitUntil(() -> !coralSubsystem.isDebouncedBeamBreakTripped())),
+            Commands.waitSeconds(7));
   }
 
   public static PathPlannerPath loadPath(String name, List<PathPoint> points)

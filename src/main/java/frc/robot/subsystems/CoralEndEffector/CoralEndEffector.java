@@ -21,7 +21,7 @@ import org.littletonrobotics.junction.AutoLogOutput;
 
 public class CoralEndEffector extends SubsystemBase {
   private final LoggedTunableNumber intakeDutyCycle =
-      new LoggedTunableNumber("Coral/Intake Duty Cycle", 0.15);
+      new LoggedTunableNumber("Coral/Intake Duty Cycle", 0.10);
   private final LoggedTunableNumber outtakeDutyCycle =
       new LoggedTunableNumber("Coral/Outtake Duty Cycle", 0.25);
   private final DutyCycleOut dutyCycleOut = new DutyCycleOut(0).withEnableFOC(true);

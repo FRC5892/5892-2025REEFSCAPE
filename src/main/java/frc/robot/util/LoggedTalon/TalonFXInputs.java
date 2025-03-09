@@ -1,6 +1,5 @@
 package frc.robot.util.LoggedTalon;
 
-import edu.wpi.first.units.measure.*;
 import org.littletonrobotics.junction.AutoLog;
 
 @AutoLog
@@ -10,6 +9,6 @@ public class TalonFXInputs {
   public double[] torqueCurrentAmps;
   public double[] supplyCurrentAmps;
   public double[] temperatureC;
-  public MutAngularVelocity velocity;
-  public MutAngle position;
+  public double velocityRotPS;
+  public double positionRot;
 }

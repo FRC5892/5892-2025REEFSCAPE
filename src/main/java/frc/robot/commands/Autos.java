@@ -51,9 +51,10 @@ public class Autos {
         points = null;
       }
       final Command auto =
-          AutoBuilder.followPath(loadPath("Left Preload - I", points))
-              .alongWith(extendAtPosition(elevatorSubsystem, drive, ElevatorPosition.L4))
+          AutoBuilder.followPath(loadPath("Left Preload - Pre I", points))
               .andThen(
+                  elevatorSubsystem.goToPosition(ElevatorPosition.L4),
+                  loadLogFollow("Pre I - I", points),
                   outtakeCoral(coralSubsystem),
                   loadLogFollow("I - Left Far Station", points)
                       .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
@@ -98,9 +99,10 @@ public class Autos {
         points = null;
       }
       final Command auto =
-          loadLogFollow("Right Preload - F", points)
-              .alongWith(extendAtPosition(elevatorSubsystem, drive, ElevatorPosition.L4))
+          loadLogFollow("Right Preload - Pre F", points)
               .andThen(
+                  elevatorSubsystem.goToPosition(ElevatorPosition.L4),
+                  loadLogFollow("Pre F - F", points),
                   outtakeCoral(coralSubsystem),
                   loadLogFollow("F - Right Far Station", points)
                       .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
@@ -199,8 +201,11 @@ public class Autos {
   public static Command intake(CoralEndEffector coralSubsystem) {
     return coralSubsystem
         .runIntake()
-        .alongWith(Commands.waitUntil(coralSubsystem::isDebouncedBeamBreakTripped))
-        .until(() -> !coralSubsystem.isDebouncedBeamBreakTripped());
+        .raceWith(
+            Commands.waitUntil(coralSubsystem::isDebouncedBeamBreakTripped)
+                .andThen(
+                    Commands.waitUntil(
+                        () -> coralSubsystem.isDebouncedBeamBreakTripped() == false)));
   }
 
   public static PathPlannerPath loadPath(String name, List<PathPoint> points)

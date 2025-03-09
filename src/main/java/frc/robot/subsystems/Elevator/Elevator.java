@@ -42,7 +42,7 @@ public class Elevator extends SubsystemBase {
   private final LoggedNetworkBoolean eStop =
       new LoggedNetworkBoolean("SmartDashboard/Elevator/E Stop", false);
   private final LoggedTunableMeasure<MutDistance> tolerance =
-      new LoggedTunableMeasure<>("Elevator/Tolerance", Meters.mutable(0.02));
+      new LoggedTunableMeasure<>("Elevator/Tolerance", Meters.mutable(0.03));
   private final LoggedTunableMeasure<MutAngularVelocity> toleranceVelocity =
       new LoggedTunableMeasure<>("Elevator/ToleranceVelocity", RPM.mutable(1));
   @AutoLogOutput private final LoggedMechanism2d mechanism = new LoggedMechanism2d(0.25, 3);

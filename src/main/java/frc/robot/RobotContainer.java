@@ -16,8 +16,11 @@ package frc.robot;
 import com.ctre.phoenix6.CANBus;
 import com.revrobotics.servohub.ServoChannel.ChannelId;
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
@@ -43,6 +46,7 @@ import frc.robot.subsystems.drive.*;
 import frc.robot.subsystems.funnel.Funnel;
 import frc.robot.subsystems.funnel.FunnelServoHub;
 import frc.robot.subsystems.vision.*;
+import frc.robot.subsystems.vision.Vision.VisionConsumer;
 import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.LoggedDIO.HardwareDIO;
 import frc.robot.util.LoggedDIO.NoOppDio;
@@ -163,7 +167,12 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackRight));
         vision =
             new Vision(
-                drive::addVisionMeasurement,
+                new VisionConsumer() {
+                  public void accept(
+                      Pose2d visionRobotPoseMeters,
+                      double timestampSeconds,
+                      Matrix<N3, N1> visionMeasurementStdDevs) {}
+                },
                 new VisionIOPhotonVisionSim(
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
                 new VisionIOPhotonVisionSim(
@@ -214,7 +223,7 @@ public class RobotContainer {
 
     coralEndEffector
         .beamBreakTrigger()
-        .and(() -> elevator.atPosition(ElevatorPosition.INTAKE))
+        .and(() -> elevator.atPosition(ElevatorPosition.INTAKE) && DriverStation.isTeleopEnabled())
         .whileTrue(
             coralEndEffector
                 .runIntake()

@@ -29,6 +29,9 @@ public abstract class LoggedTalonFX {
   private LoggedTalonFX[] tuningFollowers = null;
   protected final int followers;
 
+  private final MutAngularVelocity velocity = RadiansPerSecond.mutable(0);
+  private final MutAngle position = Radian.mutable(0);
+
   public LoggedTalonFX(String name, int followers) {
     this.followers = followers;
     this.name = name;
@@ -47,8 +50,8 @@ public abstract class LoggedTalonFX {
     inputs.connected = new boolean[followers + 1];
     inputs.supplyCurrentAmps = new double[followers + 1];
     inputs.appliedVolts = new double[followers + 1];
-    inputs.position = Rotation.mutable(0);
-    inputs.velocity = RotationsPerSecond.mutable(0);
+    inputs.positionRot = 0;
+    inputs.velocityRotPS = 0;
   }
 
   public void periodic() {
@@ -223,11 +226,11 @@ public abstract class LoggedTalonFX {
   }
 
   public AngularVelocity getVelocity() {
-    return this.inputs.velocity;
+    return velocity.mut_replace(this.inputs.velocityRotPS, RotationsPerSecond);
   }
 
   public Angle getPosition() {
-    return this.inputs.position;
+    return position.mut_replace(this.inputs.positionRot, Rotation);
   }
 
   public abstract void setPosition(Angle position);

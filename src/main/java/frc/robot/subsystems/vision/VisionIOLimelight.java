@@ -34,8 +34,6 @@ public class VisionIOLimelight implements VisionIO {
   private final DoubleArrayPublisher orientationPublisher;
 
   private final DoubleSubscriber latencySubscriber;
-  private final DoubleSubscriber txSubscriber;
-  private final DoubleSubscriber tySubscriber;
   private final DoubleArraySubscriber megatag1Subscriber;
   private final DoubleArraySubscriber megatag2Subscriber;
 
@@ -50,8 +48,6 @@ public class VisionIOLimelight implements VisionIO {
     this.rotationSupplier = rotationSupplier;
     orientationPublisher = table.getDoubleArrayTopic("robot_orientation_set").publish();
     latencySubscriber = table.getDoubleTopic("tl").subscribe(0.0);
-    txSubscriber = table.getDoubleTopic("tx").subscribe(0.0);
-    tySubscriber = table.getDoubleTopic("ty").subscribe(0.0);
     megatag1Subscriber = table.getDoubleArrayTopic("botpose_wpiblue").subscribe(new double[] {});
     megatag2Subscriber =
         table.getDoubleArrayTopic("botpose_orb_wpiblue").subscribe(new double[] {});
@@ -63,10 +59,6 @@ public class VisionIOLimelight implements VisionIO {
     inputs.connected =
         ((RobotController.getFPGATime() - latencySubscriber.getLastChange()) / 1000) < 250;
 
-    // Update target observation
-    inputs.latestTargetObservation =
-        new TargetObservation(
-            Rotation2d.fromDegrees(txSubscriber.get()), Rotation2d.fromDegrees(tySubscriber.get()));
 
     // Update orientation for MegaTag 2
     orientationPublisher.accept(

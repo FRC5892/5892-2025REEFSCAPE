@@ -25,18 +25,6 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Left Far Station - J"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "J - Left Far Station"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
             "pathName": "Left Far Station - K"
           }
         },
@@ -50,6 +38,18 @@
           "type": "path",
           "data": {
             "pathName": "Left Far Station - L"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "L - Left Far Station"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Left Far Station - J"
           }
         }
       ]

@@ -15,11 +15,11 @@ package frc.robot.subsystems.vision;
 
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.*;
+import edu.wpi.first.math.interpolation.TimeInterpolatableBuffer;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
@@ -28,13 +28,25 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
+
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
+import org.photonvision.EstimatedRobotPose;
+import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
 public class Vision extends SubsystemBase {
   private final VisionConsumer consumer;
   private final VisionIO[] io;
   private final VisionIOInputsAutoLogged[] inputs;
   private final Alert[] disconnectedAlerts;
+
+  private final TimeInterpolatableBuffer<Rotation2d> headingBuffer =
+          TimeInterpolatableBuffer.createBuffer(1.0);
+  @AutoLogOutput private int trigSolverOdometryMissingCount = 0;
+
 
   public Vision(VisionConsumer consumer, VisionIO... io) {
     Logger.recordOutput("Vision/camera0Offset", VisionConstants.robotToCamera0);
@@ -57,15 +69,6 @@ public class Vision extends SubsystemBase {
           new Alert(
               "Vision camera " + Integer.toString(i) + " is disconnected.", AlertType.kWarning);
     }
-  }
-
-  /**
-   * Returns the X angle to the best target, which can be used for simple servoing with vision.
-   *
-   * @param cameraIndex The index of the camera to use.
-   */
-  public Rotation2d getTargetX(int cameraIndex) {
-    return inputs[cameraIndex].latestTargetObservation.tx();
   }
 
   @Override
@@ -103,18 +106,7 @@ public class Vision extends SubsystemBase {
       // Loop over pose observations
       for (var observation : inputs[cameraIndex].poseObservations) {
         // Check whether to reject pose
-        boolean rejectPose =
-            observation.tagCount() == 0 // Must have at least one tag
-                || (observation.tagCount() == 1
-                    && observation.ambiguity() > maxAmbiguity) // Cannot be high ambiguity
-                || Math.abs(observation.pose().getZ())
-                    > maxZError // Must have realistic Z coordinate
-
-                // Must be within the field boundaries
-                || observation.pose().getX() < 0.0
-                || observation.pose().getX() > aprilTagLayout.getFieldLength()
-                || observation.pose().getY() < 0.0
-                || observation.pose().getY() > aprilTagLayout.getFieldWidth();
+        boolean rejectPose = shouldRejectObservation(observation);
 
         // Add pose to log
         robotPoses.add(observation.pose());
@@ -129,25 +121,24 @@ public class Vision extends SubsystemBase {
           continue;
         }
 
-        // Calculate standard deviations
-        double stdDevFactor =
-            Math.pow(observation.averageTagDistance(), 2.0) / observation.tagCount();
-        double linearStdDev = linearStdDevBaseline * stdDevFactor;
-        double angularStdDev = angularStdDevBaseline * stdDevFactor;
-        if (observation.type() == PoseObservationType.MEGATAG_2) {
-          linearStdDev *= linearStdDevMegatag2Factor;
-          angularStdDev *= angularStdDevMegatag2Factor;
-        }
-        if (cameraIndex < cameraStdDevFactors.length) {
-          linearStdDev *= cameraStdDevFactors[cameraIndex];
-          angularStdDev *= cameraStdDevFactors[cameraIndex];
-        }
 
         // Send vision observation
         consumer.accept(
             observation.pose().toPose2d(),
             observation.timestamp(),
-            VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev));
+            calculateStdDevs(observation, cameraIndex)
+            );
+      }
+      for (var observation:inputs[cameraIndex].singleTagObservations) {
+        pnpDistanceTrigSolveStrategy(observation, robotToCamera0).ifPresent(poseObservation -> {
+          robotPoses.add(poseObservation.pose());
+          robotPosesAccepted.add(poseObservation.pose());
+          consumer.accept(
+                  poseObservation.pose().toPose2d(),
+                  poseObservation.timestamp(),
+                  VecBuilder.fill(0.02, 0.02, 0.06));
+        });
+
       }
 
       // Log camera datadata
@@ -180,6 +171,80 @@ public class Vision extends SubsystemBase {
     Logger.recordOutput(
         "Vision/Summary/RobotPosesRejected",
         allRobotPosesRejected.toArray(new Pose3d[allRobotPosesRejected.size()]));
+  }
+  private Matrix<N3,N1> calculateStdDevs(VisionIO.PoseObservation observation, int cameraIndex) {
+    double stdDevFactor =
+            (Math.pow(observation.averageTagDistance(), 2.0) * (observation.type() == PoseObservationType.PHOTONVISION_TRIG ? rangeMultiplierTrigFactor : 1))/ observation.tagCount();
+    double linearStdDev = linearStdDevBaseline * stdDevFactor;
+    double angularStdDev = angularStdDevBaseline * stdDevFactor;
+    if (observation.type() == PoseObservationType.MEGATAG_2) {
+      linearStdDev *= linearStdDevMegatag2Factor;
+      angularStdDev *= angularStdDevMegatag2Factor;
+    } else if (observation.type() == PoseObservationType.PHOTONVISION_TRIG) {
+      linearStdDev *= 0.05;
+      angularStdDev = Double.POSITIVE_INFINITY;
+    }
+    if (cameraIndex < cameraStdDevFactors.length) {
+      linearStdDev *= cameraStdDevFactors[cameraIndex];
+      angularStdDev *= cameraStdDevFactors[cameraIndex];
+    }
+    return VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev);
+  }
+  private boolean shouldRejectObservation(VisionIO.PoseObservation observation) {
+    return observation.tagCount() == 0 // Must have at least one tag
+                    || (observation.tagCount() == 1
+                    && observation.ambiguity() > maxAmbiguity) // Cannot be high ambiguity
+                    || Math.abs(observation.pose().getZ())
+                    > maxZError // Must have realistic Z coordinate
+
+                    // Must be within the field boundaries
+                    || observation.pose().getX() < 0.0
+                    || observation.pose().getX() > aprilTagLayout.getFieldLength()
+                    || observation.pose().getY() < 0.0
+                    || observation.pose().getY() > aprilTagLayout.getFieldWidth();
+  }
+  private Optional<VisionIO.PoseObservation> pnpDistanceTrigSolveStrategy(VisionIO.SingleTagObservation observation, Transform3d robotToCamera) {
+
+    var headingSampleOpt = headingBuffer.getSample(observation.timestamp());
+    if (headingSampleOpt.isEmpty()) {
+      trigSolverOdometryMissingCount++;
+      return Optional.empty();
+    }
+    Rotation2d headingSample = headingSampleOpt.get();
+    Translation2d camToTagTranslation =
+            new Translation3d(
+                    observation.cameraToTag().getTranslation().getNorm(),
+                    new Rotation3d(
+                            0,
+                            -Math.toRadians(observation.pitch()),
+                            -Math.toRadians(observation.yaw())))
+                    .rotateBy(robotToCamera.getRotation())
+                    .toTranslation2d()
+                    .rotateBy(headingSample);
+
+    var tagPoseOpt = aprilTagLayout.getTagPose(observation.id());
+    if (tagPoseOpt.isEmpty()) {
+      return Optional.empty();
+    }
+    var tagPose2d = tagPoseOpt.get().toPose2d();
+
+    Translation2d fieldToCameraTranslation =
+            tagPose2d.getTranslation().plus(camToTagTranslation.unaryMinus());
+
+    Translation2d camToRobotTranslation =
+            robotToCamera.getTranslation().toTranslation2d().unaryMinus().rotateBy(headingSample);
+
+    Pose2d robotPose =
+            new Pose2d(fieldToCameraTranslation.plus(camToRobotTranslation), headingSample);
+
+    return Optional.of(
+            new VisionIO.PoseObservation(
+                    observation.timestamp(),
+                    new Pose3d(robotPose),
+                    -1,
+                    1,
+                    camToTagTranslation.getNorm(),
+                    PoseObservationType.PHOTONVISION_TRIG));
   }
 
   @FunctionalInterface

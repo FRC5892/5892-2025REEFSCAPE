@@ -14,7 +14,6 @@
 package frc.robot.subsystems.vision;
 
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import org.littletonrobotics.junction.AutoLog;
 
@@ -27,7 +26,6 @@ public interface VisionIO {
     public int[] tagIds = new int[0];
   }
 
-
   /** Represents a robot pose sample used for pose estimation. */
   public static record PoseObservation(
       double timestamp,
@@ -36,7 +34,9 @@ public interface VisionIO {
       int tagCount,
       double averageTagDistance,
       PoseObservationType type) {}
-  public static record SingleTagObservation(double timestamp, int id, Transform3d cameraToTag, double pitch, double yaw) {}
+
+  public static record SingleTagObservation(
+      double timestamp, int id, Transform3d cameraToTag, double pitch, double yaw) {}
 
   public static enum PoseObservationType {
     MEGATAG_1,

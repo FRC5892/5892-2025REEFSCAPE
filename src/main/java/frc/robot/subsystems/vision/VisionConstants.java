@@ -62,7 +62,6 @@ public class VisionConstants {
   public static double linearStdDevBaseline = 0.02; // Meters
   public static double angularStdDevBaseline = 0.06; // Radians
 
-
   // Standard deviation multipliers for each camera
   // (Adjust to trust some cameras more than others)
   public static double[] cameraStdDevFactors =
@@ -74,9 +73,12 @@ public class VisionConstants {
 
   // Multipliers to apply for MegaTag 2 observations
   public static double linearStdDevMegatag2Factor = 0.5; // More stable than full 3D solve
-  public static double angularStdDevMegatag2Factor =
-      Double.POSITIVE_INFINITY; // No rotation data available
-  public static double linearStdDevTrigFactor = 3; // Not better at high range
-  public static double rangeMultiplierTrigFactor = 0.5; // Very useful for close range
-  public static double angularStdDevTrigFactor = Double.POSITIVE_INFINITY; // It literally uses rotation data
+  public static double angularStdDevMegatag2Factor = Double.POSITIVE_INFINITY;
+
+  // No rotation data available
+  public static double rangeMultiplierTrigFactor = 2; // Not better at high range
+  public static double linearStdDevTrigFactor = 0.10; // Very useful for close range
+  public static double angularStdDevTrigFactor =
+      Double.POSITIVE_INFINITY; // It literally uses rotation data
+  public static double maxRangeTrig = 1.5; // Meters
 }

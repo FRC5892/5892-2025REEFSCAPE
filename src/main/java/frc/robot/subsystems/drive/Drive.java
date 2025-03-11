@@ -54,8 +54,7 @@ import frc.robot.util.LoggedTunableNumber;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
-
+import java.util.function.BiConsumer;
 import lombok.Getter;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -120,11 +119,11 @@ public class Drive extends SubsystemBase {
   @Getter @AutoLogOutput private int reefSector = -1;
   @Getter @AutoLogOutput private double distanceToReefM = -1;
 
-  private final Consumer<Rotation2d> yawConsumer;
+  private BiConsumer<Double, Rotation2d> yawConsumer = null;
 
   // End 5892
 
-  public Drive( Consumer<Rotation2d> yawConsumer,
+  public Drive(
       GyroIO gyroIO,
       ModuleIO flModuleIO,
       ModuleIO frModuleIO,
@@ -205,7 +204,6 @@ public class Drive extends SubsystemBase {
       driveKSTunableNumber = null;
       driveKVTunableNumber = null;
     }
-    this.yawConsumer = yawConsumer;
     // End 5892
   }
 
@@ -261,8 +259,9 @@ public class Drive extends SubsystemBase {
       }
 
       // Apply update
-      Pose2d pose = poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
-      yawConsumer.accept(pose.getRotation());
+      Pose2d pose =
+          poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
+      yawConsumer.accept(sampleTimestamps[i], pose.getRotation());
     }
 
     // Update gyro alert
@@ -517,6 +516,10 @@ public class Drive extends SubsystemBase {
   public enum ReefBranch {
     LEFT,
     RIGHT,
+  }
+
+  public void registerYawConsumer(BiConsumer<Double, Rotation2d> consumer) {
+    yawConsumer = consumer;
   }
   // end 5892
 }

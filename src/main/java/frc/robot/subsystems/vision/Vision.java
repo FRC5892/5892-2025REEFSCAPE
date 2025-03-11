@@ -15,7 +15,6 @@ package frc.robot.subsystems.vision;
 
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.*;
@@ -29,13 +28,8 @@ import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
-import org.photonvision.EstimatedRobotPose;
-import org.photonvision.PhotonPoseEstimator;
-import org.photonvision.targeting.PhotonPipelineResult;
-import org.photonvision.targeting.PhotonTrackedTarget;
 
 public class Vision extends SubsystemBase {
   private final VisionConsumer consumer;
@@ -44,9 +38,8 @@ public class Vision extends SubsystemBase {
   private final Alert[] disconnectedAlerts;
 
   private final TimeInterpolatableBuffer<Rotation2d> headingBuffer =
-          TimeInterpolatableBuffer.createBuffer(1.0);
+      TimeInterpolatableBuffer.createBuffer(1.0);
   @AutoLogOutput private int trigSolverOdometryMissingCount = 0;
-
 
   public Vision(VisionConsumer consumer, VisionIO... io) {
     Logger.recordOutput("Vision/camera0Offset", VisionConstants.robotToCamera0);
@@ -98,47 +91,28 @@ public class Vision extends SubsystemBase {
       // Add tag poses
       for (int tagId : inputs[cameraIndex].tagIds) {
         var tagPose = aprilTagLayout.getTagPose(tagId);
-        if (tagPose.isPresent()) {
-          tagPoses.add(tagPose.get());
-        }
+        tagPose.ifPresent(tagPoses::add);
       }
 
       // Loop over pose observations
       for (var observation : inputs[cameraIndex].poseObservations) {
-        // Check whether to reject pose
-        boolean rejectPose = shouldRejectObservation(observation);
-
-        // Add pose to log
-        robotPoses.add(observation.pose());
-        if (rejectPose) {
-          robotPosesRejected.add(observation.pose());
-        } else {
-          robotPosesAccepted.add(observation.pose());
-        }
-
-        // Skip if rejected
-        if (rejectPose) {
+        handlePoseObservation(
+            observation, cameraIndex, robotPoses, robotPosesAccepted, robotPosesRejected);
+      }
+      for (var observation : inputs[cameraIndex].singleTagObservations) {
+        if (shouldRejectTagObservation(observation)) {
           continue;
         }
-
-
-        // Send vision observation
-        consumer.accept(
-            observation.pose().toPose2d(),
-            observation.timestamp(),
-            calculateStdDevs(observation, cameraIndex)
-            );
-      }
-      for (var observation:inputs[cameraIndex].singleTagObservations) {
-        pnpDistanceTrigSolveStrategy(observation, robotToCamera0).ifPresent(poseObservation -> {
-          robotPoses.add(poseObservation.pose());
-          robotPosesAccepted.add(poseObservation.pose());
-          consumer.accept(
-                  poseObservation.pose().toPose2d(),
-                  poseObservation.timestamp(),
-                  VecBuilder.fill(0.02, 0.02, 0.06));
-        });
-
+        var opPoseObservation = pnpDistanceTrigSolveStrategy(observation, robotToCamera0);
+        if (opPoseObservation.isEmpty()) {
+          continue;
+        }
+        handlePoseObservation(
+            opPoseObservation.get(),
+            cameraIndex,
+            robotPoses,
+            robotPosesAccepted,
+            robotPosesRejected);
       }
 
       // Log camera datadata
@@ -172,17 +146,17 @@ public class Vision extends SubsystemBase {
         "Vision/Summary/RobotPosesRejected",
         allRobotPosesRejected.toArray(new Pose3d[allRobotPosesRejected.size()]));
   }
-  private Matrix<N3,N1> calculateStdDevs(VisionIO.PoseObservation observation, int cameraIndex) {
-    double stdDevFactor =
-            (Math.pow(observation.averageTagDistance(), 2.0) * (observation.type() == PoseObservationType.PHOTONVISION_TRIG ? rangeMultiplierTrigFactor : 1))/ observation.tagCount();
+
+  private Matrix<N3, N1> calculateStdDevs(VisionIO.PoseObservation observation, int cameraIndex) {
+    double stdDevFactor = Math.pow(observation.averageTagDistance(), 2.0) / observation.tagCount();
     double linearStdDev = linearStdDevBaseline * stdDevFactor;
     double angularStdDev = angularStdDevBaseline * stdDevFactor;
     if (observation.type() == PoseObservationType.MEGATAG_2) {
       linearStdDev *= linearStdDevMegatag2Factor;
       angularStdDev *= angularStdDevMegatag2Factor;
     } else if (observation.type() == PoseObservationType.PHOTONVISION_TRIG) {
-      linearStdDev *= 0.05;
-      angularStdDev = Double.POSITIVE_INFINITY;
+      linearStdDev *= linearStdDevTrigFactor;
+      angularStdDev = angularStdDevTrigFactor;
     }
     if (cameraIndex < cameraStdDevFactors.length) {
       linearStdDev *= cameraStdDevFactors[cameraIndex];
@@ -190,20 +164,22 @@ public class Vision extends SubsystemBase {
     }
     return VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev);
   }
+
   private boolean shouldRejectObservation(VisionIO.PoseObservation observation) {
     return observation.tagCount() == 0 // Must have at least one tag
-                    || (observation.tagCount() == 1
-                    && observation.ambiguity() > maxAmbiguity) // Cannot be high ambiguity
-                    || Math.abs(observation.pose().getZ())
-                    > maxZError // Must have realistic Z coordinate
+        || (observation.tagCount() == 1
+            && observation.ambiguity() > maxAmbiguity) // Cannot be high ambiguity
+        || Math.abs(observation.pose().getZ()) > maxZError // Must have realistic Z coordinate
 
-                    // Must be within the field boundaries
-                    || observation.pose().getX() < 0.0
-                    || observation.pose().getX() > aprilTagLayout.getFieldLength()
-                    || observation.pose().getY() < 0.0
-                    || observation.pose().getY() > aprilTagLayout.getFieldWidth();
+        // Must be within the field boundaries
+        || observation.pose().getX() < 0.0
+        || observation.pose().getX() > aprilTagLayout.getFieldLength()
+        || observation.pose().getY() < 0.0
+        || observation.pose().getY() > aprilTagLayout.getFieldWidth();
   }
-  private Optional<VisionIO.PoseObservation> pnpDistanceTrigSolveStrategy(VisionIO.SingleTagObservation observation, Transform3d robotToCamera) {
+
+  private Optional<VisionIO.PoseObservation> pnpDistanceTrigSolveStrategy(
+      VisionIO.SingleTagObservation observation, Transform3d robotToCamera) {
 
     var headingSampleOpt = headingBuffer.getSample(observation.timestamp());
     if (headingSampleOpt.isEmpty()) {
@@ -212,15 +188,13 @@ public class Vision extends SubsystemBase {
     }
     Rotation2d headingSample = headingSampleOpt.get();
     Translation2d camToTagTranslation =
-            new Translation3d(
-                    observation.cameraToTag().getTranslation().getNorm(),
-                    new Rotation3d(
-                            0,
-                            -Math.toRadians(observation.pitch()),
-                            -Math.toRadians(observation.yaw())))
-                    .rotateBy(robotToCamera.getRotation())
-                    .toTranslation2d()
-                    .rotateBy(headingSample);
+        new Translation3d(
+                observation.cameraToTag().getTranslation().getNorm(),
+                new Rotation3d(
+                    0, -Math.toRadians(observation.pitch()), -Math.toRadians(observation.yaw())))
+            .rotateBy(robotToCamera.getRotation())
+            .toTranslation2d()
+            .rotateBy(headingSample);
 
     var tagPoseOpt = aprilTagLayout.getTagPose(observation.id());
     if (tagPoseOpt.isEmpty()) {
@@ -229,22 +203,52 @@ public class Vision extends SubsystemBase {
     var tagPose2d = tagPoseOpt.get().toPose2d();
 
     Translation2d fieldToCameraTranslation =
-            tagPose2d.getTranslation().plus(camToTagTranslation.unaryMinus());
+        tagPose2d.getTranslation().plus(camToTagTranslation.unaryMinus());
 
     Translation2d camToRobotTranslation =
-            robotToCamera.getTranslation().toTranslation2d().unaryMinus().rotateBy(headingSample);
+        robotToCamera.getTranslation().toTranslation2d().unaryMinus().rotateBy(headingSample);
 
     Pose2d robotPose =
-            new Pose2d(fieldToCameraTranslation.plus(camToRobotTranslation), headingSample);
+        new Pose2d(fieldToCameraTranslation.plus(camToRobotTranslation), headingSample);
 
     return Optional.of(
-            new VisionIO.PoseObservation(
-                    observation.timestamp(),
-                    new Pose3d(robotPose),
-                    -1,
-                    1,
-                    camToTagTranslation.getNorm(),
-                    PoseObservationType.PHOTONVISION_TRIG));
+        new VisionIO.PoseObservation(
+            observation.timestamp(),
+            new Pose3d(robotPose),
+            -1,
+            1,
+            camToTagTranslation.getNorm(),
+            PoseObservationType.PHOTONVISION_TRIG));
+  }
+
+  public void handlePoseObservation(
+      VisionIO.PoseObservation observation,
+      int cameraIndex,
+      List<Pose3d> robotPoses,
+      List<Pose3d> robotPosesAccepted,
+      List<Pose3d> robotPosesRejected) {
+    // Add pose to log
+    robotPoses.add(observation.pose());
+    if (shouldRejectObservation(observation)) {
+      robotPosesRejected.add(observation.pose());
+      // Skip if rejected
+      return;
+    } else {
+      robotPosesAccepted.add(observation.pose());
+    }
+    // Send vision observation
+    consumer.accept(
+        observation.pose().toPose2d(),
+        observation.timestamp(),
+        calculateStdDevs(observation, cameraIndex));
+  }
+
+  public void consumeYawObservation(double timestamp, Rotation2d yaw) {
+    headingBuffer.addSample(timestamp, yaw);
+  }
+
+  public boolean shouldRejectTagObservation(VisionIO.SingleTagObservation observation) {
+    return observation.cameraToTag().getTranslation().getNorm() > maxRangeTrig;
   }
 
   @FunctionalInterface

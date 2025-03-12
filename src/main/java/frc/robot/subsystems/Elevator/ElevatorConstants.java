@@ -13,9 +13,10 @@ import frc.robot.util.LoggedTunableMeasure;
 import java.util.function.Supplier;
 
 public class ElevatorConstants {
-  // TODO: Tune Gear Ratio
-  public static final double GEAR_RATIO = 64.286 / 6.81;
-  // Max planetary 5:1, 5:1, 54:42, 22 teeth chain pitch is 1/4 in
+  public static final double GEAR_RATIO =
+      6.1252998684746585; // Don't ask, it works, at least for 15:1 on max planetary
+
+  // Max planetary 5:1, 3:1, 54:42, 22 teeth chain pitch is 1/4 in
   // Overall: 32.143:1
   // 64.286:1
   // 5.5 in per rotation
@@ -27,7 +28,7 @@ public class ElevatorConstants {
     INTAKE(new LoggedTunableMeasure<>("Elevator/Intake", Meters.mutable(0.0))),
     L2(new LoggedTunableMeasure<>("Elevator/L2", Meters.mutable(0.28))),
     L3(new LoggedTunableMeasure<>("Elevator/L3", Meters.mutable(0.7))),
-    L4(new LoggedTunableMeasure<>("Elevator/L4", Meters.mutable(1.36)));
+    L4(new LoggedTunableMeasure<>("Elevator/L4", Meters.mutable(1.22)));
 
     public final Supplier<MutDistance> height;
 

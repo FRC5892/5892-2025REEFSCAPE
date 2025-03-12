@@ -76,6 +76,7 @@ public class Vision extends SubsystemBase {
     List<Pose3d> allRobotPoses = new LinkedList<>();
     List<Pose3d> allRobotPosesAccepted = new LinkedList<>();
     List<Pose3d> allRobotPosesRejected = new LinkedList<>();
+    List<Pose3d> allTrigRobotPoses = new LinkedList<>();
 
     // Loop over cameras
     for (int cameraIndex = 0; cameraIndex < io.length; cameraIndex++) {
@@ -99,6 +100,7 @@ public class Vision extends SubsystemBase {
         handlePoseObservation(
             observation, cameraIndex, robotPoses, robotPosesAccepted, robotPosesRejected);
       }
+      List<Pose3d> trigRobotPoses = new LinkedList<>();
       for (var observation : inputs[cameraIndex].singleTagObservations) {
         if (shouldRejectTagObservation(observation)) {
           continue;
@@ -110,7 +112,7 @@ public class Vision extends SubsystemBase {
         handlePoseObservation(
             opPoseObservation.get(),
             cameraIndex,
-            robotPoses,
+            trigRobotPoses,
             robotPosesAccepted,
             robotPosesRejected);
       }
@@ -128,10 +130,14 @@ public class Vision extends SubsystemBase {
       Logger.recordOutput(
           "Vision/Camera" + Integer.toString(cameraIndex) + "/RobotPosesRejected",
           robotPosesRejected.toArray(new Pose3d[robotPosesRejected.size()]));
+      Logger.recordOutput(
+          "Vision/Camera" + Integer.toString(cameraIndex) + "/TrigRobotPoses",
+          trigRobotPoses.toArray(new Pose3d[trigRobotPoses.size()]));
       allTagPoses.addAll(tagPoses);
       allRobotPoses.addAll(robotPoses);
       allRobotPosesAccepted.addAll(robotPosesAccepted);
       allRobotPosesRejected.addAll(robotPosesRejected);
+      allTrigRobotPoses.addAll(trigRobotPoses);
     }
 
     // Log summary data
@@ -145,6 +151,9 @@ public class Vision extends SubsystemBase {
     Logger.recordOutput(
         "Vision/Summary/RobotPosesRejected",
         allRobotPosesRejected.toArray(new Pose3d[allRobotPosesRejected.size()]));
+    Logger.recordOutput(
+        "Vision/Summary/TrigRobotPoses",
+        allTrigRobotPoses.toArray(new Pose3d[allTrigRobotPoses.size()]));
   }
 
   private Matrix<N3, N1> calculateStdDevs(VisionIO.PoseObservation observation, int cameraIndex) {

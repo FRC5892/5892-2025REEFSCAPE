@@ -84,11 +84,11 @@ public class Elevator extends SubsystemBase {
             .withSimConfig(
                 c ->
                     c.withCurrentLimits(
-                            new CurrentLimitsConfigs()
-                                .withStatorCurrentLimitEnable(false)
-                                .withSupplyCurrentLimitEnable(false))
-                        .withSlot0(
-                            new Slot0Configs().withKG(0.15).withKV(1.29).withKA(0.03).withKP(2.5)))
+                        new CurrentLimitsConfigs()
+                            .withStatorCurrentLimitEnable(false)
+                            .withSupplyCurrentLimitEnable(false))
+                                        .withSlot0(c.Slot0.withKG(0.15).withKV(1.29).withKA(0.03).withKP(2.5))
+                )
             .withMMPIDTuning(config, talon);
   }
 

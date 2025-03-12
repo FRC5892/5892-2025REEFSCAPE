@@ -261,7 +261,9 @@ public class Drive extends SubsystemBase {
       // Apply update
       Pose2d pose =
           poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
-      yawConsumer.accept(sampleTimestamps[i], pose.getRotation());
+      if (yawConsumer != null) {
+        yawConsumer.accept(sampleTimestamps[i], pose.getRotation());
+      }
     }
 
     // Update gyro alert

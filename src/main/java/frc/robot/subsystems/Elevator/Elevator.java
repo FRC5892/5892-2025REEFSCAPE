@@ -66,18 +66,18 @@ public class Elevator extends SubsystemBase {
         new TalonFXConfiguration()
             .withMotionMagic(
                 new MotionMagicConfigs()
-                    .withMotionMagicCruiseVelocity(20)
-                    .withMotionMagicAcceleration(100)
-                    .withMotionMagicJerk(100))
+                    .withMotionMagicCruiseVelocity(16)
+                    .withMotionMagicAcceleration(70)
+                    .withMotionMagicJerk(800))
             .withCurrentLimits(
-                new CurrentLimitsConfigs().withSupplyCurrentLimit(40).withStatorCurrentLimit(60))
+                new CurrentLimitsConfigs().withSupplyCurrentLimit(60).withStatorCurrentLimit(80))
             .withFeedback(
                 new FeedbackConfigs().withSensorToMechanismRatio(ElevatorConstants.GEAR_RATIO))
             .withMotorOutput(
                 new MotorOutputConfigs()
                     .withInverted(InvertedValue.Clockwise_Positive)
                     .withNeutralMode(NeutralModeValue.Brake))
-            .withSlot0(new Slot0Configs().withKG(0.26).withKV(1.15).withKP(0.7).withKA(0.001));
+            .withSlot0(new Slot0Configs().withKG(0.29).withKV(0.72).withKP(10).withKA(0.05));
     this.talon =
         talon
             .withConfig(config)

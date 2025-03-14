@@ -121,6 +121,58 @@ public class Drive extends SubsystemBase {
   @Getter @AutoLogOutput private int reefSector = -1;
   @Getter @AutoLogOutput private double distanceToReefM = -1;
 
+  private final double FRONT_TO_CENTER_METERS = 0.47;
+
+  private final LoggedTunableNumber startingDistance =
+      new LoggedTunableNumber("Drive/macroDistance", -1);
+  private Transform2d startingPointTransform =
+      new Transform2d(startingDistance.get(), 0.0, Rotation2d.fromDegrees(0.0));
+  private final LoggedTunableNumber maxLinearVelocity =
+      new LoggedTunableNumber("Drive/Align/MaxLinearVelocityMPS", 8.0);
+  private final LoggedTunableNumber maxLinearAccel =
+      new LoggedTunableNumber("Drive/Align/MaxLinearAccelMPSSq", 1.5);
+  private final LoggedTunableNumber maxAngularVelocity =
+      new LoggedTunableNumber("Drive/Align/MaxAngularVelocityRadPS", 8.0);
+  private final LoggedTunableNumber maxAngularAccel =
+      new LoggedTunableNumber("Drive/Align/MaxAngularAccelRadPSSq", 1.5);
+  private PathConstraints PATH_CONSTRAINTS =
+      new PathConstraints(
+          maxLinearVelocity.get(),
+          maxLinearAccel.get(),
+          maxAngularVelocity.get(),
+          maxAngularAccel.get());
+  private final LoggedTunableNumber alignLinearP =
+      new LoggedTunableNumber("Drive/Align/Linear/kP", 1.5);
+  private final LoggedTunableNumber alignLinearI =
+      new LoggedTunableNumber("Drive/Align/Linear/kI", 0.0);
+  private final LoggedTunableNumber alignLinearD =
+      new LoggedTunableNumber("Drive/Align/Linear/kD", 0.0);
+  private final LoggedTunableNumber alignAngularP =
+      new LoggedTunableNumber("Drive/Align/Angular/kP", 1.5);
+  private final LoggedTunableNumber alignAngularI =
+      new LoggedTunableNumber("Drive/Align/Angular/kI", 0.0);
+  private final LoggedTunableNumber alignAngularD =
+      new LoggedTunableNumber("Drive/Align/Angular/kD", 0.0);
+
+  private final ProfiledPIDController xController =
+      new ProfiledPIDController(
+          alignLinearP.get(),
+          alignLinearI.get(),
+          alignLinearD.get(),
+          new TrapezoidProfile.Constraints(maxLinearVelocity.get(), maxLinearAccel.get()));
+  private final ProfiledPIDController yController =
+      new ProfiledPIDController(
+          alignLinearP.get(),
+          alignLinearI.get(),
+          alignLinearD.get(),
+          new TrapezoidProfile.Constraints(maxLinearVelocity.get(), maxLinearAccel.get()));
+  private final ProfiledPIDController thetaController =
+      new ProfiledPIDController(
+          alignLinearP.get(),
+          alignLinearI.get(),
+          alignLinearD.get(),
+          new TrapezoidProfile.Constraints(maxAngularVelocity.get(), maxAngularAccel.get()));
+
   // End 5892
 
   public Drive(
@@ -178,6 +230,9 @@ public class Drive extends SubsystemBase {
             new SysIdRoutine.Mechanism(
                 (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
     // 5892
+    xController.disableContinuousInput();
+    yController.disableContinuousInput();
+    thetaController.disableContinuousInput();
     if (Constants.tuningMode) {
       if (Constants.currentMode == Mode.SIM) {
         driveKPTunableNumber = new LoggedTunableNumber("Drive kP", ModuleIOSim.DRIVE_KP);
@@ -492,58 +547,6 @@ public class Drive extends SubsystemBase {
     }
   }
 
-  private final double FRONT_TO_CENTER_METERS = 0.47;
-
-  private final LoggedTunableNumber startingDistance =
-      new LoggedTunableNumber("Drive/macroDistance", -1);
-  private Transform2d startingPointTransform =
-      new Transform2d(startingDistance.get(), 0.0, Rotation2d.fromDegrees(0.0));
-  private final LoggedTunableNumber maxLinearVelocity =
-      new LoggedTunableNumber("Drive/Align/MaxLinearVelocityMPS", 8.0);
-  private final LoggedTunableNumber maxLinearAccel =
-      new LoggedTunableNumber("Drive/Align/MaxLinearAccelMPSSq", 1.5);
-  private final LoggedTunableNumber maxAngularVelocity =
-      new LoggedTunableNumber("Drive/Align/MaxAngularVelocityRadPS", 8.0);
-  private final LoggedTunableNumber maxAngularAccel =
-      new LoggedTunableNumber("Drive/Align/MaxAngularAccelRadPSSq", 1.5);
-  private PathConstraints PATH_CONSTRAINTS =
-      new PathConstraints(
-          maxLinearVelocity.get(),
-          maxLinearAccel.get(),
-          maxAngularVelocity.get(),
-          maxAngularAccel.get());
-  private final LoggedTunableNumber alignLinearP =
-      new LoggedTunableNumber("Drive/Align/Linear/kP", 1.5);
-  private final LoggedTunableNumber alignLinearI =
-      new LoggedTunableNumber("Drive/Align/Linear/kI", 0.0);
-  private final LoggedTunableNumber alignLinearD =
-      new LoggedTunableNumber("Drive/Align/Linear/kD", 0.0);
-  private final LoggedTunableNumber alignAngularP =
-      new LoggedTunableNumber("Drive/Align/Angular/kP", 1.5);
-  private final LoggedTunableNumber alignAngularI =
-      new LoggedTunableNumber("Drive/Align/Angular/kI", 0.0);
-  private final LoggedTunableNumber alignAngularD =
-      new LoggedTunableNumber("Drive/Align/Angular/kD", 0.0);
-
-  private final ProfiledPIDController xController =
-      new ProfiledPIDController(
-          alignLinearP.get(),
-          alignLinearI.get(),
-          alignLinearD.get(),
-          new TrapezoidProfile.Constraints(maxLinearVelocity.get(), maxLinearAccel.get()));
-  private final ProfiledPIDController yController =
-      new ProfiledPIDController(
-          alignLinearP.get(),
-          alignLinearI.get(),
-          alignLinearD.get(),
-          new TrapezoidProfile.Constraints(maxLinearVelocity.get(), maxLinearAccel.get()));
-  private final ProfiledPIDController thetaController =
-      new ProfiledPIDController(
-          alignLinearP.get(),
-          alignLinearI.get(),
-          alignLinearD.get(),
-          new TrapezoidProfile.Constraints(maxAngularVelocity.get(), maxAngularAccel.get()));
-
   public Command driveToReefCommand(ReefBranch branch) {
     return defer(
         () -> {
@@ -588,10 +591,12 @@ public class Drive extends SubsystemBase {
         },
         () -> {
           runVelocity(
-              new ChassisSpeeds(
-                  xController.calculate(getPose().getX()),
-                  yController.calculate(getPose().getY()),
-                  thetaController.calculate(getPose().getRotation().getRadians())));
+              ChassisSpeeds.fromFieldRelativeSpeeds(
+                  new ChassisSpeeds(
+                      xController.calculate(getPose().getX()),
+                      yController.calculate(getPose().getY()),
+                      thetaController.calculate(getPose().getRotation().getRadians())),
+                  getRotation()));
         });
   }
 

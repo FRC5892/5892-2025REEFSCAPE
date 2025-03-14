@@ -28,6 +28,7 @@ import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -37,11 +38,13 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
@@ -287,6 +290,43 @@ public class Drive extends SubsystemBase {
     Logger.recordOutput(
         "Drive/ReefSectorSide",
         AllianceFlipUtil.apply(FieldConstants.Reef.centerFaces[reefSector - 1]));
+    LoggedTunableNumber.ifChanged(
+        this,
+        (c) -> PATH_CONSTRAINTS = new PathConstraints(c[0], c[1], c[2], c[3]),
+        maxLinearVelocity,
+        maxLinearAccel,
+        maxAngularVelocity,
+        maxAngularAccel);
+    LoggedTunableNumber.ifChanged(
+        this,
+        (d) -> {
+          startingPointTransform = new Transform2d(d[0], 0.0, Rotation2d.fromDegrees(0));
+        },
+        startingDistance);
+    LoggedTunableNumber.ifChanged(
+        this,
+        (d) -> {
+          xController.setPID(d[0], d[1], d[2]);
+          xController.setConstraints(new TrapezoidProfile.Constraints(d[3], d[4]));
+          yController.setPID(d[0], d[1], d[2]);
+          yController.setConstraints(new TrapezoidProfile.Constraints(d[3], d[4]));
+        },
+        alignLinearP,
+        alignLinearI,
+        alignLinearD,
+        maxLinearVelocity,
+        maxLinearAccel);
+    LoggedTunableNumber.ifChanged(
+        this,
+        (d) -> {
+          thetaController.setPID(d[0], d[1], d[2]);
+          thetaController.setConstraints(new TrapezoidProfile.Constraints(d[3], d[4]));
+        },
+        alignAngularP,
+        alignAngularI,
+        alignAngularD,
+        maxAngularVelocity,
+        maxAngularAccel);
 
     // End 5892
   }
@@ -459,19 +499,50 @@ public class Drive extends SubsystemBase {
   private Transform2d startingPointTransform =
       new Transform2d(startingDistance.get(), 0.0, Rotation2d.fromDegrees(0.0));
   private final LoggedTunableNumber maxLinearVelocity =
-      new LoggedTunableNumber("Drive/MaxLinearVelocityMPS", 8.0);
+      new LoggedTunableNumber("Drive/Align/MaxLinearVelocityMPS", 8.0);
   private final LoggedTunableNumber maxLinearAccel =
-      new LoggedTunableNumber("Drive/MaxLinearAccelMPSSq", 1.5);
+      new LoggedTunableNumber("Drive/Align/MaxLinearAccelMPSSq", 1.5);
   private final LoggedTunableNumber maxAngularVelocity =
-      new LoggedTunableNumber("Drive/MaxAngularVelocityRadPS", 8.0);
+      new LoggedTunableNumber("Drive/Align/MaxAngularVelocityRadPS", 8.0);
   private final LoggedTunableNumber maxAngularAccel =
-      new LoggedTunableNumber("Drive/MaxAngularAccelRadPSSq", 1.5);
+      new LoggedTunableNumber("Drive/Align/MaxAngularAccelRadPSSq", 1.5);
   private PathConstraints PATH_CONSTRAINTS =
       new PathConstraints(
           maxLinearVelocity.get(),
           maxLinearAccel.get(),
           maxAngularVelocity.get(),
           maxAngularAccel.get());
+  private final LoggedTunableNumber alignLinearP =
+      new LoggedTunableNumber("Drive/Align/Linear/kP", 1.5);
+  private final LoggedTunableNumber alignLinearI =
+      new LoggedTunableNumber("Drive/Align/Linear/kI", 0.0);
+  private final LoggedTunableNumber alignLinearD =
+      new LoggedTunableNumber("Drive/Align/Linear/kD", 0.0);
+  private final LoggedTunableNumber alignAngularP =
+      new LoggedTunableNumber("Drive/Align/Angular/kP", 1.5);
+  private final LoggedTunableNumber alignAngularI =
+      new LoggedTunableNumber("Drive/Align/Angular/kI", 0.0);
+  private final LoggedTunableNumber alignAngularD =
+      new LoggedTunableNumber("Drive/Align/Angular/kD", 0.0);
+
+  private final ProfiledPIDController xController =
+      new ProfiledPIDController(
+          alignLinearP.get(),
+          alignLinearI.get(),
+          alignLinearD.get(),
+          new TrapezoidProfile.Constraints(maxLinearVelocity.get(), maxLinearAccel.get()));
+  private final ProfiledPIDController yController =
+      new ProfiledPIDController(
+          alignLinearP.get(),
+          alignLinearI.get(),
+          alignLinearD.get(),
+          new TrapezoidProfile.Constraints(maxLinearVelocity.get(), maxLinearAccel.get()));
+  private final ProfiledPIDController thetaController =
+      new ProfiledPIDController(
+          alignLinearP.get(),
+          alignLinearI.get(),
+          alignLinearD.get(),
+          new TrapezoidProfile.Constraints(maxAngularVelocity.get(), maxAngularAccel.get()));
 
   public Command driveToReefCommand(ReefBranch branch) {
     return defer(
@@ -485,19 +556,6 @@ public class Drive extends SubsystemBase {
                           : FieldConstants.Reef.centerToBranchAdjustY,
                       Rotation2d.k180deg));
           Logger.recordOutput("Drive/ReefTarget", AllianceFlipUtil.apply(target));
-          LoggedTunableNumber.ifChanged(
-              this,
-              (c) -> PATH_CONSTRAINTS = new PathConstraints(c[0], c[1], c[2], c[3]),
-              maxLinearVelocity,
-              maxLinearAccel,
-              maxAngularVelocity,
-              maxAngularAccel);
-          LoggedTunableNumber.ifChanged(
-              this,
-              (d) -> {
-                startingPointTransform = new Transform2d(d[0], 0.0, Rotation2d.fromDegrees(0));
-              },
-              startingDistance);
           Pose2d start = target.transformBy(startingPointTransform);
           List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(start, target);
 
@@ -505,6 +563,35 @@ public class Drive extends SubsystemBase {
               new PathPlannerPath(
                   waypoints, PATH_CONSTRAINTS, null, new GoalEndState(0, target.getRotation()));
           return AutoBuilder.pathfindThenFollowPath(path, PATH_CONSTRAINTS);
+        });
+  }
+
+  public Command alignToReefCommand(ReefBranch branch) {
+    return Commands.startRun(
+        () -> {
+          Pose2d target =
+              FieldConstants.Reef.centerFaces[reefSector - 1].transformBy(
+                  new Transform2d(
+                      FRONT_TO_CENTER_METERS,
+                      branch == ReefBranch.LEFT
+                          ? -FieldConstants.Reef.centerToBranchAdjustY
+                          : FieldConstants.Reef.centerToBranchAdjustY,
+                      Rotation2d.k180deg));
+          target = AllianceFlipUtil.apply(target);
+          Logger.recordOutput("Drive/ReefTarget", target);
+          xController.reset(getPose().getX());
+          yController.reset(getPose().getY());
+          thetaController.reset(getPose().getRotation().getRadians());
+          xController.setGoal(target.getX());
+          yController.setGoal(target.getY());
+          thetaController.setGoal(target.getRotation().getRadians());
+        },
+        () -> {
+          runVelocity(
+              new ChassisSpeeds(
+                  xController.calculate(getPose().getX()),
+                  yController.calculate(getPose().getY()),
+                  thetaController.calculate(getPose().getRotation().getRadians())));
         });
   }
 

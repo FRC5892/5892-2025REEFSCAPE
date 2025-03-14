@@ -101,7 +101,6 @@ public class VisionIOPhotonVision implements VisionIO {
     for (int i = 0; i < singleTagObservations.size(); i++) {
       inputs.singleTagObservations[i] = singleTagObservations.get(i);
     }
-    inputs.singleTagObservations = new SingleTagObservation[0];
 
     // Save tag IDs to inputs objects
     inputs.tagIds = new int[tagIds.size()];

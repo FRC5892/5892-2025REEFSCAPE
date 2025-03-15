@@ -105,7 +105,12 @@ public class Vision extends SubsystemBase {
         if (shouldRejectTagObservation(observation)) {
           continue;
         }
-        var opPoseObservation = pnpDistanceTrigSolveStrategy(observation, robotToCamera0);
+        var opPoseObservation =
+            pnpDistanceTrigSolveStrategy(
+                observation,
+                cameraIndex == 0
+                    ? robotToCamera0
+                    : cameraIndex == 1 ? robotToCamera1 : robotToCamera2);
         if (opPoseObservation.isEmpty()) {
           continue;
         }

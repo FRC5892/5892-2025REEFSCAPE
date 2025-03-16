@@ -41,16 +41,22 @@ public class CoralEndEffector extends SubsystemBase {
 
   public Command runIntake() {
     return runEnd(
-        () -> talon.setControl(dutyCycleOut.withOutput(intakeDutyCycle.get())), // Start the motor
-        () -> talon.setControl(brake) // Stop the motor
+        this::startIntake, // Start the motor
+        this::stop // Stop the motor
         );
   }
 
   public Command runOuttake() {
     return runEnd(
         () -> talon.setControl(dutyCycleOut.withOutput(outtakeDutyCycle.get())), // Start the motor
-        () -> talon.setControl(brake) // Stop the motor
+        this::stop // Stop the motor
         );
+  }
+  public void startIntake() {
+    talon.setControl(dutyCycleOut.withOutput(intakeDutyCycle.get()));
+  }
+  public void stop() {
+    talon.setControl(brake);
   }
 
   public Trigger beamBreakTrigger() {

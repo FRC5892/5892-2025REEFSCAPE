@@ -137,10 +137,6 @@ public class Autos {
     }
   }
 
-  // public static Command elevatorExtendAuto(Elevator elevatorSub) {
-  //   return elevatorSub.goToPosition(ElevatorPosition.L4);
-  // }
-
   public static Command centerRightPreload(
       Elevator elevatorSubsystem, CoralEndEffector coralSubsystem, Drive drive) {
     try {

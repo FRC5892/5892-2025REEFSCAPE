@@ -38,7 +38,7 @@ public class Climb extends SubsystemBase {
         new TalonFXConfiguration()
             .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake))
             .withCurrentLimits(
-                new CurrentLimitsConfigs().withStatorCurrentLimit(40).withSupplyCurrentLimit(40));
+                new CurrentLimitsConfigs().withStatorCurrentLimit(150).withSupplyCurrentLimit(60));
     this.talon =
         talon
             .withConfig(config)

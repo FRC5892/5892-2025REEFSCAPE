@@ -17,14 +17,28 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.wpilibj.Filesystem;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Path;
 
 public class VisionConstants {
   // AprilTag layout
-  public static AprilTagFieldLayout aprilTagLayout =
-      AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeAndyMark);
+  public static final AprilTagFieldLayout aprilTagLayout;
+
+  static {
+    try {
+      aprilTagLayout =
+          new AprilTagFieldLayout(
+              Path.of(
+                  Filesystem.getDeployDirectory().getAbsolutePath(),
+                  "2025-reefscape-andymark.json"));
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
 
   // Camera names, must match names configured on coprocessor
   public static String camera0Name = "leftFront";

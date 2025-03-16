@@ -132,7 +132,9 @@ public class RobotContainer {
                 new VisionIOPhotonVision(
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0),
                 new VisionIOPhotonVision(
-                    VisionConstants.camera1Name, VisionConstants.robotToCamera1));
+                    VisionConstants.camera1Name, VisionConstants.robotToCamera1),
+                new VisionIOPhotonVision(
+                    VisionConstants.camera2Name, VisionConstants.robotToCamera2));
         elevator = new Elevator(new PhoenixTalonFX(20, defaultCanBus, "elevator"));
         coralEndEffector =
             new CoralEndEffector(
@@ -173,7 +175,9 @@ public class RobotContainer {
                 new VisionIOPhotonVisionSim(
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
                 new VisionIOPhotonVisionSim(
-                    VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose));
+                    VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose),
+                new VisionIOPhotonVisionSim(
+                    VisionConstants.camera2Name, VisionConstants.robotToCamera2, drive::getPose));
         elevator = new Elevator(new ElevatorSimulation(20, defaultCanBus, "elevator"));
         coralEndEffector =
             new CoralEndEffector(
@@ -201,7 +205,12 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {});
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIO() {},
+                new VisionIO() {},
+                new VisionIO() {});
         elevator = new Elevator(new NoOppTalonFX("elevator", 0));
         coralEndEffector =
             new CoralEndEffector(
@@ -234,7 +243,7 @@ public class RobotContainer {
     // Set up auto routines
     autoChooser =
         new LoggedDashboardChooser<>(
-            "Auto Choices", Autos.buildAutoChooser(elevator, coralEndEffector, drive));
+            "Auto Choices", Autos.buildAutoChooser(elevator, coralEndEffector, drive, vision));
 
     // Set up SysId routines
     autoChooser.addOption(

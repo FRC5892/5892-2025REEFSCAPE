@@ -23,11 +23,13 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import lombok.Setter;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -40,6 +42,8 @@ public class Vision extends SubsystemBase {
   private final TimeInterpolatableBuffer<Rotation2d> headingBuffer =
       TimeInterpolatableBuffer.createBuffer(1.0);
   @AutoLogOutput private int trigSolverOdometryMissingCount = 0;
+
+  @Setter private boolean useSingleTag = true;
 
   public Vision(VisionConsumer consumer, VisionIO... io) {
     Logger.recordOutput("Vision/camera0Offset", VisionConstants.robotToCamera0);
@@ -101,25 +105,28 @@ public class Vision extends SubsystemBase {
             observation, cameraIndex, robotPoses, robotPosesAccepted, robotPosesRejected);
       }
       List<Pose3d> trigRobotPoses = new LinkedList<>();
-      for (var observation : inputs[cameraIndex].singleTagObservations) {
-        if (shouldRejectTagObservation(observation)) {
-          continue;
+      if (useSingleTag || true) {
+
+        for (var observation : inputs[cameraIndex].singleTagObservations) {
+          if (shouldRejectTagObservation(observation)) {
+            continue;
+          }
+          var opPoseObservation =
+              pnpDistanceTrigSolveStrategy(
+                  observation,
+                  cameraIndex == 0
+                      ? robotToCamera0
+                      : cameraIndex == 1 ? robotToCamera1 : robotToCamera2);
+          if (opPoseObservation.isEmpty()) {
+            continue;
+          }
+          handlePoseObservation(
+              opPoseObservation.get(),
+              cameraIndex,
+              trigRobotPoses,
+              robotPosesAccepted,
+              robotPosesRejected);
         }
-        var opPoseObservation =
-            pnpDistanceTrigSolveStrategy(
-                observation,
-                cameraIndex == 0
-                    ? robotToCamera0
-                    : cameraIndex == 1 ? robotToCamera1 : robotToCamera2);
-        if (opPoseObservation.isEmpty()) {
-          continue;
-        }
-        handlePoseObservation(
-            opPoseObservation.get(),
-            cameraIndex,
-            trigRobotPoses,
-            robotPosesAccepted,
-            robotPosesRejected);
       }
 
       // Log camera datadata
@@ -263,6 +270,10 @@ public class Vision extends SubsystemBase {
 
   public boolean shouldRejectTagObservation(VisionIO.SingleTagObservation observation) {
     return observation.cameraToTag().getTranslation().getNorm() > maxRangeTrig;
+  }
+
+  public Command setSingleTag(boolean shouldDoSingleTag) {
+    return runOnce(() -> this.setSingleTag(shouldDoSingleTag));
   }
 
   @FunctionalInterface

@@ -122,10 +122,7 @@ public class Drive extends SubsystemBase {
   @Getter @AutoLogOutput private int reefSector = -1;
   @Getter @AutoLogOutput private double distanceToReefM = -1;
 
-
   private BiConsumer<Double, Rotation2d> yawConsumer = null;
-
-  private final double FRONT_TO_CENTER_METERS = 0.47;
 
   private final LoggedTunableNumber startingDistance =
       new LoggedTunableNumber("Drive/macroDistance", -1);
@@ -176,6 +173,9 @@ public class Drive extends SubsystemBase {
           alignLinearI.get(),
           alignLinearD.get(),
           new TrapezoidProfile.Constraints(maxAngularVelocity.get(), maxAngularAccel.get()));
+
+  private final LoggedTunableNumber alignDistance =
+      new LoggedTunableNumber("Drive/Align/DistanceToPost", 0.5);
 
   // End 5892
 
@@ -236,7 +236,7 @@ public class Drive extends SubsystemBase {
     // 5892
     xController.disableContinuousInput();
     yController.disableContinuousInput();
-    thetaController.disableContinuousInput();
+    thetaController.enableContinuousInput(-Math.PI, Math.PI);
     if (Constants.tuningMode) {
       if (Constants.currentMode == Mode.SIM) {
         driveKPTunableNumber = new LoggedTunableNumber("Drive kP", ModuleIOSim.DRIVE_KP);
@@ -561,7 +561,7 @@ public class Drive extends SubsystemBase {
           Pose2d target =
               FieldConstants.Reef.centerFaces[reefSector - 1].transformBy(
                   new Transform2d(
-                      FRONT_TO_CENTER_METERS,
+                      alignDistance.get(),
                       branch == ReefBranch.LEFT
                           ? -FieldConstants.Reef.centerToBranchAdjustY
                           : FieldConstants.Reef.centerToBranchAdjustY,
@@ -583,7 +583,7 @@ public class Drive extends SubsystemBase {
           Pose2d target =
               FieldConstants.Reef.centerFaces[reefSector - 1].transformBy(
                   new Transform2d(
-                      FRONT_TO_CENTER_METERS,
+                      alignDistance.get(),
                       branch == ReefBranch.LEFT
                           ? -FieldConstants.Reef.centerToBranchAdjustY
                           : FieldConstants.Reef.centerToBranchAdjustY,

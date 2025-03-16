@@ -298,8 +298,20 @@ public class RobotContainer {
                                 AllianceFlipUtil.apply(new Rotation2d()))),
                     drive)
                 .ignoringDisable(true));
-    driverController.leftBumper().whileTrue(drive.driveToReefCommand(Drive.ReefBranch.LEFT));
-    driverController.rightBumper().whileTrue(drive.driveToReefCommand(Drive.ReefBranch.RIGHT));
+    driverController
+        .leftBumper()
+        .whileTrue(
+            //            drive
+            //                .driveToReefCommand(Drive.ReefBranch.LEFT)
+            //                .andThen(drive.alignToReefCommand(Drive.ReefBranch.LEFT)));
+            drive.alignToReefCommand(Drive.ReefBranch.LEFT));
+    driverController
+        .rightBumper()
+        .whileTrue(
+            //            drive
+            //                .driveToReefCommand(Drive.ReefBranch.RIGHT)
+            //                .andThen(drive.alignToReefCommand(Drive.ReefBranch.RIGHT)));
+            drive.alignToReefCommand(Drive.ReefBranch.RIGHT));
     /* Codriver Controls */
     //    driverController.a().onTrue(elevator.goToPosition(ElevatorPosition.L1));
     codriverController.b().onTrue(elevator.goToPosition(ElevatorPosition.L2));

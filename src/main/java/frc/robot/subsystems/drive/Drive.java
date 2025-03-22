@@ -571,8 +571,4 @@ public class Drive extends SubsystemBase {
           runVelocity(holonomicController.calculateFieldRelative(getPose()));
         });
   }
-
-  public void registerYawConsumer(BiConsumer<Double, Rotation2d> consumer) {
-    yawConsumer = consumer;
-  }
 }

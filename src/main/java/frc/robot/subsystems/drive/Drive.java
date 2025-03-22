@@ -28,7 +28,6 @@ import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -38,7 +37,6 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -54,10 +52,12 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.LocalADStarAK;
 import frc.robot.util.LoggedTunableNumber;
+import frc.robot.util.TunableHolonomicController;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -141,39 +141,16 @@ public class Drive extends SubsystemBase {
           maxLinearAccel.get(),
           maxAngularVelocity.get(),
           maxAngularAccel.get());
-  private final LoggedTunableNumber alignLinearP =
-      new LoggedTunableNumber("Drive/Align/Linear/kP", 1.5);
-  private final LoggedTunableNumber alignLinearI =
-      new LoggedTunableNumber("Drive/Align/Linear/kI", 0.0);
-  private final LoggedTunableNumber alignLinearD =
-      new LoggedTunableNumber("Drive/Align/Linear/kD", 0.0);
-  private final LoggedTunableNumber alignAngularP =
-      new LoggedTunableNumber("Drive/Align/Angular/kP", 1.5);
-  private final LoggedTunableNumber alignAngularI =
-      new LoggedTunableNumber("Drive/Align/Angular/kI", 0.0);
-  private final LoggedTunableNumber alignAngularD =
-      new LoggedTunableNumber("Drive/Align/Angular/kD", 0.0);
 
-  private final ProfiledPIDController xController =
-      new ProfiledPIDController(
-          alignLinearP.get(),
-          alignLinearI.get(),
-          alignLinearD.get(),
-          new TrapezoidProfile.Constraints(maxLinearVelocity.get(), maxLinearAccel.get()));
-  private final ProfiledPIDController yController =
-      new ProfiledPIDController(
-          alignLinearP.get(),
-          alignLinearI.get(),
-          alignLinearD.get(),
-          new TrapezoidProfile.Constraints(maxLinearVelocity.get(), maxLinearAccel.get()));
-  private final ProfiledPIDController thetaController =
-      new ProfiledPIDController(
-          alignLinearP.get(),
-          alignLinearI.get(),
-          alignLinearD.get(),
-          new TrapezoidProfile.Constraints(maxAngularVelocity.get(), maxAngularAccel.get()));
+  private final LoggedTunableNumber alignDistance =
+      new LoggedTunableNumber("Drive/Align/DistanceToPost", 0.5);
 
-  // End 5892
+  private final TunableHolonomicController holonomicController =
+      new TunableHolonomicController(
+          "Drive/Align",
+          new PIDConstants(5, 0.0, 0.0),
+          new PIDConstants(5, 0.0, 0.0),
+          new PIDConstants(5, 0.0, 0.0));
 
   public Drive(
       GyroIO gyroIO,
@@ -229,10 +206,7 @@ public class Drive extends SubsystemBase {
                 (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
             new SysIdRoutine.Mechanism(
                 (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
-    // 5892
-    xController.disableContinuousInput();
-    yController.disableContinuousInput();
-    thetaController.disableContinuousInput();
+
     if (Constants.tuningMode) {
       if (Constants.currentMode == Mode.SIM) {
         driveKPTunableNumber = new LoggedTunableNumber("Drive kP", ModuleIOSim.DRIVE_KP);
@@ -358,30 +332,7 @@ public class Drive extends SubsystemBase {
           startingPointTransform = new Transform2d(d[0], 0.0, Rotation2d.fromDegrees(0));
         },
         startingDistance);
-    LoggedTunableNumber.ifChanged(
-        this,
-        (d) -> {
-          xController.setPID(d[0], d[1], d[2]);
-          xController.setConstraints(new TrapezoidProfile.Constraints(d[3], d[4]));
-          yController.setPID(d[0], d[1], d[2]);
-          yController.setConstraints(new TrapezoidProfile.Constraints(d[3], d[4]));
-        },
-        alignLinearP,
-        alignLinearI,
-        alignLinearD,
-        maxLinearVelocity,
-        maxLinearAccel);
-    LoggedTunableNumber.ifChanged(
-        this,
-        (d) -> {
-          thetaController.setPID(d[0], d[1], d[2]);
-          thetaController.setConstraints(new TrapezoidProfile.Constraints(d[3], d[4]));
-        },
-        alignAngularP,
-        alignAngularI,
-        alignAngularD,
-        maxAngularVelocity,
-        maxAngularAccel);
+    holonomicController.updateConstants(this);
 
     // End 5892
   }
@@ -511,8 +462,8 @@ public class Drive extends SubsystemBase {
       Pose2d visionRobotPoseMeters,
       double timestampSeconds,
       Matrix<N3, N1> visionMeasurementStdDevs) {
-    poseEstimator.addVisionMeasurement(
-        visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
+    //    poseEstimator.addVisionMeasurement(
+    //        visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
   }
 
   /** Returns the maximum linear speed in meters per sec. */
@@ -582,21 +533,11 @@ public class Drive extends SubsystemBase {
                       Rotation2d.k180deg));
           target = AllianceFlipUtil.apply(target);
           Logger.recordOutput("Drive/ReefTarget", target);
-          xController.reset(getPose().getX());
-          yController.reset(getPose().getY());
-          thetaController.reset(getPose().getRotation().getRadians());
-          xController.setGoal(target.getX());
-          yController.setGoal(target.getY());
-          thetaController.setGoal(target.getRotation().getRadians());
+          holonomicController.reset();
+          holonomicController.setFieldRelativeSetpoint(target);
         },
         () -> {
-          runVelocity(
-              ChassisSpeeds.fromFieldRelativeSpeeds(
-                  new ChassisSpeeds(
-                      xController.calculate(getPose().getX()),
-                      yController.calculate(getPose().getY()),
-                      thetaController.calculate(getPose().getRotation().getRadians())),
-                  getRotation()));
+          runVelocity(holonomicController.calculateFieldRelative(getPose()));
         });
   }
 
@@ -604,5 +545,34 @@ public class Drive extends SubsystemBase {
     LEFT,
     RIGHT,
   }
-  // end 5892
+
+  private static final double NUDGE_DISTANCE_M = edu.wpi.first.math.util.Units.inchesToMeters(1.0);
+
+  @RequiredArgsConstructor
+  public enum NudgeDirection {
+    LEFT(new Translation2d(-NUDGE_DISTANCE_M, 0.0)),
+    RIGHT(new Translation2d(NUDGE_DISTANCE_M, 0.0)),
+    FORWARD(new Translation2d(0.0, NUDGE_DISTANCE_M)),
+    BACKWARD(new Translation2d(0.0, -NUDGE_DISTANCE_M));
+    public final Translation2d transform;
+  }
+
+  public Command nudgeCommand(NudgeDirection direction) {
+    return Commands.startRun(
+        () -> {
+          Pose2d target =
+              new Pose2d(
+                  getPose().getTranslation().plus(direction.transform), getPose().getRotation());
+          Logger.recordOutput("Drive/NudgeTarget", target);
+          holonomicController.reset();
+          holonomicController.setFieldRelativeSetpoint(target);
+        },
+        () -> {
+          runVelocity(holonomicController.calculateFieldRelative(getPose()));
+        });
+  }
+
+  public void registerYawConsumer(BiConsumer<Double, Rotation2d> consumer) {
+    yawConsumer = consumer;
+  }
 }

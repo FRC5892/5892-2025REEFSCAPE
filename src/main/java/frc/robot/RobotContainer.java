@@ -314,6 +314,11 @@ public class RobotContainer {
             //                .driveToReefCommand(Drive.ReefBranch.RIGHT)
             //                .andThen(drive.alignToReefCommand(Drive.ReefBranch.RIGHT)));
             drive.alignToReefCommand(Drive.ReefBranch.RIGHT));
+    driverController.povUp().whileTrue(drive.nudgeCommand(Drive.NudgeDirection.FORWARD));
+    driverController.povDown().whileTrue(drive.nudgeCommand(Drive.NudgeDirection.BACKWARD));
+    driverController.povLeft().whileTrue(drive.nudgeCommand(Drive.NudgeDirection.LEFT));
+    driverController.povRight().whileTrue(drive.nudgeCommand(Drive.NudgeDirection.RIGHT));
+
     /* Codriver Controls */
     //    driverController.a().onTrue(elevator.goToPosition(ElevatorPosition.L1));
     codriverController.b().onTrue(elevator.goToPosition(ElevatorPosition.L2));

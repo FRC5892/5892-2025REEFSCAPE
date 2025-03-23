@@ -53,13 +53,13 @@ public class VisionConstants {
           Inches.of(12.625),
           Inches.of(9.75),
           Inches.of(12.5),
-          new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(-50)));
+          new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(-55)));
   public static Transform3d robotToCamera1 = // 10 7/8 12.5
       new Transform3d(
           Inches.of(12.625),
           Inches.of(-9.75),
           Inches.of(12.5),
-          new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(50)));
+          new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(54.5)));
   public static Transform3d robotToCamera2 =
       new Transform3d(
           Inches.of(15),

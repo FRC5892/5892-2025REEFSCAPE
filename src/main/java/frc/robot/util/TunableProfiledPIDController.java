@@ -7,21 +7,26 @@ package frc.robot.util;
 import com.pathplanner.lib.config.PIDConstants;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import org.littletonrobotics.junction.Logger;
 
 /** Add your docs here. */
 public class TunableProfiledPIDController extends ProfiledPIDController
-    implements Tunable<ProfiledPIDController> {
+/*implements Tunable<ProfiledPIDController>*/ {
   private final LoggedTunableNumber[] tunableNumbers;
+  private final String key;
 
   public TunableProfiledPIDController(
       String key, PIDConstants constants, TrapezoidProfile.Constraints constraints, double period) {
     super(constants.kP, constants.kI, constants.kD, constraints, period);
+    this.key = key;
     super.setIntegratorRange(-constants.iZone, constants.iZone);
     tunableNumbers =
         new LoggedTunableNumber[] {
           new LoggedTunableNumber(key + "/kP", constants.kP),
           new LoggedTunableNumber(key + "/kI", constants.kI),
           new LoggedTunableNumber(key + "/kD", constants.kD),
+          new LoggedTunableNumber(key + "/maxVelocity", constraints.maxVelocity),
+          new LoggedTunableNumber(key + "/maxAccel", constraints.maxAcceleration),
         };
   }
 
@@ -30,8 +35,13 @@ public class TunableProfiledPIDController extends ProfiledPIDController
     this(key, constants, constraints, 0.02);
   }
 
-  @Override
-  public void updateTuning(int id, ProfiledPIDController... followers) {
+  public double calculate(double measurement) {
+    double result = super.calculate(measurement);
+    Logger.recordOutput(key + "/result", result);
+    return result;
+  }
+
+  public void updateTuning(Object id, ProfiledPIDController... followers) {
     LoggedTunableNumber.ifChanged(
         id,
         constants -> {

@@ -46,8 +46,11 @@ public class TunableProfiledPIDController extends ProfiledPIDController
         id,
         constants -> {
           super.setPID(constants[0], constants[1], constants[2]);
+          super.setConstraints(new TrapezoidProfile.Constraints(constants[3],constants[4]));
+          
           for (ProfiledPIDController follower : followers) {
             follower.setPID(constants[0], constants[1], constants[2]);
+            follower.setConstraints(new TrapezoidProfile.Constraints(constants[3],constants[4]));
           }
         },
         tunableNumbers);

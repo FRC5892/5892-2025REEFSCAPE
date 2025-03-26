@@ -19,31 +19,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Right Far Station - E"
+            "pathName": "Right Far Station - C"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "E - Right Far Station"
+            "pathName": "C - Right Far Station"
           }
         },
         {
           "type": "path",
           "data": {
             "pathName": "Right Far Station - D"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": null
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Right Far Station - C"
           }
         }
       ]

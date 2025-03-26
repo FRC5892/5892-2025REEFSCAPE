@@ -35,17 +35,15 @@ public class Autos {
   public static SendableChooser<Command> buildAutoChooser(
       Elevator elevatorSubsystem, CoralEndEffector coralSubsystem, Drive drive, Vision vision) {
     SendableChooser<Command> chooser = new SendableChooser<>();
-    chooser.setDefaultOption(
-        "Left Auto", leftCoralAuto(elevatorSubsystem, coralSubsystem, drive, vision));
-    chooser.addOption(
-        "Right Auto", rightCoralAuto(elevatorSubsystem, coralSubsystem, drive, vision));
+    chooser.setDefaultOption("Left Auto", leftCoralAuto(elevatorSubsystem, coralSubsystem, drive));
+    chooser.addOption("Right Auto", rightCoralAuto(elevatorSubsystem, coralSubsystem, drive));
     chooser.addOption(
         "Center Right Auto", centerRightPreload(elevatorSubsystem, coralSubsystem, drive));
     return chooser;
   }
 
   public static Command leftCoralAuto(
-      Elevator elevatorSubsystem, CoralEndEffector coralSubsystem, Drive drive, Vision vision) {
+      Elevator elevatorSubsystem, CoralEndEffector coralSubsystem, Drive drive) {
     try {
       final ArrayList<PathPoint> points;
       if (Constants.currentMode == Constants.Mode.SIM) {
@@ -54,38 +52,29 @@ public class Autos {
         points = null;
       }
       final Command auto =
-          vision
-              .setSingleTag(false)
+          AutoBuilder.followPath(loadPath("Left Preload - I", points))
+              .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.L4))
               .andThen(
-                  AutoBuilder.followPath(loadPath("Left Preload - I", points))
-                      .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.L4)),
-                  outtakeCoral(coralSubsystem) /*.alongWith(vision.setSingleTag(true))*/,
+                  outtakeCoral(coralSubsystem),
                   loadLogFollow("I - Left Far Station", points)
                       .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
                   intake(coralSubsystem),
-                  loadLogFollow("Left Far Station - K", points)
-                      .alongWith(
-                          /*vision.setSingleTag(false),*/
-                          extendAtPosition(elevatorSubsystem, drive, ElevatorPosition.L4)),
-                  outtakeCoral(coralSubsystem) /*.alongWith(vision.setSingleTag(true))*/,
-                  loadLogFollow("K - Left Far Station", points)
-                      .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
-                  intake(coralSubsystem),
                   loadLogFollow("Left Far Station - L", points)
-                      .alongWith(
-                          /*vision.setSingleTag(false),*/
-                          extendAtPosition(elevatorSubsystem, drive, ElevatorPosition.L4)),
-                  outtakeCoral(coralSubsystem) /*.alongWith(vision.setSingleTag(true))*/,
+                      .alongWith(extendAtPosition(elevatorSubsystem, drive, ElevatorPosition.L4)),
+                  outtakeCoral(coralSubsystem),
                   loadLogFollow("L - Left Far Station", points)
                       .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
                   intake(coralSubsystem),
+                  loadLogFollow("Left Far Station - A", points)
+                      .alongWith(extendAtPosition(elevatorSubsystem, drive, ElevatorPosition.L4)),
+                  outtakeCoral(coralSubsystem),
+                  loadLogFollow("A - Left Far Station", points)
+                      .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
+                  intake(coralSubsystem),
                   loadLogFollow("Left Far Station - J", points)
-                      .alongWith(
-                          /*vision.setSingleTag(false),*/
-                          extendAtPosition(elevatorSubsystem, drive, ElevatorPosition.L4)),
-                  outtakeCoral(coralSubsystem) /*.alongWith(vision.setSingleTag(true))*/,
-                  elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE))
-              .finallyDo(() -> vision.setSingleTag(true));
+                      .alongWith(extendAtPosition(elevatorSubsystem, drive, ElevatorPosition.L4)),
+                  outtakeCoral(coralSubsystem),
+                  elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE));
       if (Constants.currentMode == Constants.Mode.SIM) {
         Logger.recordOutput(
             "Autos/Left Auto", points.stream().map(m -> m.position).toArray(Translation2d[]::new));
@@ -101,7 +90,7 @@ public class Autos {
   }
 
   public static Command rightCoralAuto(
-      Elevator elevatorSubsystem, CoralEndEffector coralSubsystem, Drive drive, Vision vision) {
+      Elevator elevatorSubsystem, CoralEndEffector coralSubsystem, Drive drive) {
     try {
       final ArrayList<PathPoint> points;
       if (Constants.currentMode == Constants.Mode.SIM) {
@@ -110,37 +99,31 @@ public class Autos {
         points = null;
       }
       final Command auto =
-          loadLogFollow("Right Preload - Pre F", points)
+          loadLogFollow("Right Preload - F", points)
+              .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.L4))
               .andThen(
-                  elevatorSubsystem.goToPosition(ElevatorPosition.L4),
-                  loadLogFollow("Pre F - F", points),
-                  outtakeCoral(coralSubsystem).alongWith(vision.setSingleTag(true)),
+                  outtakeCoral(coralSubsystem),
                   loadLogFollow("F - Right Far Station", points)
                       .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
                   intake(coralSubsystem),
-                  loadLogFollow("Right Far Station - E", points)
-                      .alongWith(
-                          vision.setSingleTag(false),
-                          extendAtPosition(elevatorSubsystem, drive, ElevatorPosition.L4)),
-                  outtakeCoral(coralSubsystem).alongWith(vision.setSingleTag(true)),
-                  loadLogFollow("E - Right Far Station", points)
+                  loadLogFollow("Right Far Station - C", points)
+                      .alongWith(extendAtPosition(elevatorSubsystem, drive, ElevatorPosition.L4)),
+                  outtakeCoral(coralSubsystem),
+                  loadLogFollow("C - Right Far Station", points)
                       .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
                   intake(coralSubsystem),
                   loadLogFollow("Right Far Station - D", points)
-                      .alongWith(
-                          vision.setSingleTag(false),
-                          extendAtPosition(elevatorSubsystem, drive, ElevatorPosition.L4)),
-                  outtakeCoral(coralSubsystem).alongWith(vision.setSingleTag(true)),
+                      .alongWith(extendAtPosition(elevatorSubsystem, drive, ElevatorPosition.L4)),
+                  outtakeCoral(coralSubsystem),
                   loadLogFollow("D - Right Far Station", points)
                       .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
-                  intake(coralSubsystem),
-                  loadLogFollow("Right Far Station - C", points)
-                      .alongWith(
-                          vision.setSingleTag(false),
-                          extendAtPosition(elevatorSubsystem, drive, ElevatorPosition.L4)),
-                  outtakeCoral(coralSubsystem).alongWith(vision.setSingleTag(true)),
-                  elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE))
-              .finallyDo(() -> vision.setSingleTag(true));
+                  intake(coralSubsystem)
+                  // loadLogFollow("Right Far Station - C", points)
+                  //     .alongWith(
+                  //         extendAtPosition(elevatorSubsystem, drive, ElevatorPosition.L4)),
+                  // outtakeCoral(coralSubsystem),
+                  // elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE))
+                  );
       if (Constants.currentMode == Constants.Mode.SIM) {
         Logger.recordOutput(
             "Autos/Right Auto", points.stream().map(m -> m.position).toArray(Translation2d[]::new));

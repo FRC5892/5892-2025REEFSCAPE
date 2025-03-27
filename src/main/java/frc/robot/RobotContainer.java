@@ -20,10 +20,11 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -71,6 +72,7 @@ public class RobotContainer {
   private final AlgaeRemover algaeRemover;
   private final BatteryTracking batteryTracking;
 
+  private final PowerDistribution powerDistribution;
   // Controllers
   private final CommandXboxController driverController = new CommandXboxController(0);
   private final CommandXboxController codriverController = new CommandXboxController(1);
@@ -151,6 +153,7 @@ public class RobotContainer {
                 // servoHub.getServo(ChannelId.kChannelId1),
                 new PhoenixTalonFX(24, defaultCanBus, "algaeRemover"));
         batteryTracking = new BatteryTracking(new BatteryTrackingReal());
+        powerDistribution = null; // new PowerDistribution(63, ModuleType.kRev);
 
         break;
 
@@ -194,6 +197,8 @@ public class RobotContainer {
                 /*new NoOppServo(500, 2500),*/ new SimpleMotorSim(
                     24, defaultCanBus, "algaeRemover", 2, 1));
         batteryTracking = new BatteryTracking(new BatteryTrackingReal(), () -> Math.random() * 40);
+
+        powerDistribution = null;
         break;
 
       default:
@@ -224,18 +229,21 @@ public class RobotContainer {
         algaeRemover =
             new AlgaeRemover(/*new NoOppServo(500, 2500),*/ new NoOppTalonFX("algaeRemover", 0));
         batteryTracking = new BatteryTracking(new BatteryTrackingNoOpp() {}, () -> 0);
+
+        powerDistribution = null;
         break;
     }
     drive.registerYawConsumer(vision::consumeYawObservation);
 
-    coralEndEffector
-        .beamBreakTrigger()
-        .and(() -> elevator.atPosition(ElevatorPosition.INTAKE) && DriverStation.isTeleopEnabled())
-        .whileTrue(
-            coralEndEffector
-                .runIntake()
-                .andThen(rumbleBoth(GenericHID.RumbleType.kLeftRumble, 1, 0.25))
-                .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf));
+    // coralEndEffector
+    //     .beamBreakTrigger()
+    //     .and(() -> elevator.atPosition(ElevatorPosition.INTAKE) &&
+    // DriverStation.isTeleopEnabled())
+    //     .whileTrue(
+    //         coralEndEffector
+    //             .runIntake()
+    //             .andThen(rumbleBoth(GenericHID.RumbleType.kLeftRumble, 1, 0.25))
+    //             .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf));
     RobotModeTriggers.teleop().onFalse(batteryTracking.writeCommand());
     RobotModeTriggers.autonomous()
         .and(() -> !DriverStation.isFMSAttached())
@@ -281,7 +289,17 @@ public class RobotContainer {
             coralEndEffector
                 .runIntake()
                 .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf))
-        .onFalse(rumbleBoth(GenericHID.RumbleType.kLeftRumble, 0, 0.25));
+        .onFalse(rumbleBoth(GenericHID.RumbleType.kBothRumble, 1, 0.02));
+
+    // if (powerDistribution != null) {
+    //   driverController
+    //       .back()
+    //       .onTrue(
+    //           Commands.runOnce(
+    //               () ->
+    //                   powerDistribution.setSwitchableChannel(
+    //                       powerDistribution.getSwitchableChannel())));
+    // }
     /* Driver Controls */
     DriverStation.silenceJoystickConnectionWarning(true);
 
@@ -310,17 +328,15 @@ public class RobotContainer {
     driverController
         .leftBumper()
         .whileTrue(
-            //            drive
-            //                .driveToReefCommand(Drive.ReefBranch.LEFT)
-            //                .andThen(drive.alignToReefCommand(Drive.ReefBranch.LEFT)));
-            drive.alignToReefCommand(Drive.ReefBranch.LEFT));
+            drive
+                .alignToReefCommand(Drive.ReefBranch.LEFT)
+                .andThen(rumbleBoth(RumbleType.kBothRumble, 1, 0.25)));
     driverController
         .rightBumper()
         .whileTrue(
-            //            drive
-            //                .driveToReefCommand(Drive.ReefBranch.RIGHT)
-            //                .andThen(drive.alignToReefCommand(Drive.ReefBranch.RIGHT)));
-            drive.alignToReefCommand(Drive.ReefBranch.RIGHT));
+            drive
+                .alignToReefCommand(Drive.ReefBranch.RIGHT)
+                .andThen(rumbleBoth(RumbleType.kBothRumble, 1, 0.25)));
     driverController.povUp().whileTrue(drive.nudgeCommand(Drive.NudgeDirection.FORWARD));
     driverController.povDown().whileTrue(drive.nudgeCommand(Drive.NudgeDirection.BACKWARD));
     driverController.povLeft().whileTrue(drive.nudgeCommand(Drive.NudgeDirection.LEFT));
@@ -358,22 +374,22 @@ public class RobotContainer {
 
   public Command rumbleDriver(
       GenericHID.RumbleType rumbleType, double intensity, double timeSeconds) {
-    return Commands.runOnce(
+    return Commands.runEnd(
             () -> {
               driverController.setRumble(rumbleType, intensity);
-            })
-        .andThen(new WaitCommand(timeSeconds))
-        .finallyDo(() -> driverController.setRumble(rumbleType, 0));
+            },
+            () -> driverController.setRumble(rumbleType, 0))
+        .withTimeout(timeSeconds);
   }
 
   public Command rumbleCoDriver(
       GenericHID.RumbleType rumbleType, double intensity, double timeSeconds) {
-    return Commands.runOnce(
+    return Commands.runEnd(
             () -> {
               codriverController.setRumble(rumbleType, intensity);
-            })
-        .andThen(new WaitCommand(timeSeconds))
-        .finallyDo(() -> codriverController.setRumble(rumbleType, 0));
+            },
+            () -> codriverController.setRumble(rumbleType, 0))
+        .withTimeout(timeSeconds);
   }
 
   public Command rumbleBoth(

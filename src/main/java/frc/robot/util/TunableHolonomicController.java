@@ -25,21 +25,29 @@ public class TunableHolonomicController {
       String key,
       PIDConstants xConstants,
       Constraints xConstraints,
+      double xTolerance,
       PIDConstants yConstants,
       Constraints yConstraints,
+      double yTolerance,
       PIDConstants thetaConstants,
-      Constraints thetaConstraints) {
+      Constraints thetaConstraints,
+      double thetaTolerance) {
     this.key = key;
-    xController = new TunableProfiledPIDController(key + "/XController", xConstants, xConstraints);
-    yController = new TunableProfiledPIDController(key + "/YController", yConstants, yConstraints);
+    xController =
+        new TunableProfiledPIDController(
+            key + "/XController", xConstants, xConstraints, xTolerance);
+    yController =
+        new TunableProfiledPIDController(
+            key + "/YController", yConstants, yConstraints, yTolerance);
     thetaController =
         new TunableProfiledPIDController(
-            key + "/ThetaController", thetaConstants, thetaConstraints);
+            key + "/ThetaController", thetaConstants, thetaConstraints, thetaTolerance);
     thetaController.enableContinuousInput(-Math.PI, Math.PI);
   }
 
   public ChassisSpeeds calculateRobotRelative(Transform2d error) {
     Logger.recordOutput(key + "/Error", error);
+    Logger.recordOutput("key", xController.getVelocityError());
     return new ChassisSpeeds(
         // We already have error, so skip its internal subtraction by setting the measurement to 0
         xController.calculate(0, error.getTranslation().getX()),
@@ -66,5 +74,9 @@ public class TunableHolonomicController {
     xController.reset(0, speeds.vxMetersPerSecond);
     yController.reset(0, speeds.vyMetersPerSecond);
     thetaController.reset(0, speeds.omegaRadiansPerSecond);
+  }
+
+  public boolean atSetpoint() {
+    return xController.atSetpoint() && yController.atSetpoint() & thetaController.atSetpoint();
   }
 }

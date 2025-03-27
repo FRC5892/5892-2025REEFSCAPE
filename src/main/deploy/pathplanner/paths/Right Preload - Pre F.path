@@ -4,12 +4,12 @@
     {
       "anchor": {
         "x": 7.587970890410959,
-        "y": 2.5368838028169
+        "y": 1.913891267123288
       },
       "prevControl": null,
       "nextControl": {
         "x": 6.761558219178082,
-        "y": 2.499892979452055
+        "y": 1.876900443758443
       },
       "isLocked": false,
       "linkedName": "Right Preload"

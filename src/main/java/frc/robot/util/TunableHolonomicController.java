@@ -77,6 +77,6 @@ public class TunableHolonomicController {
   }
 
   public boolean atSetpoint() {
-    return xController.atSetpoint() && yController.atSetpoint() & thetaController.atSetpoint();
+    return xController.atGoal() && yController.atGoal() & thetaController.atGoal();
   }
 }

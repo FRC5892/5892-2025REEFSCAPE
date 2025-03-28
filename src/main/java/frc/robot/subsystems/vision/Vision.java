@@ -105,7 +105,7 @@ public class Vision extends SubsystemBase {
             observation, cameraIndex, robotPoses, robotPosesAccepted, robotPosesRejected);
       }
       List<Pose3d> trigRobotPoses = new LinkedList<>();
-      if (useSingleTag || true) {
+      if (useSingleTag) {
 
         for (var observation : inputs[cameraIndex].singleTagObservations) {
           if (shouldRejectTagObservation(observation)) {

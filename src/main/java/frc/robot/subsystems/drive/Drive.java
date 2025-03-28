@@ -151,10 +151,13 @@ public class Drive extends SubsystemBase {
           "Drive/Align",
           new PIDConstants(1.2, 0.0, 0.0),
           new Constraints(1, 0.75),
+          0.0381,
           new PIDConstants(1.2, 0.0, 0.0),
           new Constraints(1, 1),
+          0.05,
           new PIDConstants(1.75, 0.0, 0.0),
-          new Constraints(10, 3));
+          new Constraints(10, 3),
+          0.17);
 
   // End 5892
 
@@ -534,23 +537,24 @@ public class Drive extends SubsystemBase {
 
   public Command alignToReefCommand(ReefBranch branch) {
     return Commands.startRun(
-        () -> {
-          Pose2d target =
-              FieldConstants.Reef.centerFaces[reefSector - 1].transformBy(
-                  new Transform2d(
-                      alignDistance.get(),
-                      branch == ReefBranch.LEFT
-                          ? -FieldConstants.Reef.centerToBranchAdjustY
-                          : FieldConstants.Reef.centerToBranchAdjustY,
-                      Rotation2d.k180deg));
-          target = AllianceFlipUtil.apply(target);
-          Logger.recordOutput("Drive/ReefTarget", target);
-          holonomicController.reset(getChassisSpeeds());
-          holonomicController.setFieldRelativeSetpoint(target);
-        },
-        () -> {
-          runVelocity(holonomicController.calculateFieldRelative(getPose()));
-        });
+            () -> {
+              Pose2d target =
+                  FieldConstants.Reef.centerFaces[reefSector - 1].transformBy(
+                      new Transform2d(
+                          alignDistance.get(),
+                          branch == ReefBranch.LEFT
+                              ? -FieldConstants.Reef.centerToBranchAdjustY
+                              : FieldConstants.Reef.centerToBranchAdjustY,
+                          Rotation2d.k180deg));
+              target = AllianceFlipUtil.apply(target);
+              Logger.recordOutput("Drive/ReefTarget", target);
+              holonomicController.reset(getChassisSpeeds());
+              holonomicController.setFieldRelativeSetpoint(target);
+            },
+            () -> {
+              runVelocity(holonomicController.calculateFieldRelative(getPose()));
+            })
+        .until(holonomicController::atSetpoint);
   }
 
   public enum ReefBranch {

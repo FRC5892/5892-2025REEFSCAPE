@@ -16,7 +16,11 @@ public class TunableProfiledPIDController extends ProfiledPIDController
   private final String key;
 
   public TunableProfiledPIDController(
-      String key, PIDConstants constants, TrapezoidProfile.Constraints constraints, double period) {
+      String key,
+      PIDConstants constants,
+      TrapezoidProfile.Constraints constraints,
+      double positionTolerance,
+      double period) {
     super(constants.kP, constants.kI, constants.kD, constraints, period);
     this.key = key;
     super.setIntegratorRange(-constants.iZone, constants.iZone);
@@ -27,12 +31,16 @@ public class TunableProfiledPIDController extends ProfiledPIDController
           new LoggedTunableNumber(key + "/kD", constants.kD),
           new LoggedTunableNumber(key + "/maxVelocity", constraints.maxVelocity),
           new LoggedTunableNumber(key + "/maxAccel", constraints.maxAcceleration),
+          new LoggedTunableNumber(key + "/positionTolerance", positionTolerance)
         };
   }
 
   public TunableProfiledPIDController(
-      String key, PIDConstants constants, TrapezoidProfile.Constraints constraints) {
-    this(key, constants, constraints, 0.02);
+      String key,
+      PIDConstants constants,
+      TrapezoidProfile.Constraints constraints,
+      double positionTolerance) {
+    this(key, constants, constraints, positionTolerance, 0.02);
   }
 
   public double calculate(double measurement) {
@@ -46,11 +54,13 @@ public class TunableProfiledPIDController extends ProfiledPIDController
         id,
         constants -> {
           super.setPID(constants[0], constants[1], constants[2]);
-          super.setConstraints(new TrapezoidProfile.Constraints(constants[3],constants[4]));
-          
+          super.setConstraints(new TrapezoidProfile.Constraints(constants[3], constants[4]));
+          super.setTolerance(constants[5]);
+
           for (ProfiledPIDController follower : followers) {
             follower.setPID(constants[0], constants[1], constants[2]);
-            follower.setConstraints(new TrapezoidProfile.Constraints(constants[3],constants[4]));
+            follower.setConstraints(new TrapezoidProfile.Constraints(constants[3], constants[4]));
+            follower.setTolerance(constants[5]);
           }
         },
         tunableNumbers);

@@ -17,41 +17,55 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.wpilibj.Filesystem;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Path;
 
 public class VisionConstants {
   // AprilTag layout
-  public static AprilTagFieldLayout aprilTagLayout =
-      AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeAndyMark);
+  public static final AprilTagFieldLayout aprilTagLayout;
+
+  static {
+    try {
+      aprilTagLayout =
+          new AprilTagFieldLayout(
+              Path.of(
+                  Filesystem.getDeployDirectory().getAbsolutePath(),
+                  "2025-reefscape-andymark.json"));
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
 
   // Camera names, must match names configured on coprocessor
   public static String camera0Name = "leftFront";
   public static String camera1Name = "rightFront";
-  public static String camera2Name = "rightBack";
+  public static String camera2Name = "centerFront";
   //
 
   // Robot to camera transforms
   // (Not used by Limelight, configure in web UI instead)
   public static Transform3d robotToCamera0 =
       new Transform3d(
-          Inches.of(12.75),
-          Inches.of(10.25),
-          Inches.of(12.375),
-          new Rotation3d(Degrees.of(0), Degrees.of(-10), Degrees.of(-45)));
-  public static Transform3d robotToCamera1 =
+          Inches.of(12.625),
+          Inches.of(9.75),
+          Inches.of(12.5),
+          new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(-55)));
+  public static Transform3d robotToCamera1 = // 10 7/8 12.5
       new Transform3d(
-          Inches.of(12.75),
-          Inches.of(-10.25),
-          Inches.of(12.375),
-          new Rotation3d(Degrees.of(0), Degrees.of(-10), Degrees.of(45)));
+          Inches.of(12.625),
+          Inches.of(-9.75),
+          Inches.of(12.5),
+          new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(54.5)));
   public static Transform3d robotToCamera2 =
       new Transform3d(
-          Inches.of(-12.875),
-          Inches.of(-11.5),
-          Inches.of(12.75),
-          new Rotation3d(Degrees.of(0), Degrees.of(-40), Degrees.of(180)));
+          Inches.of(15),
+          Inches.of(-1.5),
+          Inches.of(8.875),
+          new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(0)));
 
   // Basic filtering thresholds
   public static double maxAmbiguity = 0.3;
@@ -73,6 +87,12 @@ public class VisionConstants {
 
   // Multipliers to apply for MegaTag 2 observations
   public static double linearStdDevMegatag2Factor = 0.5; // More stable than full 3D solve
-  public static double angularStdDevMegatag2Factor =
-      Double.POSITIVE_INFINITY; // No rotation data available
+  public static double angularStdDevMegatag2Factor = Double.POSITIVE_INFINITY;
+
+  // No rotation data available
+  public static double rangeMultiplierTrigFactor = 2; // Not better at high range
+  public static double linearStdDevTrigFactor = 0.10; // Very useful for close range
+  public static double angularStdDevTrigFactor =
+      Double.POSITIVE_INFINITY; // It literally uses rotation data
+  public static double maxRangeTrig = 1.5; // Meters
 }

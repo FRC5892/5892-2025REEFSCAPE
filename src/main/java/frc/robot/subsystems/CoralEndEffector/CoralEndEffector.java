@@ -24,11 +24,13 @@ public class CoralEndEffector extends SubsystemBase {
       new LoggedTunableNumber("Coral/Intake Duty Cycle", 0.30);
   private final LoggedTunableNumber outtakeDutyCycle =
       new LoggedTunableNumber("Coral/Outtake Duty Cycle", 0.25);
+  private final LoggedTunableNumber debounceTime =
+      new LoggedTunableNumber("Coral/BeamBreakDebounceS", 0.1);
   private final DutyCycleOut dutyCycleOut = new DutyCycleOut(0).withEnableFOC(true);
   private final StaticBrake brake = new StaticBrake();
   private final LoggedTalonFX talon;
   private final LoggedDIO beamBreak;
-  private Debouncer beamBreakDebouncer = new Debouncer(0.25);
+  private Debouncer beamBreakDebouncer = new Debouncer(debounceTime.get());
   @AutoLogOutput @Getter private boolean debouncedBeamBreakTripped = false;
 
   public CoralEndEffector(LoggedTalonFX talon, LoggedDIO beambreak) {
@@ -41,16 +43,24 @@ public class CoralEndEffector extends SubsystemBase {
 
   public Command runIntake() {
     return runEnd(
-        () -> talon.setControl(dutyCycleOut.withOutput(intakeDutyCycle.get())), // Start the motor
-        () -> talon.setControl(brake) // Stop the motor
+        this::startIntake, // Start the motor
+        this::stop // Stop the motor
         );
   }
 
   public Command runOuttake() {
     return runEnd(
         () -> talon.setControl(dutyCycleOut.withOutput(outtakeDutyCycle.get())), // Start the motor
-        () -> talon.setControl(brake) // Stop the motor
+        this::stop // Stop the motor
         );
+  }
+
+  public void startIntake() {
+    talon.setControl(dutyCycleOut.withOutput(intakeDutyCycle.get()));
+  }
+
+  public void stop() {
+    talon.setControl(brake);
   }
 
   public Trigger beamBreakTrigger() {
@@ -66,6 +76,12 @@ public class CoralEndEffector extends SubsystemBase {
     talon.periodic();
     beamBreak.periodic();
     debouncedBeamBreakTripped = beamBreakDebouncer.calculate(beamBreak.get());
+    LoggedTunableNumber.ifChanged(
+        this,
+        (n) -> {
+          beamBreakDebouncer = new Debouncer(n[0]);
+        },
+        debounceTime);
     // This method will be called once per scheduler run
   }
 }

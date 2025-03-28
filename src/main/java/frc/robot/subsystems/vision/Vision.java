@@ -17,17 +17,20 @@ import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.*;
+import edu.wpi.first.math.interpolation.TimeInterpolatableBuffer;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
+import lombok.Setter;
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class Vision extends SubsystemBase {
@@ -35,6 +38,12 @@ public class Vision extends SubsystemBase {
   private final VisionIO[] io;
   private final VisionIOInputsAutoLogged[] inputs;
   private final Alert[] disconnectedAlerts;
+
+  private final TimeInterpolatableBuffer<Rotation2d> headingBuffer =
+      TimeInterpolatableBuffer.createBuffer(1.0);
+  @AutoLogOutput private int trigSolverOdometryMissingCount = 0;
+
+  @Setter private boolean useSingleTag = true;
 
   public Vision(VisionConsumer consumer, VisionIO... io) {
     Logger.recordOutput("Vision/camera0Offset", VisionConstants.robotToCamera0);
@@ -59,15 +68,6 @@ public class Vision extends SubsystemBase {
     }
   }
 
-  /**
-   * Returns the X angle to the best target, which can be used for simple servoing with vision.
-   *
-   * @param cameraIndex The index of the camera to use.
-   */
-  public Rotation2d getTargetX(int cameraIndex) {
-    return inputs[cameraIndex].latestTargetObservation.tx();
-  }
-
   @Override
   public void periodic() {
     for (int i = 0; i < io.length; i++) {
@@ -80,6 +80,7 @@ public class Vision extends SubsystemBase {
     List<Pose3d> allRobotPoses = new LinkedList<>();
     List<Pose3d> allRobotPosesAccepted = new LinkedList<>();
     List<Pose3d> allRobotPosesRejected = new LinkedList<>();
+    List<Pose3d> allTrigRobotPoses = new LinkedList<>();
 
     // Loop over cameras
     for (int cameraIndex = 0; cameraIndex < io.length; cameraIndex++) {
@@ -95,59 +96,37 @@ public class Vision extends SubsystemBase {
       // Add tag poses
       for (int tagId : inputs[cameraIndex].tagIds) {
         var tagPose = aprilTagLayout.getTagPose(tagId);
-        if (tagPose.isPresent()) {
-          tagPoses.add(tagPose.get());
-        }
+        tagPose.ifPresent(tagPoses::add);
       }
 
       // Loop over pose observations
       for (var observation : inputs[cameraIndex].poseObservations) {
-        // Check whether to reject pose
-        boolean rejectPose =
-            observation.tagCount() == 0 // Must have at least one tag
-                || (observation.tagCount() == 1
-                    && observation.ambiguity() > maxAmbiguity) // Cannot be high ambiguity
-                || Math.abs(observation.pose().getZ())
-                    > maxZError // Must have realistic Z coordinate
+        handlePoseObservation(
+            observation, cameraIndex, robotPoses, robotPosesAccepted, robotPosesRejected);
+      }
+      List<Pose3d> trigRobotPoses = new LinkedList<>();
+      if (useSingleTag || true) {
 
-                // Must be within the field boundaries
-                || observation.pose().getX() < 0.0
-                || observation.pose().getX() > aprilTagLayout.getFieldLength()
-                || observation.pose().getY() < 0.0
-                || observation.pose().getY() > aprilTagLayout.getFieldWidth();
-
-        // Add pose to log
-        robotPoses.add(observation.pose());
-        if (rejectPose) {
-          robotPosesRejected.add(observation.pose());
-        } else {
-          robotPosesAccepted.add(observation.pose());
+        for (var observation : inputs[cameraIndex].singleTagObservations) {
+          if (shouldRejectTagObservation(observation)) {
+            continue;
+          }
+          var opPoseObservation =
+              pnpDistanceTrigSolveStrategy(
+                  observation,
+                  cameraIndex == 0
+                      ? robotToCamera0
+                      : cameraIndex == 1 ? robotToCamera1 : robotToCamera2);
+          if (opPoseObservation.isEmpty()) {
+            continue;
+          }
+          handlePoseObservation(
+              opPoseObservation.get(),
+              cameraIndex,
+              trigRobotPoses,
+              robotPosesAccepted,
+              robotPosesRejected);
         }
-
-        // Skip if rejected
-        if (rejectPose) {
-          continue;
-        }
-
-        // Calculate standard deviations
-        double stdDevFactor =
-            Math.pow(observation.averageTagDistance(), 2.0) / observation.tagCount();
-        double linearStdDev = linearStdDevBaseline * stdDevFactor;
-        double angularStdDev = angularStdDevBaseline * stdDevFactor;
-        if (observation.type() == PoseObservationType.MEGATAG_2) {
-          linearStdDev *= linearStdDevMegatag2Factor;
-          angularStdDev *= angularStdDevMegatag2Factor;
-        }
-        if (cameraIndex < cameraStdDevFactors.length) {
-          linearStdDev *= cameraStdDevFactors[cameraIndex];
-          angularStdDev *= cameraStdDevFactors[cameraIndex];
-        }
-
-        // Send vision observation
-        consumer.accept(
-            observation.pose().toPose2d(),
-            observation.timestamp(),
-            VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev));
       }
 
       // Log camera datadata
@@ -163,10 +142,14 @@ public class Vision extends SubsystemBase {
       Logger.recordOutput(
           "Vision/Camera" + Integer.toString(cameraIndex) + "/RobotPosesRejected",
           robotPosesRejected.toArray(new Pose3d[robotPosesRejected.size()]));
+      Logger.recordOutput(
+          "Vision/Camera" + Integer.toString(cameraIndex) + "/TrigRobotPoses",
+          trigRobotPoses.toArray(new Pose3d[trigRobotPoses.size()]));
       allTagPoses.addAll(tagPoses);
       allRobotPoses.addAll(robotPoses);
       allRobotPosesAccepted.addAll(robotPosesAccepted);
       allRobotPosesRejected.addAll(robotPosesRejected);
+      allTrigRobotPoses.addAll(trigRobotPoses);
     }
 
     // Log summary data
@@ -180,6 +163,117 @@ public class Vision extends SubsystemBase {
     Logger.recordOutput(
         "Vision/Summary/RobotPosesRejected",
         allRobotPosesRejected.toArray(new Pose3d[allRobotPosesRejected.size()]));
+    Logger.recordOutput(
+        "Vision/Summary/TrigRobotPoses",
+        allTrigRobotPoses.toArray(new Pose3d[allTrigRobotPoses.size()]));
+  }
+
+  private Matrix<N3, N1> calculateStdDevs(VisionIO.PoseObservation observation, int cameraIndex) {
+    double stdDevFactor = Math.pow(observation.averageTagDistance(), 2.0) / observation.tagCount();
+    double linearStdDev = linearStdDevBaseline * stdDevFactor;
+    double angularStdDev = angularStdDevBaseline * stdDevFactor;
+    if (observation.type() == PoseObservationType.MEGATAG_2) {
+      linearStdDev *= linearStdDevMegatag2Factor;
+      angularStdDev *= angularStdDevMegatag2Factor;
+    } else if (observation.type() == PoseObservationType.PHOTONVISION_TRIG) {
+      linearStdDev *= linearStdDevTrigFactor;
+      angularStdDev = angularStdDevTrigFactor;
+    }
+    if (cameraIndex < cameraStdDevFactors.length) {
+      linearStdDev *= cameraStdDevFactors[cameraIndex];
+      angularStdDev *= cameraStdDevFactors[cameraIndex];
+    }
+    return VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev);
+  }
+
+  private boolean shouldRejectObservation(VisionIO.PoseObservation observation) {
+    return observation.tagCount() == 0 // Must have at least one tag
+        || (observation.tagCount() == 1
+            && observation.ambiguity() > maxAmbiguity) // Cannot be high ambiguity
+        || Math.abs(observation.pose().getZ()) > maxZError // Must have realistic Z coordinate
+
+        // Must be within the field boundaries
+        || observation.pose().getX() < 0.0
+        || observation.pose().getX() > aprilTagLayout.getFieldLength()
+        || observation.pose().getY() < 0.0
+        || observation.pose().getY() > aprilTagLayout.getFieldWidth();
+  }
+
+  private Optional<VisionIO.PoseObservation> pnpDistanceTrigSolveStrategy(
+      VisionIO.SingleTagObservation observation, Transform3d robotToCamera) {
+
+    var headingSampleOpt = headingBuffer.getSample(observation.timestamp());
+    if (headingSampleOpt.isEmpty()) {
+      trigSolverOdometryMissingCount++;
+      return Optional.empty();
+    }
+    Rotation2d headingSample = headingSampleOpt.get();
+    Translation2d camToTagTranslation =
+        new Translation3d(
+                observation.cameraToTag().getTranslation().getNorm(),
+                new Rotation3d(
+                    0, -Math.toRadians(observation.pitch()), -Math.toRadians(observation.yaw())))
+            .rotateBy(robotToCamera.getRotation())
+            .toTranslation2d()
+            .rotateBy(headingSample);
+
+    var tagPoseOpt = aprilTagLayout.getTagPose(observation.id());
+    if (tagPoseOpt.isEmpty()) {
+      return Optional.empty();
+    }
+    var tagPose2d = tagPoseOpt.get().toPose2d();
+
+    Translation2d fieldToCameraTranslation =
+        tagPose2d.getTranslation().plus(camToTagTranslation.unaryMinus());
+
+    Translation2d camToRobotTranslation =
+        robotToCamera.getTranslation().toTranslation2d().unaryMinus().rotateBy(headingSample);
+
+    Pose2d robotPose =
+        new Pose2d(fieldToCameraTranslation.plus(camToRobotTranslation), headingSample);
+
+    return Optional.of(
+        new VisionIO.PoseObservation(
+            observation.timestamp(),
+            new Pose3d(robotPose),
+            -1,
+            1,
+            camToTagTranslation.getNorm(),
+            PoseObservationType.PHOTONVISION_TRIG));
+  }
+
+  public void handlePoseObservation(
+      VisionIO.PoseObservation observation,
+      int cameraIndex,
+      List<Pose3d> robotPoses,
+      List<Pose3d> robotPosesAccepted,
+      List<Pose3d> robotPosesRejected) {
+    // Add pose to log
+    robotPoses.add(observation.pose());
+    if (shouldRejectObservation(observation)) {
+      robotPosesRejected.add(observation.pose());
+      // Skip if rejected
+      return;
+    } else {
+      robotPosesAccepted.add(observation.pose());
+    }
+    // Send vision observation
+    consumer.accept(
+        observation.pose().toPose2d(),
+        observation.timestamp(),
+        calculateStdDevs(observation, cameraIndex));
+  }
+
+  public void consumeYawObservation(double timestamp, Rotation2d yaw) {
+    headingBuffer.addSample(timestamp, yaw);
+  }
+
+  public boolean shouldRejectTagObservation(VisionIO.SingleTagObservation observation) {
+    return observation.cameraToTag().getTranslation().getNorm() > maxRangeTrig;
+  }
+
+  public Command setSingleTag(boolean shouldDoSingleTag) {
+    return runOnce(() -> this.setSingleTag(shouldDoSingleTag));
   }
 
   @FunctionalInterface

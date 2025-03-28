@@ -37,6 +37,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -53,9 +54,9 @@ import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.LocalADStarAK;
 import frc.robot.util.LoggedTunableNumber;
 import frc.robot.util.TunableHolonomicController;
-import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiConsumer;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -121,36 +122,41 @@ public class Drive extends SubsystemBase {
   @Getter @AutoLogOutput private int reefSector = -1;
   @Getter @AutoLogOutput private double distanceToReefM = -1;
 
-  private final double FRONT_TO_CENTER_METERS = 0.47;
+  private BiConsumer<Double, Rotation2d> yawConsumer = null;
 
-  private final LoggedTunableNumber startingDistance =
-      new LoggedTunableNumber("Drive/macroDistance", -1);
-  private Transform2d startingPointTransform =
-      new Transform2d(startingDistance.get(), 0.0, Rotation2d.fromDegrees(0.0));
-  private final LoggedTunableNumber maxLinearVelocity =
-      new LoggedTunableNumber("Drive/Align/MaxLinearVelocityMPS", 8.0);
-  private final LoggedTunableNumber maxLinearAccel =
-      new LoggedTunableNumber("Drive/Align/MaxLinearAccelMPSSq", 1.5);
-  private final LoggedTunableNumber maxAngularVelocity =
-      new LoggedTunableNumber("Drive/Align/MaxAngularVelocityRadPS", 8.0);
-  private final LoggedTunableNumber maxAngularAccel =
-      new LoggedTunableNumber("Drive/Align/MaxAngularAccelRadPSSq", 1.5);
-  private PathConstraints PATH_CONSTRAINTS =
-      new PathConstraints(
-          maxLinearVelocity.get(),
-          maxLinearAccel.get(),
-          maxAngularVelocity.get(),
-          maxAngularAccel.get());
+  // private final LoggedTunableNumber startingDistance =
+  //     new LoggedTunableNumber("Drive/macroDistance", -1);
+  // private Transform2d startingPointTransform =
+  //     new Transform2d(startingDistance.get(), 0.0, Rotation2d.fromDegrees(0.0));
+  // private final LoggedTunableNumber maxLinearVelocity =
+  //     new LoggedTunableNumber("Drive/Align/MaxLinearVelocityMPS", 8.0);
+  // private final LoggedTunableNumber maxLinearAccel =
+  //     new LoggedTunableNumber("Drive/Align/MaxLinearAccelMPSSq", 1.5);
+  // private final LoggedTunableNumber maxAngularVelocity =
+  //     new LoggedTunableNumber("Drive/Align/MaxAngularVelocityRadPS", 8.0);
+  // private final LoggedTunableNumber maxAngularAccel =
+  //     new LoggedTunableNumber("Drive/Align/MaxAngularAccelRadPSSq", 1.5);
+  // private PathConstraints PATH_CONSTRAINTS =
+  //     new PathConstraints(
+  //         maxLinearVelocity.get(),
+  //         maxLinearAccel.get(),
+  //         maxAngularVelocity.get(),
+  //         maxAngularAccel.get());
 
   private final LoggedTunableNumber alignDistance =
-      new LoggedTunableNumber("Drive/Align/DistanceToPost", 0.5);
+      new LoggedTunableNumber("Drive/Align/DistanceToPost", 0.51);
 
   private final TunableHolonomicController holonomicController =
       new TunableHolonomicController(
           "Drive/Align",
-          new PIDConstants(5, 0.0, 0.0),
-          new PIDConstants(5, 0.0, 0.0),
-          new PIDConstants(5, 0.0, 0.0));
+          new PIDConstants(1.2, 0.0, 0.0),
+          new Constraints(1, 0.75),
+          new PIDConstants(1.2, 0.0, 0.0),
+          new Constraints(1, 1),
+          new PIDConstants(1.75, 0.0, 0.0),
+          new Constraints(10, 3));
+
+  // End 5892
 
   public Drive(
       GyroIO gyroIO,
@@ -206,7 +212,7 @@ public class Drive extends SubsystemBase {
                 (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
             new SysIdRoutine.Mechanism(
                 (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
-
+    // 5892
     if (Constants.tuningMode) {
       if (Constants.currentMode == Mode.SIM) {
         driveKPTunableNumber = new LoggedTunableNumber("Drive kP", ModuleIOSim.DRIVE_KP);
@@ -288,7 +294,11 @@ public class Drive extends SubsystemBase {
       }
 
       // Apply update
-      poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
+      Pose2d pose =
+          poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
+      if (yawConsumer != null) {
+        yawConsumer.accept(sampleTimestamps[i], pose.getRotation());
+      }
     }
 
     // Update gyro alert
@@ -319,19 +329,19 @@ public class Drive extends SubsystemBase {
     Logger.recordOutput(
         "Drive/ReefSectorSide",
         AllianceFlipUtil.apply(FieldConstants.Reef.centerFaces[reefSector - 1]));
-    LoggedTunableNumber.ifChanged(
-        this,
-        (c) -> PATH_CONSTRAINTS = new PathConstraints(c[0], c[1], c[2], c[3]),
-        maxLinearVelocity,
-        maxLinearAccel,
-        maxAngularVelocity,
-        maxAngularAccel);
-    LoggedTunableNumber.ifChanged(
-        this,
-        (d) -> {
-          startingPointTransform = new Transform2d(d[0], 0.0, Rotation2d.fromDegrees(0));
-        },
-        startingDistance);
+    // LoggedTunableNumber.ifChanged(
+    //     this,
+    //     (c) -> PATH_CONSTRAINTS = new PathConstraints(c[0], c[1], c[2], c[3]),
+    //     maxLinearVelocity,
+    //     maxLinearAccel,
+    //     maxAngularVelocity,
+    //     maxAngularAccel);
+    // LoggedTunableNumber.ifChanged(
+    //     this,
+    //     (d) -> {
+    //       startingPointTransform = new Transform2d(d[0], 0.0, Rotation2d.fromDegrees(0));
+    //     },
+    //     startingDistance);
     holonomicController.updateConstants(this);
 
     // End 5892
@@ -462,8 +472,10 @@ public class Drive extends SubsystemBase {
       Pose2d visionRobotPoseMeters,
       double timestampSeconds,
       Matrix<N3, N1> visionMeasurementStdDevs) {
-    //    poseEstimator.addVisionMeasurement(
-    //        visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
+    if (Constants.currentMode != Mode.SIM) {
+      poseEstimator.addVisionMeasurement(
+          visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
+    }
   }
 
   /** Returns the maximum linear speed in meters per sec. */
@@ -498,27 +510,27 @@ public class Drive extends SubsystemBase {
     }
   }
 
-  public Command driveToReefCommand(ReefBranch branch) {
-    return defer(
-        () -> {
-          Pose2d target =
-              FieldConstants.Reef.centerFaces[reefSector - 1].transformBy(
-                  new Transform2d(
-                      FRONT_TO_CENTER_METERS,
-                      branch == ReefBranch.LEFT
-                          ? -FieldConstants.Reef.centerToBranchAdjustY
-                          : FieldConstants.Reef.centerToBranchAdjustY,
-                      Rotation2d.k180deg));
-          Logger.recordOutput("Drive/ReefTarget", AllianceFlipUtil.apply(target));
-          Pose2d start = target.transformBy(startingPointTransform);
-          List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(start, target);
+  // public Command driveToReefCommand(ReefBranch branch) {
+  //   return defer(
+  //       () -> {
+  //         Pose2d target =
+  //             FieldConstants.Reef.centerFaces[reefSector - 1].transformBy(
+  //                 new Transform2d(
+  //                     alignDistance.get(),
+  //                     branch == ReefBranch.LEFT
+  //                         ? -FieldConstants.Reef.centerToBranchAdjustY
+  //                         : FieldConstants.Reef.centerToBranchAdjustY,
+  //                     Rotation2d.k180deg));
+  //         Logger.recordOutput("Drive/ReefTarget", AllianceFlipUtil.apply(target));
+  //         Pose2d start = target.transformBy(startingPointTransform);
+  //         List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(start, target);
 
-          PathPlannerPath path =
-              new PathPlannerPath(
-                  waypoints, PATH_CONSTRAINTS, null, new GoalEndState(0, target.getRotation()));
-          return AutoBuilder.pathfindThenFollowPath(path, PATH_CONSTRAINTS);
-        });
-  }
+  //         PathPlannerPath path =
+  //             new PathPlannerPath(
+  //                 waypoints, PATH_CONSTRAINTS, null, new GoalEndState(0, target.getRotation()));
+  //         return AutoBuilder.pathfindThenFollowPath(path, PATH_CONSTRAINTS);
+  //       });
+  // }
 
   public Command alignToReefCommand(ReefBranch branch) {
     return Commands.startRun(
@@ -526,14 +538,14 @@ public class Drive extends SubsystemBase {
           Pose2d target =
               FieldConstants.Reef.centerFaces[reefSector - 1].transformBy(
                   new Transform2d(
-                      FRONT_TO_CENTER_METERS,
+                      alignDistance.get(),
                       branch == ReefBranch.LEFT
                           ? -FieldConstants.Reef.centerToBranchAdjustY
                           : FieldConstants.Reef.centerToBranchAdjustY,
                       Rotation2d.k180deg));
           target = AllianceFlipUtil.apply(target);
           Logger.recordOutput("Drive/ReefTarget", target);
-          holonomicController.reset();
+          holonomicController.reset(getChassisSpeeds());
           holonomicController.setFieldRelativeSetpoint(target);
         },
         () -> {
@@ -564,11 +576,16 @@ public class Drive extends SubsystemBase {
               new Pose2d(
                   getPose().getTranslation().plus(direction.transform), getPose().getRotation());
           Logger.recordOutput("Drive/NudgeTarget", target);
-          holonomicController.reset();
+          holonomicController.reset(getChassisSpeeds());
           holonomicController.setFieldRelativeSetpoint(target);
         },
         () -> {
           runVelocity(holonomicController.calculateFieldRelative(getPose()));
         });
   }
+
+  public void registerYawConsumer(BiConsumer<Double, Rotation2d> consumer) {
+    yawConsumer = consumer;
+  }
+  // end 5892
 }

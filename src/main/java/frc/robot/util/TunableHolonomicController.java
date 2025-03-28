@@ -8,24 +8,33 @@ import com.pathplanner.lib.config.PIDConstants;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import lombok.Getter;
 import lombok.Setter;
 import org.littletonrobotics.junction.Logger;
 
 /** Add your docs here. */
 public class TunableHolonomicController {
-  private final TunablePIDController xController;
-  private final TunablePIDController yController;
-  private final TunablePIDController thetaController;
+  private final TunableProfiledPIDController xController;
+  private final TunableProfiledPIDController yController;
+  private final TunableProfiledPIDController thetaController;
   @Getter @Setter private Pose2d fieldRelativeSetpoint = new Pose2d();
   private final String key;
 
   public TunableHolonomicController(
-      String key, PIDConstants xConstants, PIDConstants yConstants, PIDConstants thetaConstants) {
+      String key,
+      PIDConstants xConstants,
+      Constraints xConstraints,
+      PIDConstants yConstants,
+      Constraints yConstraints,
+      PIDConstants thetaConstants,
+      Constraints thetaConstraints) {
     this.key = key;
-    xController = new TunablePIDController(key + "/XController", xConstants);
-    yController = new TunablePIDController(key + "/YController", yConstants);
-    thetaController = new TunablePIDController(key + "/ThetaController", thetaConstants);
+    xController = new TunableProfiledPIDController(key + "/XController", xConstants, xConstraints);
+    yController = new TunableProfiledPIDController(key + "/YController", yConstants, yConstraints);
+    thetaController =
+        new TunableProfiledPIDController(
+            key + "/ThetaController", thetaConstants, thetaConstraints);
     thetaController.enableContinuousInput(-Math.PI, Math.PI);
   }
 
@@ -48,14 +57,14 @@ public class TunableHolonomicController {
   }
 
   public void updateConstants(Object id) {
-    xController.updateConstants(id);
-    yController.updateConstants(id);
-    thetaController.updateConstants(id);
+    xController.updateTuning(id);
+    yController.updateTuning(id);
+    thetaController.updateTuning(id);
   }
 
-  public void reset() {
-    xController.reset();
-    yController.reset();
-    thetaController.reset();
+  public void reset(ChassisSpeeds speeds) {
+    xController.reset(0, speeds.vxMetersPerSecond);
+    yController.reset(0, speeds.vyMetersPerSecond);
+    thetaController.reset(0, speeds.omegaRadiansPerSecond);
   }
 }

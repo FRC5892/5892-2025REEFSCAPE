@@ -16,11 +16,8 @@ package frc.robot;
 import com.ctre.phoenix6.CANBus;
 import com.revrobotics.servohub.ServoChannel.ChannelId;
 import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
@@ -46,7 +43,6 @@ import frc.robot.subsystems.drive.*;
 import frc.robot.subsystems.funnel.Funnel;
 import frc.robot.subsystems.funnel.FunnelServoHub;
 import frc.robot.subsystems.vision.*;
-import frc.robot.subsystems.vision.Vision.VisionConsumer;
 import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.LoggedDIO.HardwareDIO;
 import frc.robot.util.LoggedDIO.NoOppDio;
@@ -136,7 +132,9 @@ public class RobotContainer {
                 new VisionIOPhotonVision(
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0),
                 new VisionIOPhotonVision(
-                    VisionConstants.camera1Name, VisionConstants.robotToCamera1));
+                    VisionConstants.camera1Name, VisionConstants.robotToCamera1),
+                new VisionIOPhotonVision(
+                    VisionConstants.camera2Name, VisionConstants.robotToCamera2));
         elevator = new Elevator(new PhoenixTalonFX(20, defaultCanBus, "elevator"));
         coralEndEffector =
             new CoralEndEffector(
@@ -167,16 +165,19 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackRight));
         vision =
             new Vision(
-                new VisionConsumer() {
-                  public void accept(
-                      Pose2d visionRobotPoseMeters,
-                      double timestampSeconds,
-                      Matrix<N3, N1> visionMeasurementStdDevs) {}
-                },
+                //                new VisionConsumer() {
+                //                  public void accept(
+                //                      Pose2d visionRobotPoseMeters,
+                //                      double timestampSeconds,
+                //                      Matrix<N3, N1> visionMeasurementStdDevs) {}
+                //                },
+                drive::addVisionMeasurement,
                 new VisionIOPhotonVisionSim(
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
                 new VisionIOPhotonVisionSim(
-                    VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose));
+                    VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose),
+                new VisionIOPhotonVisionSim(
+                    VisionConstants.camera2Name, VisionConstants.robotToCamera2, drive::getPose));
         elevator = new Elevator(new ElevatorSimulation(20, defaultCanBus, "elevator"));
         coralEndEffector =
             new CoralEndEffector(
@@ -204,7 +205,12 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {});
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIO() {},
+                new VisionIO() {},
+                new VisionIO() {});
         elevator = new Elevator(new NoOppTalonFX("elevator", 0));
         coralEndEffector =
             new CoralEndEffector(
@@ -220,6 +226,7 @@ public class RobotContainer {
         batteryTracking = new BatteryTracking(new BatteryTrackingNoOpp() {}, () -> 0);
         break;
     }
+    drive.registerYawConsumer(vision::consumeYawObservation);
 
     coralEndEffector
         .beamBreakTrigger()
@@ -236,7 +243,7 @@ public class RobotContainer {
     // Set up auto routines
     autoChooser =
         new LoggedDashboardChooser<>(
-            "Auto Choices", Autos.buildAutoChooser(elevator, coralEndEffector, drive));
+            "Auto Choices", Autos.buildAutoChooser(elevator, coralEndEffector, drive, vision));
 
     // Set up SysId routines
     autoChooser.addOption(

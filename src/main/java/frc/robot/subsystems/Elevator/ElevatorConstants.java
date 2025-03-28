@@ -28,7 +28,7 @@ public class ElevatorConstants {
     INTAKE(new LoggedTunableMeasure<>("Elevator/Intake", Meters.mutable(0.0))),
     L2(new LoggedTunableMeasure<>("Elevator/L2", Meters.mutable(0.28))),
     L3(new LoggedTunableMeasure<>("Elevator/L3", Meters.mutable(0.7))),
-    L4(new LoggedTunableMeasure<>("Elevator/L4", Meters.mutable(1.22)));
+    L4(new LoggedTunableMeasure<>("Elevator/L4", Meters.mutable(1.26)));
 
     public final Supplier<MutDistance> height;
 

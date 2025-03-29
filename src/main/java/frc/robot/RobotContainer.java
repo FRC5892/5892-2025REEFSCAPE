@@ -30,15 +30,11 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.Autos;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.Algae.AlgaeRemover;
 import frc.robot.subsystems.Climb.Climb;
 import frc.robot.subsystems.CoralEndEffector.CoralEndEffector;
 import frc.robot.subsystems.Elevator.Elevator;
 import frc.robot.subsystems.Elevator.ElevatorConstants.ElevatorPosition;
 import frc.robot.subsystems.Elevator.ElevatorSimulation;
-import frc.robot.subsystems.batteryTracking.BatteryTracking;
-import frc.robot.subsystems.batteryTracking.BatteryTrackingNoOpp;
-import frc.robot.subsystems.batteryTracking.BatteryTrackingReal;
 import frc.robot.subsystems.drive.*;
 import frc.robot.subsystems.funnel.Funnel;
 import frc.robot.subsystems.funnel.FunnelServoHub;
@@ -50,7 +46,6 @@ import frc.robot.util.LoggedDIO.SimDIO;
 import frc.robot.util.LoggedServo.NoOppServo;
 import frc.robot.util.LoggedTalon.NoOppTalonFX;
 import frc.robot.util.LoggedTalon.PhoenixTalonFX;
-import frc.robot.util.LoggedTalon.SimpleMotorSim;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -68,8 +63,8 @@ public class RobotContainer {
   private final Climb climb;
   private final CoralEndEffector coralEndEffector;
   private final Funnel funnel;
-//   private final AlgaeRemover algaeRemover;
-//   private final BatteryTracking batteryTracking;
+  //   private final AlgaeRemover algaeRemover;
+  //   private final BatteryTracking batteryTracking;
 
   // Controllers
   private final CommandXboxController driverController = new CommandXboxController(0);
@@ -192,7 +187,8 @@ public class RobotContainer {
         //     new AlgaeRemover(
         //         /*new NoOppServo(500, 2500),*/ new SimpleMotorSim(
         //             24, defaultCanBus, "algaeRemover", 2, 1));
-        // batteryTracking = new BatteryTracking(new BatteryTrackingReal(), () -> Math.random() * 40);
+        // batteryTracking = new BatteryTracking(new BatteryTrackingReal(), () -> Math.random() *
+        // 40);
 
         break;
 
@@ -354,7 +350,7 @@ public class RobotContainer {
     codriverController.povDown().whileTrue(climb.climbRetract());
     codriverController.povLeft().onTrue(funnel.move(Funnel.FunnelPosition.STARTING));
 
-    codriverController.rightTrigger(0.25).whileTrue(algaeRemover.runMotor());
+    // codriverController.rightTrigger(0.25).whileTrue(algaeRemover.runMotor());
   }
 
   /**

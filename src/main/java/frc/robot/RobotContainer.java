@@ -21,7 +21,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
-import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -69,8 +68,8 @@ public class RobotContainer {
   private final Climb climb;
   private final CoralEndEffector coralEndEffector;
   private final Funnel funnel;
-  private final AlgaeRemover algaeRemover;
-  private final BatteryTracking batteryTracking;
+//   private final AlgaeRemover algaeRemover;
+//   private final BatteryTracking batteryTracking;
 
   // Controllers
   private final CommandXboxController driverController = new CommandXboxController(0);
@@ -147,12 +146,12 @@ public class RobotContainer {
                 new PhoenixTalonFX(23, defaultCanBus, "climb"),
                 new HardwareDIO("climbForwardLimit", 1),
                 new HardwareDIO("climbReverseLimit", 2));
-        algaeRemover =
-            new AlgaeRemover(
-                // servoHub.getServo(ChannelId.kChannelId1),
-                new PhoenixTalonFX(24, defaultCanBus, "algaeRemover"));
-        batteryTracking = new BatteryTracking(new BatteryTrackingReal());
-            break;
+        // algaeRemover =
+        //     new AlgaeRemover(
+        //         // servoHub.getServo(ChannelId.kChannelId1),
+        //         new PhoenixTalonFX(24, defaultCanBus, "algaeRemover"));
+        // batteryTracking = new BatteryTracking(new BatteryTrackingReal());
+        break;
 
       case SIM:
         // Sim robot, instantiate physics sim IO implementations
@@ -189,13 +188,13 @@ public class RobotContainer {
                 SimDIO.fromNT("climbForwardLimit"),
                 SimDIO.fromNT("climbReverseLimit"));
         funnel = new Funnel(new NoOppServo(500, 2500));
-        algaeRemover =
-            new AlgaeRemover(
-                /*new NoOppServo(500, 2500),*/ new SimpleMotorSim(
-                    24, defaultCanBus, "algaeRemover", 2, 1));
-        batteryTracking = new BatteryTracking(new BatteryTrackingReal(), () -> Math.random() * 40);
+        // algaeRemover =
+        //     new AlgaeRemover(
+        //         /*new NoOppServo(500, 2500),*/ new SimpleMotorSim(
+        //             24, defaultCanBus, "algaeRemover", 2, 1));
+        // batteryTracking = new BatteryTracking(new BatteryTrackingReal(), () -> Math.random() * 40);
 
-            break;
+        break;
 
       default:
         // Replayed robot, disable IO implementations
@@ -222,11 +221,11 @@ public class RobotContainer {
                 new NoOppDio("climbForwardLimit"),
                 new NoOppDio("climbReverseLimit"));
         funnel = new Funnel(new NoOppServo(500, 2500));
-        algaeRemover =
-            new AlgaeRemover(/*new NoOppServo(500, 2500),*/ new NoOppTalonFX("algaeRemover", 0));
-        batteryTracking = new BatteryTracking(new BatteryTrackingNoOpp() {}, () -> 0);
+        // algaeRemover =
+        //     new AlgaeRemover(/*new NoOppServo(500, 2500),*/ new NoOppTalonFX("algaeRemover", 0));
+        // batteryTracking = new BatteryTracking(new BatteryTrackingNoOpp() {}, () -> 0);
 
-            break;
+        break;
     }
     drive.registerYawConsumer(vision::consumeYawObservation);
 
@@ -239,10 +238,10 @@ public class RobotContainer {
     //             .runIntake()
     //             .andThen(rumbleBoth(GenericHID.RumbleType.kLeftRumble, 1, 0.25))
     //             .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf));
-    RobotModeTriggers.teleop().onFalse(batteryTracking.writeCommand());
-    RobotModeTriggers.autonomous()
-        .and(() -> !DriverStation.isFMSAttached())
-        .onFalse(batteryTracking.writeCommand());
+    // RobotModeTriggers.teleop().onFalse(batteryTracking.writeCommand());
+    // RobotModeTriggers.autonomous()
+    //     .and(() -> !DriverStation.isFMSAttached())
+    //     .onFalse(batteryTracking.writeCommand());
     // Set up auto routines
     autoChooser =
         new LoggedDashboardChooser<>(

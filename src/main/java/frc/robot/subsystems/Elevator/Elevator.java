@@ -58,7 +58,7 @@ public class Elevator extends SubsystemBase {
   @AutoLogOutput private ElevatorPosition setPoint = ElevatorPosition.INTAKE;
   @Getter @AutoLogOutput private boolean atSetpoint = false;
   @AutoLogOutput private boolean homed = false;
-  private final Alert homedAlert = new Alert("Elevator not homed", Alert.AlertType.kWarning);
+  // private final Alert homedAlert = new Alert("Elevator not homed", Alert.AlertType.kWarning);
   private Debouncer homingDebouncer;
 
   public Elevator(LoggedTalonFX talon) {
@@ -106,7 +106,7 @@ public class Elevator extends SubsystemBase {
                 talon.getVelocity().baseUnitMagnitude(),
                 toleranceVelocity.get().baseUnitMagnitude());
     mechanism2dLigament.setLength(height.in(Meters));
-    homedAlert.set(!homed);
+    // homedAlert.set(!homed);
   }
 
   public Command moveDutyCycle(DoubleSupplier dutyCycle) {

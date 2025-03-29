@@ -72,7 +72,6 @@ public class RobotContainer {
   private final AlgaeRemover algaeRemover;
   private final BatteryTracking batteryTracking;
 
-  private final PowerDistribution powerDistribution;
   // Controllers
   private final CommandXboxController driverController = new CommandXboxController(0);
   private final CommandXboxController codriverController = new CommandXboxController(1);
@@ -153,9 +152,7 @@ public class RobotContainer {
                 // servoHub.getServo(ChannelId.kChannelId1),
                 new PhoenixTalonFX(24, defaultCanBus, "algaeRemover"));
         batteryTracking = new BatteryTracking(new BatteryTrackingReal());
-        powerDistribution = null; // new PowerDistribution(63, ModuleType.kRev);
-
-        break;
+            break;
 
       case SIM:
         // Sim robot, instantiate physics sim IO implementations
@@ -198,8 +195,7 @@ public class RobotContainer {
                     24, defaultCanBus, "algaeRemover", 2, 1));
         batteryTracking = new BatteryTracking(new BatteryTrackingReal(), () -> Math.random() * 40);
 
-        powerDistribution = null;
-        break;
+            break;
 
       default:
         // Replayed robot, disable IO implementations
@@ -230,8 +226,7 @@ public class RobotContainer {
             new AlgaeRemover(/*new NoOppServo(500, 2500),*/ new NoOppTalonFX("algaeRemover", 0));
         batteryTracking = new BatteryTracking(new BatteryTrackingNoOpp() {}, () -> 0);
 
-        powerDistribution = null;
-        break;
+            break;
     }
     drive.registerYawConsumer(vision::consumeYawObservation);
 

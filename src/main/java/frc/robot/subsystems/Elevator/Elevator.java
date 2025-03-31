@@ -15,7 +15,6 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.*;
-import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -58,7 +57,7 @@ public class Elevator extends SubsystemBase {
   @AutoLogOutput private ElevatorPosition setPoint = ElevatorPosition.INTAKE;
   @Getter @AutoLogOutput private boolean atSetpoint = false;
   @AutoLogOutput private boolean homed = false;
-  private final Alert homedAlert = new Alert("Elevator not homed", Alert.AlertType.kWarning);
+  // private final Alert homedAlert = new Alert("Elevator not homed", Alert.AlertType.kWarning);
   private Debouncer homingDebouncer;
 
   public Elevator(LoggedTalonFX talon) {
@@ -106,7 +105,7 @@ public class Elevator extends SubsystemBase {
                 talon.getVelocity().baseUnitMagnitude(),
                 toleranceVelocity.get().baseUnitMagnitude());
     mechanism2dLigament.setLength(height.in(Meters));
-    homedAlert.set(!homed);
+    // homedAlert.set(!homed);
   }
 
   public Command moveDutyCycle(DoubleSupplier dutyCycle) {

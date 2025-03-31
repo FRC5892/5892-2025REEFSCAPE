@@ -257,11 +257,12 @@ public class Vision extends SubsystemBase {
     } else {
       robotPosesAccepted.add(observation.pose());
     }
+    Logger.recordOutput("Vision/consumerPose/pose", observation.pose());
+    Logger.recordOutput("Vision/consumerPose/timestamp", observation.timestamp());
+    var devs = calculateStdDevs(observation, cameraIndex);
+    Logger.recordOutput("Vision/consumerPose/standerDevs", devs);
     // Send vision observation
-    consumer.accept(
-        observation.pose().toPose2d(),
-        observation.timestamp(),
-        calculateStdDevs(observation, cameraIndex));
+    consumer.accept(observation.pose().toPose2d(), observation.timestamp(), devs);
   }
 
   public void consumeYawObservation(double timestamp, Rotation2d yaw) {

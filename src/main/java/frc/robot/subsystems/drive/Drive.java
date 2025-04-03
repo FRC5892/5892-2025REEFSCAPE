@@ -149,14 +149,14 @@ public class Drive extends SubsystemBase {
   private final TunableHolonomicController holonomicController =
       new TunableHolonomicController(
           "Drive/Align",
-          new PIDConstants(1.2, 0.0, 0.0),
-          new Constraints(1, 0.75),
+          new PIDConstants(1.3, 0.0, 0.0),
+          new Constraints(10, 2),
           0.0381,
           new PIDConstants(1.2, 0.0, 0.0),
-          new Constraints(1, 1),
+          new Constraints(10, 2),
           0.05,
           new PIDConstants(1.75, 0.0, 0.0),
-          new Constraints(10, 3),
+          new Constraints(10, 4),
           0.17);
 
   // End 5892

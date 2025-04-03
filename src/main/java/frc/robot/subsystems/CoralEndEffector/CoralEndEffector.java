@@ -23,7 +23,7 @@ public class CoralEndEffector extends SubsystemBase {
   private final LoggedTunableNumber intakeDutyCycle =
       new LoggedTunableNumber("Coral/Intake Duty Cycle", 0.30);
   private final LoggedTunableNumber outtakeDutyCycle =
-      new LoggedTunableNumber("Coral/Outtake Duty Cycle", 0.25);
+      new LoggedTunableNumber("Coral/Outtake Duty Cycle", 0.20);
   private final LoggedTunableNumber debounceTime =
       new LoggedTunableNumber("Coral/BeamBreakDebounceS", 0.1);
   private final DutyCycleOut dutyCycleOut = new DutyCycleOut(0).withEnableFOC(true);

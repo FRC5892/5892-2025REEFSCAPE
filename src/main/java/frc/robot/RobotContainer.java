@@ -18,6 +18,11 @@ import com.revrobotics.servohub.ServoChannel.ChannelId;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.PubSubOption;
+import edu.wpi.first.networktables.PubSubOptions;
+import edu.wpi.first.networktables.StringPublisher;
+import edu.wpi.first.networktables.StringTopic;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
@@ -63,6 +68,7 @@ public class RobotContainer {
   private final Climb climb;
   private final CoralEndEffector coralEndEffector;
   private final Funnel funnel;
+  private final StringPublisher selectedDashboardTabPublisher = NetworkTableInstance.getDefault().getStringTopic("/Elastic/SelectedTab").publish(PubSubOption.keepDuplicates(true));
   //   private final AlgaeRemover algaeRemover;
   //   private final BatteryTracking batteryTracking;
 
@@ -259,6 +265,7 @@ public class RobotContainer {
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
     CameraServer.startAutomaticCapture();
+    CameraServer.startAutomaticCapture();
     // Configure the button bindings
     configureButtonBindings();
   }
@@ -345,8 +352,8 @@ public class RobotContainer {
 
     codriverController
         .povUp()
-        .whileTrue(funnel.move(Funnel.FunnelPosition.UP).alongWith(climb.climbExtend()));
-    codriverController.povRight().onTrue(funnel.move(Funnel.FunnelPosition.DOWN));
+        .whileTrue(funnel.move(Funnel.FunnelPosition.UP).alongWith(climb.climbExtend()).alongWith(Commands.runOnce(()->selectedDashboardTabPublisher.set("Climb"))));
+    codriverController.povRight().onTrue(funnel.move(Funnel.FunnelPosition.DOWN).alongWith(Commands.runOnce(()->selectedDashboardTabPublisher.set("Teleoperated"))));
     codriverController.povDown().whileTrue(climb.climbRetract());
     codriverController.povLeft().onTrue(funnel.move(Funnel.FunnelPosition.STARTING));
 

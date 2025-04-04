@@ -59,16 +59,16 @@ public class Autos {
                   loadLogFollow("I - Left Far Station", points)
                       .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
                   intake(coralSubsystem),
-                  loadLogFollow("Left Far Station - L", points)
-                      .alongWith(extendAtPosition(elevatorSubsystem, drive, ElevatorPosition.L4)),
-                  outtakeCoral(coralSubsystem),
-                  loadLogFollow("L - Left Far Station", points)
-                      .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
-                  intake(coralSubsystem),
                   loadLogFollow("Left Far Station - A", points)
                       .alongWith(extendAtPosition(elevatorSubsystem, drive, ElevatorPosition.L4)),
                   outtakeCoral(coralSubsystem),
                   loadLogFollow("A - Left Far Station", points)
+                      .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
+                  intake(coralSubsystem),
+                  loadLogFollow("Left Far Station - L", points)
+                      .alongWith(extendAtPosition(elevatorSubsystem, drive, ElevatorPosition.L4)),
+                  outtakeCoral(coralSubsystem),
+                  loadLogFollow("L - Left Far Station", points)
                       .alongWith(elevatorSubsystem.goToPosition(ElevatorPosition.INTAKE)),
                   intake(coralSubsystem),
                   loadLogFollow("Left Far Station - J", points)

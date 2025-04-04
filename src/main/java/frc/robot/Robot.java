@@ -16,14 +16,12 @@ package frc.robot;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.DriveMotorArrangement;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.SteerMotorArrangement;
-
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.generated.TunerConstants;
-
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -74,7 +72,7 @@ public class Robot extends LoggedRobot {
         Logger.addDataReceiver(new NT4Publisher());
         var logFolder = new File("/U/logs");
         if (!logFolder.canWrite() || !logFolder.isDirectory()) {
-          new Alert("Failed to access log file", AlertType.kError);
+          new Alert("Failed to access log file", AlertType.kError).set(true);;
         }
         // 5892
         LoggedPowerDistribution.getInstance(63, ModuleType.kRev);

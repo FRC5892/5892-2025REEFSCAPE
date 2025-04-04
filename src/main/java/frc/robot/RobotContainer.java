@@ -367,11 +367,11 @@ public class RobotContainer {
                     Commands.runOnce(() -> selectedDashboardTabPublisher.set("Teleoperated"))));
     codriverController.povDown().whileTrue(climb.climbRetract());
     codriverController.povLeft().onTrue(funnel.move(Funnel.FunnelPosition.STARTING));
-    if (Constants.tuningMode) {
-      codriverController
-          .rightTrigger(0.25)
-          .whileTrue(Autos.intakeShoot(elevator, coralEndEffector));
-    }
+    // if (Constants.tuningMode) {
+    //   codriverController
+    //       .rightTrigger(0.25)
+    //       .whileTrue(Autos.intakeShoot(elevator, coralEndEffector));
+    // }
   }
 
   /**

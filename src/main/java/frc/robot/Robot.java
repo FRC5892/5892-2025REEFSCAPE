@@ -73,7 +73,6 @@ public class Robot extends LoggedRobot {
         Logger.addDataReceiver(new WPILOGWriter());
         Logger.addDataReceiver(new NT4Publisher());
         var logFolder = new File("/U/logs");
-        @SuppressWarnings("resource");
         if (!logFolder.canWrite() || !logFolder.isDirectory()) {
           new Alert("Failed to access log file", AlertType.kError);
         }

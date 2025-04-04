@@ -220,7 +220,12 @@ public class Autos {
         .withName(name)
         .alongWith(Commands.print("Following path " + name));
   }
+
   public static Command intakeShoot(Elevator elevator, CoralEndEffector effector) {
-    return intake(effector).andThen(elevator.goToPosition(ElevatorPosition.L2),outtakeCoral(effector),elevator.goToPosition(ElevatorPosition.INTAKE));
+    return intake(effector)
+        .andThen(
+            elevator.goToPosition(ElevatorPosition.L2),
+            outtakeCoral(effector),
+            elevator.goToPosition(ElevatorPosition.INTAKE));
   }
 }

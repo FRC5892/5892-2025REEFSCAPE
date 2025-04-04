@@ -368,7 +368,9 @@ public class RobotContainer {
     codriverController.povDown().whileTrue(climb.climbRetract());
     codriverController.povLeft().onTrue(funnel.move(Funnel.FunnelPosition.STARTING));
     if (Constants.tuningMode) {
-        codriverController.rightTrigger(0.25).whileTrue(Autos.intakeShoot(elevator, coralEndEffector));
+      codriverController
+          .rightTrigger(0.25)
+          .whileTrue(Autos.intakeShoot(elevator, coralEndEffector));
     }
   }
 

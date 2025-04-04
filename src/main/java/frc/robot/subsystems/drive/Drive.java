@@ -151,13 +151,13 @@ public class Drive extends SubsystemBase {
           "Drive/Align",
           new PIDConstants(1.3, 0.0, 0.0),
           new Constraints(10, 2),
-          0.0381,
+          0.03,
           new PIDConstants(1.2, 0.0, 0.0),
           new Constraints(10, 2),
-          0.05,
+          0.025,
           new PIDConstants(1.75, 0.0, 0.0),
           new Constraints(10, 4),
-          0.17);
+          0.07);
 
   // End 5892
 

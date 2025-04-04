@@ -367,8 +367,9 @@ public class RobotContainer {
                     Commands.runOnce(() -> selectedDashboardTabPublisher.set("Teleoperated"))));
     codriverController.povDown().whileTrue(climb.climbRetract());
     codriverController.povLeft().onTrue(funnel.move(Funnel.FunnelPosition.STARTING));
-
-    // codriverController.rightTrigger(0.25).whileTrue(algaeRemover.runMotor());
+    if (Constants.tuningMode) {
+        codriverController.rightTrigger(0.25).whileTrue(Autos.intakeShoot(elevator, coralEndEffector));
+    }
   }
 
   /**

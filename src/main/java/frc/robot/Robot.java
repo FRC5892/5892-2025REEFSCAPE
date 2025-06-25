@@ -71,11 +71,11 @@ public class Robot extends LoggedRobot {
         Logger.addDataReceiver(new WPILOGWriter());
         Logger.addDataReceiver(new NT4Publisher());
         var logFolder = new File("/U/logs");
+        // 5892
         if (!logFolder.canWrite() || !logFolder.isDirectory()) {
           new Alert("Failed to access log file", AlertType.kError).set(true);
           ;
         }
-        // 5892
         LoggedPowerDistribution.getInstance(63, ModuleType.kRev);
 
         break;

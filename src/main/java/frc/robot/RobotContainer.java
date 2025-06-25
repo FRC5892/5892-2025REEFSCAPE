@@ -37,6 +37,7 @@ import frc.robot.subsystems.Climb.Climb;
 import frc.robot.subsystems.CoralEndEffector.CoralEndEffector;
 import frc.robot.subsystems.Elevator.Elevator;
 import frc.robot.subsystems.Elevator.ElevatorConstants.ElevatorPosition;
+import frc.robot.subsystems.LEDS.Leds;
 import frc.robot.subsystems.Elevator.ElevatorSimulation;
 import frc.robot.subsystems.drive.*;
 import frc.robot.subsystems.funnel.Funnel;
@@ -148,6 +149,7 @@ public class RobotContainer {
                 new PhoenixTalonFX(23, defaultCanBus, "climb"),
                 new HardwareDIO("climbForwardLimit", 1),
                 new HardwareDIO("climbReverseLimit", 2));
+        new Leds();
         // algaeRemover =
         //     new AlgaeRemover(
         //         // servoHub.getServo(ChannelId.kChannelId1),

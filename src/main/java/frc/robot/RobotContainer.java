@@ -291,6 +291,9 @@ public class RobotContainer {
                 .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf))
         .onFalse(rumbleBoth(GenericHID.RumbleType.kBothRumble, 1, 0.02));
 
+    coralEndEffector.beamBreakTrigger().and(DriverStation::isDisabled).onTrue(climb.coastCommand());
+    RobotModeTriggers.disabled().onFalse(climb.brakeCommand());
+
     // if (powerDistribution != null) {
     //   driverController
     //       .back()
@@ -306,6 +309,7 @@ public class RobotContainer {
     RobotModeTriggers.autonomous()
         .or(DriverStation::isTeleopEnabled)
         .onTrue(funnel.move(Funnel.FunnelPosition.DOWN));
+    // RobotModeTriggers.disabled().onTrue(Commands.run)
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(

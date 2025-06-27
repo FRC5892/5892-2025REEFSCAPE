@@ -291,8 +291,8 @@ public class RobotContainer {
                 .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf))
         .onFalse(rumbleBoth(GenericHID.RumbleType.kBothRumble, 1, 0.02));
 
-    coralEndEffector.beamBreakTrigger().and(DriverStation::isDisabled).onTrue(climb.coastCommand());
-    RobotModeTriggers.disabled().onFalse(climb.brakeCommand());
+    
+    RobotModeTriggers.disabled().onFalse(climb.brakeCommand()).onTrue(Commands.waitSeconds(5).andThen(climb.coastCommand()));
 
     // if (powerDistribution != null) {
     //   driverController

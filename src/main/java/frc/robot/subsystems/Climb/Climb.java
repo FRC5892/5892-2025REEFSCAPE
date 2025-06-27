@@ -10,10 +10,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.StaticBrake;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-
-import edu.wpi.first.wpilibj.motorcontrol.Talon;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.LoggedDIO.LoggedDIO;
 import frc.robot.util.LoggedTalon.LoggedTalonFX;
@@ -90,17 +87,23 @@ public class Climb extends SubsystemBase {
             () -> talon.setControl(brake))
         .until(reverseLimit::get);
   }
+
   public Command coastCommand() {
-    return runOnce(()->{
-        config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-        new Thread(() ->talon.quickApplyConfig(config)).start();
-    }).ignoringDisable(true);
+    return runOnce(
+            () -> {
+              config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+              new Thread(() -> talon.quickApplyConfig(config)).start();
+            })
+        .ignoringDisable(true);
   }
+
   public Command brakeCommand() {
-    return runOnce(()->{
-        config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        new Thread(() ->talon.quickApplyConfig(config)).start();
-    }).ignoringDisable(true);
+    return runOnce(
+            () -> {
+              config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+              new Thread(() -> talon.quickApplyConfig(config)).start();
+            })
+        .ignoringDisable(true);
   }
 
   @Override

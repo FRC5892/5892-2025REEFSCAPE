@@ -61,6 +61,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 public class Drive extends SubsystemBase {
   // TunerConstants doesn't include these constants, so they are declared locally
@@ -123,6 +124,8 @@ public class Drive extends SubsystemBase {
   @Getter @AutoLogOutput private double distanceToReefM = -1;
 
   private BiConsumer<Double, Rotation2d> yawConsumer = null;
+
+  private static final LoggedTunableNumber teleopMaxSpeed = new LoggedTunableNumber("Drive/teleopMaxSpeedPercent", 1); 
 
   // private final LoggedTunableNumber startingDistance =
   //     new LoggedTunableNumber("Drive/macroDistance", -1);
@@ -483,7 +486,7 @@ public class Drive extends SubsystemBase {
 
   /** Returns the maximum linear speed in meters per sec. */
   public double getMaxLinearSpeedMetersPerSec() {
-    return TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
+    return TunerConstants.kSpeedAt12Volts.in(MetersPerSecond) * teleopMaxSpeed.get() ;
   }
 
   /** Returns the maximum angular speed in radians per sec. */

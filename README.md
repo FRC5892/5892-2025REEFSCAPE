@@ -5,16 +5,17 @@ This document summarizes the main driver and codriver controls, as well as the C
 
 ## Controls
 
-| Function                        | Controller | Button / Stick                         | Description                              |
-|----------------------------------|------------|----------------------------------------|------------------------------------------|
-| Drive (field-oriented)           | Driver     | Left Stick Y/X, Right Stick X (theta)  | Main driving control (rotation = right stick) |
-| Reset Gyro                       | Driver     | Y Button                               | Sets robot's heading to zero             |
-| Align to Reef (Left)             | Driver     | Left Bumper                            | Aligns robot to left reef                |
-| Align to Reef (Right)            | Driver     | Right Bumper                           | Aligns robot to right reef               |
-| Nudge Forward                    | Driver     | D-pad Up (POV Up)                      | Small forward movement                   |
-| Nudge Backward                   | Driver     | D-pad Down (POV Down)                  | Small backward movement                  |
-| Nudge Left                       | Driver     | D-pad Left (POV Left)                  | Small left movement                      |
-| Nudge Right                      | Driver     | D-pad Right (POV Right)                | Small right movement                     |
+| Function           | Controller | Button / Stick           | Description            |
+|--------------------|------------|--------------------------|------------------------|
+| Drive (field-oriented) | Driver     | Left Stick (Y/X)         | Robot translation      |
+| Drive (field-oriented) | Driver     | Right Stick (X) (theta)  | Robot rotation         |
+| Reset Gyro         | Driver     | Y Button                 | Sets robot's heading to zero             |
+| Align to Reef (Left)  | Driver     | Left Bumper              | Aligns robot to left reef                |
+| Align to Reef (Right) | Driver     | Right Bumper             | Aligns robot to right reef               |
+| Nudge Forward      | Driver     | D-pad Up (POV Up)        | Small forward movement                   |
+| Nudge Backward     | Driver     | D-pad Down (POV Down)    | Small backward movement                  |
+| Nudge Left         | Driver     | D-pad Left (POV Left)    | Small left movement                      |
+| Nudge Right        | Driver     | D-pad Right (POV Right)  | Small right movement                     |
 | Elevator to Level 2 (L2)         | Codriver   | B Button                               | Moves elevator to Level 2                |
 | Elevator to Level 3 (L3)         | Codriver   | X Button                               | Moves elevator to Level 3                |
 | Elevator to Level 4 (L4)         | Codriver   | Y Button                               | Moves elevator to Level 4                |

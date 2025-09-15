@@ -1,7 +1,12 @@
 # Typhoon (FRC 5892) - 2025 Reefscape
 
-Welcome to the controls and hardware reference for Typhoon, FRC team 5892's robot for the 2025 REEFSCAPE game
-This document summarizes the main driver and codriver controls, as well as the CAN IDs for all major hardware components.  
+Welcome to the repository for Typhoon, FRC Team 5892 Energy HEROs robot for the 2025 REEFSCAPE season
+
+## About Team 5892
+Team 5892, the Energy HEROs, is an FRC team from Energy Institute High School in Houston, Texas, founded in 2016.
+
+## About Typhoon (2025)
+Typhoon is our robot entry for the 2025 FRC competition, REEFSCAPE. Typhoon features a swerve drive chain (a system allowing wheels to rotate and move in any direction), a coral source intake with a retractable funnel (an intake mechanism that collects coral-shaped game pieces using a funnel that can extend or retract), and is able to score on L2-L4 corals (referring to the second through fourth scoring levels for these game pieces) and climb the deep cage (the elevated structure used for endgame climbing) during the endgame. During the season, we ranked 26th in the Texas district with 186 total points scored and a 30-19-0 record in official gameplay. 
 
 ## Controls
 

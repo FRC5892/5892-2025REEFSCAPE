@@ -37,157 +37,158 @@ public class Elevator extends SubsystemBase {
       new LoggedTunableMeasure<>("Elevator/homing/Threshold", RotationsPerSecond.mutable(0.25));
   private final LoggedTunableNumber homingVoltage =
       new LoggedTunableNumber("Elevator/homing/Speed V", -0.5);
-
-  private final LoggedNetworkBoolean eStop =
-      new LoggedNetworkBoolean("SmartDashboard/Elevator/E Stop", false);
-  private final LoggedTunableMeasure<MutDistance> tolerance =
-      new LoggedTunableMeasure<>("Elevator/Tolerance", Meters.mutable(0.03));
-  private final LoggedTunableMeasure<MutAngularVelocity> toleranceVelocity =
-      new LoggedTunableMeasure<>("Elevator/ToleranceVelocity", RPM.mutable(1));
-  @AutoLogOutput private final LoggedMechanism2d mechanism = new LoggedMechanism2d(0.25, 3);
-  private final LoggedMechanismRoot2d mechanism2dRoot = mechanism.getRoot("Elevator Root", 0, 0);
-  private final LoggedMechanismLigament2d mechanism2dLigament =
-      mechanism2dRoot.append(new LoggedMechanismLigament2d("Elevator Ligament", 0, 90));
-
-  private final VoltageOut voltageOut = new VoltageOut(0);
-  private final MotionMagicVoltage motionMagicControl =
-      new MotionMagicVoltage(Degrees.zero()).withEnableFOC(true);
-
-  @AutoLogOutput @Getter private final MutDistance height = Meters.mutable(0);
-  @AutoLogOutput private ElevatorPosition setPoint = ElevatorPosition.INTAKE;
-  @Getter @AutoLogOutput private boolean atSetpoint = false;
-  @AutoLogOutput private boolean homed = false;
-  // private final Alert homedAlert = new Alert("Elevator not homed", Alert.AlertType.kWarning);
-  private Debouncer homingDebouncer;
-
-  public Elevator(LoggedTalonFX talon) {
-    var config =
-        new TalonFXConfiguration()
-            .withMotionMagic(
-                new MotionMagicConfigs()
-                    .withMotionMagicCruiseVelocity(16)
-                    .withMotionMagicAcceleration(70)
-                    .withMotionMagicJerk(800))
-            .withCurrentLimits(
-                new CurrentLimitsConfigs().withSupplyCurrentLimit(60).withStatorCurrentLimit(80))
-            .withFeedback(
-                new FeedbackConfigs().withSensorToMechanismRatio(ElevatorConstants.GEAR_RATIO))
-            .withMotorOutput(
-                new MotorOutputConfigs()
-                    .withInverted(InvertedValue.Clockwise_Positive)
-                    .withNeutralMode(NeutralModeValue.Brake))
-            .withSlot0(new Slot0Configs().withKG(0.29).withKV(0.72).withKP(10).withKA(0.05));
-    this.talon =
-        talon
-            .withConfig(config)
-            .withSimConfig(
-                c ->
-                    c.withCurrentLimits(
-                            new CurrentLimitsConfigs()
-                                .withStatorCurrentLimitEnable(false)
-                                .withSupplyCurrentLimitEnable(false))
-                        .withSlot0(c.Slot0.withKG(0.15).withKV(1.29).withKA(0.03).withKP(2.5)))
-            .withMMPIDTuning(config, talon);
-  }
-
-  @Override
-  public void periodic() {
-    talon.periodic();
-    height.mut_replace(Elevator.angleToDistance(talon.getPosition()));
-    Logger.recordOutput("Elevator/SetpointHeight", setPoint.height.get());
-    atSetpoint =
-        MathUtil.isNear(
-                setPoint.height.get().baseUnitMagnitude(),
-                height.baseUnitMagnitude(),
-                tolerance.get().baseUnitMagnitude())
-            && MathUtil.isNear(
-                0,
-                talon.getVelocity().baseUnitMagnitude(),
-                toleranceVelocity.get().baseUnitMagnitude());
-    mechanism2dLigament.setLength(height.in(Meters));
-    // homedAlert.set(!homed);
-  }
-
-  public Command moveDutyCycle(DoubleSupplier dutyCycle) {
-    return runEnd(
-            () -> {
-              if (!eStop.get()) {
-                voltageOut.withOutput(dutyCycle.getAsDouble() * 12);
-              } else {
-                voltageOut.withOutput(0);
-              }
-              Logger.recordOutput("Elevator/VoltageOut", voltageOut.Output);
-
-              talon.setControl(voltageOut);
-            },
-            () -> talon.setControl(voltageOut.withOutput(0)))
-        .unless(eStop::get);
-  }
-
-  /**
-   * Moves the elevator to a position.
-   *
-   * @param position the position.
-   * @return the command
-   */
-  public Command goToPosition(ElevatorPosition position) {
-    return runOnce(
-            () -> {
-              if (!eStop.get()) {
-                talon.setControl(
-                    motionMagicControl.withPosition(distanceToAngle(position.height.get())));
-              } else {
+  private final static LoggedTunableMeasure<MutDistance> distancePerRotation = new LoggedTunableMeasure<>("Elevator/DistancePerRotation", Inches.mutable(5.5));
+  
+    private final LoggedNetworkBoolean eStop =
+        new LoggedNetworkBoolean("SmartDashboard/Elevator/E Stop", false);
+    private final LoggedTunableMeasure<MutDistance> tolerance =
+        new LoggedTunableMeasure<>("Elevator/Tolerance", Meters.mutable(0.03));
+    private final LoggedTunableMeasure<MutAngularVelocity> toleranceVelocity =
+        new LoggedTunableMeasure<>("Elevator/ToleranceVelocity", RPM.mutable(1));
+    @AutoLogOutput private final LoggedMechanism2d mechanism = new LoggedMechanism2d(0.25, 3);
+    private final LoggedMechanismRoot2d mechanism2dRoot = mechanism.getRoot("Elevator Root", 0, 0);
+    private final LoggedMechanismLigament2d mechanism2dLigament =
+        mechanism2dRoot.append(new LoggedMechanismLigament2d("Elevator Ligament", 0, 90));
+  
+    private final VoltageOut voltageOut = new VoltageOut(0);
+    private final MotionMagicVoltage motionMagicControl =
+        new MotionMagicVoltage(Degrees.zero()).withEnableFOC(true);
+  
+    @AutoLogOutput @Getter private final MutDistance height = Meters.mutable(0);
+    @AutoLogOutput private ElevatorPosition setPoint = ElevatorPosition.INTAKE;
+    @Getter @AutoLogOutput private boolean atSetpoint = false;
+    @AutoLogOutput private boolean homed = false;
+    // private final Alert homedAlert = new Alert("Elevator not homed", Alert.AlertType.kWarning);
+    private Debouncer homingDebouncer;
+  
+    public Elevator(LoggedTalonFX talon) {
+      var config =
+          new TalonFXConfiguration()
+              .withMotionMagic(
+                  new MotionMagicConfigs()
+                      .withMotionMagicCruiseVelocity(16)
+                      .withMotionMagicAcceleration(70)
+                      .withMotionMagicJerk(800))
+              .withCurrentLimits(
+                  new CurrentLimitsConfigs().withSupplyCurrentLimit(60).withStatorCurrentLimit(80))
+              .withFeedback(
+                  new FeedbackConfigs().withSensorToMechanismRatio(ElevatorConstants.GEAR_RATIO))
+              .withMotorOutput(
+                  new MotorOutputConfigs()
+                      .withInverted(InvertedValue.Clockwise_Positive)
+                      .withNeutralMode(NeutralModeValue.Brake))
+              .withSlot0(new Slot0Configs().withKG(0.29).withKV(0.72).withKP(10).withKA(0.05));
+      this.talon =
+          talon
+              .withConfig(config)
+              .withSimConfig(
+                  c ->
+                      c.withCurrentLimits(
+                              new CurrentLimitsConfigs()
+                                  .withStatorCurrentLimitEnable(false)
+                                  .withSupplyCurrentLimitEnable(false))
+                          .withSlot0(c.Slot0.withKG(0.15).withKV(1.29).withKA(0.03).withKP(2.5)))
+              .withMMPIDTuning(config, talon);
+    }
+  
+    @Override
+    public void periodic() {
+      talon.periodic();
+      height.mut_replace(Elevator.angleToDistance(talon.getPosition()));
+      Logger.recordOutput("Elevator/SetpointHeight", setPoint.height.get());
+      atSetpoint =
+          MathUtil.isNear(
+                  setPoint.height.get().baseUnitMagnitude(),
+                  height.baseUnitMagnitude(),
+                  tolerance.get().baseUnitMagnitude())
+              && MathUtil.isNear(
+                  0,
+                  talon.getVelocity().baseUnitMagnitude(),
+                  toleranceVelocity.get().baseUnitMagnitude());
+      mechanism2dLigament.setLength(height.in(Meters));
+      // homedAlert.set(!homed);
+    }
+  
+    public Command moveDutyCycle(DoubleSupplier dutyCycle) {
+      return runEnd(
+              () -> {
+                if (!eStop.get()) {
+                  voltageOut.withOutput(dutyCycle.getAsDouble() * 12);
+                } else {
+                  voltageOut.withOutput(0);
+                }
+                Logger.recordOutput("Elevator/VoltageOut", voltageOut.Output);
+  
+                talon.setControl(voltageOut);
+              },
+              () -> talon.setControl(voltageOut.withOutput(0)))
+          .unless(eStop::get);
+    }
+  
+    /**
+     * Moves the elevator to a position.
+     *
+     * @param position the position.
+     * @return the command
+     */
+    public Command goToPosition(ElevatorPosition position) {
+      return runOnce(
+              () -> {
+                if (!eStop.get()) {
+                  talon.setControl(
+                      motionMagicControl.withPosition(distanceToAngle(position.height.get())));
+                } else {
+                  talon.setControl(voltageOut.withOutput(0));
+                }
+                Logger.recordOutput(
+                    "Elevator/MotorPositionSetpoint", Rotations.of(motionMagicControl.Position));
+                setPoint = position;
+              })
+          .unless(eStop::get)
+          .andThen(Commands.waitUntil(this::isAtSetpoint));
+    }
+  
+    public Command homeCommand() {
+      return startRun(
+              () -> {
+                homingDebouncer = new Debouncer(0.25);
+              },
+              () -> {
+                if (!eStop.get()) {
+                  talon.setControl(voltageOut.withOutput(homingVoltage.get()));
+                } else {
+                  talon.setControl(voltageOut.withOutput(0));
+                }
+                homed =
+                    homingDebouncer.calculate(
+                        Math.abs(talon.getVelocity().baseUnitMagnitude())
+                            <= homedThreshold.get().baseUnitMagnitude());
+              })
+          .unless(eStop::get)
+          .until(() -> homed)
+          .finallyDo(
+              () -> {
+                // Success or interrupted, just clean up
                 talon.setControl(voltageOut.withOutput(0));
-              }
-              Logger.recordOutput(
-                  "Elevator/MotorPositionSetpoint", Rotations.of(motionMagicControl.Position));
-              setPoint = position;
-            })
-        .unless(eStop::get)
-        .andThen(Commands.waitUntil(this::isAtSetpoint));
-  }
-
-  public Command homeCommand() {
-    return startRun(
-            () -> {
-              homingDebouncer = new Debouncer(0.25);
-            },
-            () -> {
-              if (!eStop.get()) {
-                talon.setControl(voltageOut.withOutput(homingVoltage.get()));
-              } else {
-                talon.setControl(voltageOut.withOutput(0));
-              }
-              homed =
-                  homingDebouncer.calculate(
-                      Math.abs(talon.getVelocity().baseUnitMagnitude())
-                          <= homedThreshold.get().baseUnitMagnitude());
-            })
-        .unless(eStop::get)
-        .until(() -> homed)
-        .finallyDo(
-            () -> {
-              // Success or interrupted, just clean up
-              talon.setControl(voltageOut.withOutput(0));
-              // Let the GC take it away
-              homingDebouncer = null;
-            })
-        .andThen(Commands.waitSeconds(1))
-        .andThen(
-            () -> {
-              // Success!
-              talon.setPosition(Rotations.of(0));
-              homed = true;
-            });
-  }
-
-  protected static Angle distanceToAngle(Distance height) {
-    return Rotations.of(
-        height.baseUnitMagnitude() / ElevatorConstants.DISTANCE_PER_ROTATION.baseUnitMagnitude());
+                // Let the GC take it away
+                homingDebouncer = null;
+              })
+          .andThen(Commands.waitSeconds(1))
+          .andThen(
+              () -> {
+                // Success!
+                talon.setPosition(Rotations.of(0));
+                homed = true;
+              });
+    }
+  
+    protected static Angle distanceToAngle(Distance height) {
+      return Rotations.of(
+          height.baseUnitMagnitude() / distancePerRotation.get().baseUnitMagnitude());
   }
 
   protected static Distance angleToDistance(Angle angle) {
-    return ElevatorConstants.DISTANCE_PER_ROTATION.times(angle.in(Rotations));
+    return distancePerRotation.get().times(angle.in(Rotations));
   }
 
   public boolean atPosition(ElevatorPosition position) {

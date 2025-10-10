@@ -22,7 +22,7 @@ public class ElevatorSimulation extends BaseTalonFXSim {
           DCMotor.getKrakenX60Foc(1),
           ElevatorConstants.GEAR_RATIO,
           kCarriageMass,
-          ElevatorConstants.DISTANCE_PER_ROTATION.in(Meters) / (2 * Math.PI),
+          Elevator.distancePerRotation.get().in(Meters) / (2 * Math.PI),
           //          0.001,
           kMinElevatorHeightMeters,
           kMaxElevatorHeightMeters,

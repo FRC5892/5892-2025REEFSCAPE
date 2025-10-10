@@ -4,10 +4,8 @@
 
 package frc.robot.subsystems.Elevator;
 
-import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 
-import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.MutDistance;
 import frc.robot.util.LoggedTunableMeasure;
 import java.util.function.Supplier;

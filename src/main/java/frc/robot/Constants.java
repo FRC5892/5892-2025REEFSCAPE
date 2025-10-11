@@ -26,7 +26,7 @@ public final class Constants {
   public static final Mode simMode = Mode.REPLAY;
   public static final Mode currentMode = RobotBase.isReal() ? realMode : simMode;
 
-  public static final boolean tuningMode = true;
+  public static final boolean tuningMode = false;
 
   static {
     if (!tuningMode) {

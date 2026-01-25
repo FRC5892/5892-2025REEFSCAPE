@@ -12,8 +12,8 @@ Typhoon is our robot entry for the 2025 FRC competition, REEFSCAPE. Typhoon feat
 
 | Function           | Controller | Button / Stick           | Description            |
 |--------------------|------------|--------------------------|------------------------|
-| Drive (field-oriented) | Driver     | Left Stick (Y/X)         | Robot translation      |
-| Drive (field-oriented) | Driver     | Right Stick (X) (theta)  | Robot rotation         |
+| Drive (field-oriented) | Driver     | Left Stick (X/Y)         | Robot translation      |
+| Drive (field-oriented) | Driver     | Right Stick (X/Y)  | Robot rotation         |
 | Reset Gyro         | Driver     | Y Button                 | Sets robot's heading to zero             |
 | Align to Reef (Left)  | Driver     | Left Bumper              | Aligns robot to left reef                |
 | Align to Reef (Right) | Driver     | Right Bumper             | Aligns robot to right reef               |

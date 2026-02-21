@@ -7,6 +7,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.ControlRequest;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.*;
 // import frc.robot.util.LoggedTalon.Follower.TalonFXFollower;
@@ -37,14 +38,13 @@ public class PhoenixTalonFX extends LoggedTalonFX {
     torqueCurrentSignal = new ArrayList<>();
     supplyCurrentSignal = new ArrayList<>();
     temperatureSignal = new ArrayList<>();
-    Follower follower = new Follower(canID, false);
+    Follower follower = new Follower(canID, MotorAlignmentValue.Aligned);
     for (int i = 0; i <= followers.length; i++) {
       if (i == 0) {
         talonFX[0] = new TalonFX(canID, canBus);
       } else {
         talonFX[i] = new TalonFX(followers[i - 1].canid(), canBus);
-        talonFX[i].setControl(
-            follower.withOpposeMasterDirection(followers[i - 1].opposeDirection()));
+        talonFX[i].setControl(follower.withMotorAlignment(followers[i - 1].opposeDirection()));
       }
       connectionDebouncer[i] = new Debouncer(0.5);
       voltageSignal.add(i, talonFX[i].getMotorVoltage());

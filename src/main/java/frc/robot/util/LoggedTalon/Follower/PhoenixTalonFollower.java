@@ -4,4 +4,6 @@
 
 package frc.robot.util.LoggedTalon.Follower;
 
-public record PhoenixTalonFollower(int canid, boolean opposeDirection) {}
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
+
+public record PhoenixTalonFollower(int canid, MotorAlignmentValue opposeDirection) {}

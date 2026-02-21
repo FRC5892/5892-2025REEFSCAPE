@@ -29,8 +29,6 @@
     null
   ],
   "java.test.defaultConfig": "WPIlibUnitTests",
-  "spotlessGradle.format.enable": true,
-  "spotlessGradle.diagnostics.enable": false,
   "java.import.gradle.annotationProcessing.enabled": false,
   "java.completion.favoriteStaticMembers": [
     "org.junit.Assert.*",
@@ -60,21 +58,8 @@
     "javax.smartcardio.*",
     "edu.wpi.first.math.proto.*",
     "edu.wpi.first.math.**.proto.*",
-    "edu.wpi.first.math.**.struct.*"
+    "edu.wpi.first.math.**.struct.*",
+    null
   ],
-  "editor.defaultFormatter": "richardwillis.vscode-spotless-gradle",
-  "[json]": {
-    "editor.defaultFormatter": "richardwillis.vscode-spotless-gradle"
-  },
-  "[java]": {
-    "editor.defaultFormatter": "richardwillis.vscode-spotless-gradle"
-  },
-  "java.debug.settings.onBuildFailureProceed": true,
-  "cSpell.words": [
-    "codriver",
-    "Debouncer",
-    "Feedforward",
-    "Setpoint",
-    "Teleop"
-  ]
+  "java.dependency.enableDependencyCheckup": false
 }

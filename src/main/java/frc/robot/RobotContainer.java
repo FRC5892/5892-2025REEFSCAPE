@@ -14,8 +14,6 @@
 package frc.robot;
 
 import com.ctre.phoenix6.CANBus;
-import com.revrobotics.servohub.ServoChannel.ChannelId;
-import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -28,29 +26,12 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.commands.Autos;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.Climb.Climb;
-import frc.robot.subsystems.CoralEndEffector.CoralEndEffector;
-import frc.robot.subsystems.Elevator.Elevator;
-import frc.robot.subsystems.Elevator.ElevatorConstants.ElevatorPosition;
-import frc.robot.subsystems.Elevator.ElevatorSimulation;
-import frc.robot.subsystems.LEDS.Leds;
 import frc.robot.subsystems.drive.*;
-import frc.robot.subsystems.funnel.Funnel;
 import frc.robot.subsystems.funnel.FunnelServoHub;
 import frc.robot.subsystems.vision.*;
 import frc.robot.util.AllianceFlipUtil;
-import frc.robot.util.LoggedDIO.HardwareDIO;
-import frc.robot.util.LoggedDIO.NoOppDio;
-import frc.robot.util.LoggedDIO.SimDIO;
-import frc.robot.util.LoggedServo.NoOppServo;
-import frc.robot.util.LoggedTalon.NoOppTalonFX;
-import frc.robot.util.LoggedTalon.PhoenixTalonFX;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -62,11 +43,11 @@ public class RobotContainer {
   private final CANBus defaultCanBus = new CANBus("rio");
   // Subsystems
   private final Drive drive;
-  private final Vision vision;
-  private final Elevator elevator;
-  private final Climb climb;
-  private final CoralEndEffector coralEndEffector;
-  private final Funnel funnel;
+  //   private final Vision vision;
+  //   private final Elevator elevator;
+  //   private final Climb climb;
+  //   private final CoralEndEffector coralEndEffector;
+  //   private final Funnel funnel;
   private final StringPublisher selectedDashboardTabPublisher =
       NetworkTableInstance.getDefault()
           .getStringTopic("/Elastic/SelectedTab")
@@ -79,7 +60,7 @@ public class RobotContainer {
   private final CommandXboxController codriverController = new CommandXboxController(1);
 
   // Dashboard inputs
-  private final LoggedDashboardChooser<Command> autoChooser;
+  //   private final LoggedDashboardChooser<Command> autoChooser;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -129,27 +110,27 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
-        vision =
-            new Vision(
-                drive::addVisionMeasurement,
-                new VisionIOPhotonVision(
-                    VisionConstants.camera0Name, VisionConstants.robotToCamera0),
-                new VisionIOPhotonVision(
-                    VisionConstants.camera1Name, VisionConstants.robotToCamera1),
-                new VisionIOPhotonVision(
-                    VisionConstants.camera2Name, VisionConstants.robotToCamera2));
-        elevator = new Elevator(new PhoenixTalonFX(20, defaultCanBus, "elevator"));
-        coralEndEffector =
-            new CoralEndEffector(
-                new PhoenixTalonFX(22, defaultCanBus, "coralEffector"),
-                new HardwareDIO("intakeBeamBreak", 0));
-        funnel = new Funnel(servoHub.getServo(ChannelId.kChannelId0));
-        climb =
-            new Climb(
-                new PhoenixTalonFX(23, defaultCanBus, "climb"),
-                new HardwareDIO("climbForwardLimit", 1),
-                new HardwareDIO("climbReverseLimit", 2));
-        new Leds();
+        // vision =
+        //     new Vision(
+        //         drive::addVisionMeasurement,
+        //         new VisionIOPhotonVision(
+        //             VisionConstants.camera0Name, VisionConstants.robotToCamera0),
+        //         new VisionIOPhotonVision(
+        //             VisionConstants.camera1Name, VisionConstants.robotToCamera1),
+        //         new VisionIOPhotonVision(
+        //             VisionConstants.camera2Name, VisionConstants.robotToCamera2));
+        // elevator = new Elevator(new PhoenixTalonFX(20, defaultCanBus, "elevator"));
+        // coralEndEffector =
+        //     new CoralEndEffector(
+        //         new PhoenixTalonFX(22, defaultCanBus, "coralEffector"),
+        //         new HardwareDIO("intakeBeamBreak", 0));
+        // funnel = new Funnel(servoHub.getServo(ChannelId.kChannelId0));
+        // climb =
+        //     new Climb(
+        //         new PhoenixTalonFX(23, defaultCanBus, "climb"),
+        //         new HardwareDIO("climbForwardLimit", 1),
+        //         new HardwareDIO("climbReverseLimit", 2));
+        // new Leds();
         // algaeRemover =
         //     new AlgaeRemover(
         //         // servoHub.getServo(ChannelId.kChannelId1),
@@ -166,38 +147,39 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
-        vision =
-            new Vision(
-                //                new VisionConsumer() {
-                //                  public void accept(
-                //                      Pose2d visionRobotPoseMeters,
-                //                      double timestampSeconds,
-                //                      Matrix<N3, N1> visionMeasurementStdDevs) {}
-                //                },
-                drive::addVisionMeasurement,
-                new VisionIOPhotonVisionSim(
-                    VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
-                new VisionIOPhotonVisionSim(
-                    VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose),
-                new VisionIOPhotonVisionSim(
-                    VisionConstants.camera2Name, VisionConstants.robotToCamera2, drive::getPose));
-        elevator = new Elevator(new ElevatorSimulation(20, defaultCanBus, "elevator"));
-        coralEndEffector =
-            new CoralEndEffector(
-                new PhoenixTalonFX(22, defaultCanBus, "coralEffector"),
-                SimDIO.fromNT("intakeBeamBreak"));
-        climb =
-            new Climb(
-                new PhoenixTalonFX(23, defaultCanBus, "climb"),
-                SimDIO.fromNT("climbForwardLimit"),
-                SimDIO.fromNT("climbReverseLimit"));
-        funnel = new Funnel(new NoOppServo(500, 2500));
-        // algaeRemover =
-        //     new AlgaeRemover(
-        //         /*new NoOppServo(500, 2500),*/ new SimpleMotorSim(
-        //             24, defaultCanBus, "algaeRemover", 2, 1));
-        // batteryTracking = new BatteryTracking(new BatteryTrackingReal(), () -> Math.random() *
-        // 40);
+        // vision =
+        //     new Vision(
+        //         //                new VisionConsumer() {
+        //         //                  public void accept(
+        //         //                      Pose2d visionRobotPoseMeters,
+        //         //                      double timestampSeconds,
+        //         //                      Matrix<N3, N1> visionMeasurementStdDevs) {}
+        //         //                },
+        //         drive::addVisionMeasurement,
+        //         new VisionIOPhotonVisionSim(
+        //             VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
+        //         new VisionIOPhotonVisionSim(
+        //             VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose),
+        //         new VisionIOPhotonVisionSim(
+        //             VisionConstants.camera2Name, VisionConstants.robotToCamera2,
+        // drive::getPose));
+        // elevator = new Elevator(new ElevatorSimulation(20, defaultCanBus, "elevator"));
+        // coralEndEffector =
+        //     new CoralEndEffector(
+        //         new PhoenixTalonFX(22, defaultCanBus, "coralEffector"),
+        //         SimDIO.fromNT("intakeBeamBreak"));
+        // climb =
+        //     new Climb(
+        //         new PhoenixTalonFX(23, defaultCanBus, "climb"),
+        //         SimDIO.fromNT("climbForwardLimit"),
+        //         SimDIO.fromNT("climbReverseLimit"));
+        // funnel = new Funnel(new NoOppServo(500, 2500));
+        // // algaeRemover =
+        // //     new AlgaeRemover(
+        // //         /*new NoOppServo(500, 2500),*/ new SimpleMotorSim(
+        // //             24, defaultCanBus, "algaeRemover", 2, 1));
+        // // batteryTracking = new BatteryTracking(new BatteryTrackingReal(), () -> Math.random() *
+        // // 40);
 
         break;
 
@@ -210,29 +192,30 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        vision =
-            new Vision(
-                drive::addVisionMeasurement,
-                new VisionIO() {},
-                new VisionIO() {},
-                new VisionIO() {});
-        elevator = new Elevator(new NoOppTalonFX("elevator", 0));
-        coralEndEffector =
-            new CoralEndEffector(
-                new NoOppTalonFX("coralEffector", 0), new NoOppDio("intakeBeamBreak"));
-        climb =
-            new Climb(
-                new NoOppTalonFX("climb", 0),
-                new NoOppDio("climbForwardLimit"),
-                new NoOppDio("climbReverseLimit"));
-        funnel = new Funnel(new NoOppServo(500, 2500));
-        // algaeRemover =
-        //     new AlgaeRemover(/*new NoOppServo(500, 2500),*/ new NoOppTalonFX("algaeRemover", 0));
-        // batteryTracking = new BatteryTracking(new BatteryTrackingNoOpp() {}, () -> 0);
+        // vision =
+        //     new Vision(
+        //         drive::addVisionMeasurement,
+        //         new VisionIO() {},
+        //         new VisionIO() {},
+        //         new VisionIO() {});
+        // elevator = new Elevator(new NoOppTalonFX("elevator", 0));
+        // coralEndEffector =
+        //     new CoralEndEffector(
+        //         new NoOppTalonFX("coralEffector", 0), new NoOppDio("intakeBeamBreak"));
+        // climb =
+        //     new Climb(
+        //         new NoOppTalonFX("climb", 0),
+        //         new NoOppDio("climbForwardLimit"),
+        //         new NoOppDio("climbReverseLimit"));
+        // funnel = new Funnel(new NoOppServo(500, 2500));
+        // // algaeRemover =
+        // //     new AlgaeRemover(/*new NoOppServo(500, 2500),*/ new NoOppTalonFX("algaeRemover",
+        // 0));
+        // // batteryTracking = new BatteryTracking(new BatteryTrackingNoOpp() {}, () -> 0);
 
         break;
     }
-    drive.registerYawConsumer(vision::consumeYawObservation);
+    // drive.registerYawConsumer(vision::consumeYawObservation);
 
     // coralEndEffector
     //     .beamBreakTrigger()
@@ -248,29 +231,29 @@ public class RobotContainer {
     //     .and(() -> !DriverStation.isFMSAttached())
     //     .onFalse(batteryTracking.writeCommand());
     // Set up auto routines
-    autoChooser =
-        new LoggedDashboardChooser<>(
-            "Auto Choices", Autos.buildAutoChooser(elevator, coralEndEffector, drive, vision));
+    // autoChooser =
+    //     new LoggedDashboardChooser<>(
+    //          "Auto Choices", Autos.buildAutoChooser(elevator, coralEndEffector, drive, vision));
 
-    // Set up SysId routines
-    autoChooser.addOption(
-        "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
-    autoChooser.addOption(
-        "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
-    autoChooser.addOption(
-        "Drive SysId (Quasistatic Forward)",
-        drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    autoChooser.addOption(
-        "Drive SysId (Quasistatic Reverse)",
-        drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-    autoChooser.addOption(
-        "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    autoChooser.addOption(
-        "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-    CameraServer.startAutomaticCapture();
-    CameraServer.startAutomaticCapture();
-    // Configure the button bindings
-    configureButtonBindings();
+    // // Set up SysId routines
+    // autoChooser.addOption(
+    //     "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
+    // autoChooser.addOption(
+    //     "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
+    // autoChooser.addOption(
+    //     "Drive SysId (Quasistatic Forward)",
+    //     drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    // autoChooser.addOption(
+    //     "Drive SysId (Quasistatic Reverse)",
+    //     drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+    // autoChooser.addOption(
+    //     "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    // autoChooser.addOption(
+    //     "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    // CameraServer.startAutomaticCapture();
+    // CameraServer.startAutomaticCapture();
+    // // Configure the button bindings
+    // configureButtonBindings();
   }
 
   /**
@@ -281,19 +264,19 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     /* Robot Controls */
-    coralEndEffector
-        .beamBreakTrigger()
-        .and(() -> elevator.atPosition(ElevatorPosition.INTAKE))
-        .and(DriverStation::isTeleop)
-        .whileTrue(
-            coralEndEffector
-                .runIntake()
-                .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf))
-        .onFalse(rumbleBoth(GenericHID.RumbleType.kBothRumble, 1, 0.02));
+    // coralEndEffector
+    //     .beamBreakTrigger()
+    //     .and(() -> elevator.atPosition(ElevatorPosition.INTAKE))
+    //     .and(DriverStation::isTeleop)
+    //     .whileTrue(
+    //         coralEndEffector
+    //             .runIntake()
+    //             .withInterruptBehavior(Command.InterruptionBehavior.kCancelSelf))
+    //     .onFalse(rumbleBoth(GenericHID.RumbleType.kBothRumble, 1, 0.02));
 
-    RobotModeTriggers.disabled()
-        .onFalse(climb.brakeCommand())
-        .onTrue(Commands.waitSeconds(5).andThen(climb.coastCommand()));
+    // RobotModeTriggers.disabled()
+    //     .onFalse(climb.brakeCommand())
+    //     .onTrue(Commands.waitSeconds(5).andThen(climb.coastCommand()));
 
     // if (powerDistribution != null) {
     //   driverController
@@ -307,9 +290,9 @@ public class RobotContainer {
     /* Driver Controls */
     DriverStation.silenceJoystickConnectionWarning(true);
 
-    RobotModeTriggers.autonomous()
-        .or(DriverStation::isTeleopEnabled)
-        .onTrue(funnel.move(Funnel.FunnelPosition.DOWN));
+    // RobotModeTriggers.autonomous()
+    //     .or(DriverStation::isTeleopEnabled)
+    //     .onTrue(funnel.move(Funnel.FunnelPosition.DOWN));
     // RobotModeTriggers.disabled().onTrue(Commands.run)
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
@@ -349,31 +332,31 @@ public class RobotContainer {
 
     /* Codriver Controls */
     //    driverController.a().onTrue(elevator.goToPosition(ElevatorPosition.L1));
-    codriverController.b().onTrue(elevator.goToPosition(ElevatorPosition.L2));
-    codriverController.x().onTrue(elevator.goToPosition(ElevatorPosition.L3));
-    codriverController.y().onTrue(elevator.goToPosition(ElevatorPosition.L4));
+    // codriverController.b().onTrue(elevator.goToPosition(ElevatorPosition.L2));
+    // codriverController.x().onTrue(elevator.goToPosition(ElevatorPosition.L3));
+    // codriverController.y().onTrue(elevator.goToPosition(ElevatorPosition.L4));
 
-    codriverController.rightBumper().onTrue(elevator.goToPosition(ElevatorPosition.INTAKE));
-    codriverController.start().whileTrue(elevator.homeCommand());
+    // codriverController.rightBumper().onTrue(elevator.goToPosition(ElevatorPosition.INTAKE));
+    // codriverController.start().whileTrue(elevator.homeCommand());
 
-    codriverController.leftBumper().whileTrue(coralEndEffector.runOuttake());
+    // codriverController.leftBumper().whileTrue(coralEndEffector.runOuttake());
 
-    codriverController
-        .povUp()
-        .whileTrue(
-            funnel
-                .move(Funnel.FunnelPosition.UP)
-                .alongWith(climb.climbExtend())
-                .alongWith(Commands.runOnce(() -> selectedDashboardTabPublisher.set("Climb"))));
-    codriverController
-        .povRight()
-        .onTrue(
-            funnel
-                .move(Funnel.FunnelPosition.DOWN)
-                .alongWith(
-                    Commands.runOnce(() -> selectedDashboardTabPublisher.set("Teleoperated"))));
-    codriverController.povDown().whileTrue(climb.climbRetract());
-    codriverController.povLeft().onTrue(funnel.move(Funnel.FunnelPosition.STARTING));
+    // codriverController
+    //     .povUp()
+    // .whileTrue(
+    //     funnel
+    //         .move(Funnel.FunnelPosition.UP)
+    //         .alongWith(climb.climbExtend())
+    //         .alongWith(Commands.runOnce(() -> selectedDashboardTabPublisher.set("Climb"))));
+    // codriverController
+    //     .povRight()
+    //     .onTrue(
+    //         funnel
+    //             .move(Funnel.FunnelPosition.DOWN)
+    //             .alongWith(
+    //                 Commands.runOnce(() -> selectedDashboardTabPublisher.set("Teleoperated"))));
+    // codriverController.povDown().whileTrue(climb.climbRetract());
+    // codriverController.povLeft().onTrue(funnel.move(Funnel.FunnelPosition.STARTING));
     // if (Constants.tuningMode) {
     //   codriverController
     //       .rightTrigger(0.25)
@@ -386,9 +369,9 @@ public class RobotContainer {
    *
    * @return the command to run in autonomous
    */
-  public Command getAutonomousCommand() {
-    return autoChooser.get();
-  }
+  //   public Command getAutonomousCommand() {
+  //     return autoChooser.get();
+  //   }
 
   public Command rumbleDriver(
       GenericHID.RumbleType rumbleType, double intensity, double timeSeconds) {

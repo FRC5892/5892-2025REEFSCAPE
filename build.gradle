@@ -1,8 +1,8 @@
 plugins {
     id "java"
-    id "edu.wpi.first.GradleRIO" version "2025.3.2"
+    id "edu.wpi.first.GradleRIO" version "2026.2.1"
     id "com.peterabeles.gversion" version "1.10"
-    id "com.diffplug.spotless" version "7.0.2"
+    id "com.diffplug.spotless" version "8.2.1"
     id "io.freefair.lombok" version "8.4"
 }
 java {
@@ -203,16 +203,16 @@ spotless {
         trimTrailingWhitespace()
         endWithNewline()
     }
-    groovyGradle {
-        target fileTree(".") {
-            include "**/*.gradle"
-            exclude "**/build/**", "**/build-*/**"
-        }
-        greclipse()
-        indentWithSpaces(4)
-        trimTrailingWhitespace()
-        endWithNewline()
-    }
+    // groovyGradle {
+    //     target fileTree(".") {
+    //         include "**/*.gradle"
+    //         exclude "**/build/**", "**/build-*/**"
+    //     }
+    //     greclipse()
+    //     indentWithSpaces(4)
+    //     trimTrailingWhitespace()
+    //     endWithNewline()
+    // }
     json {
         target fileTree(".") {
             include "**/*.json"

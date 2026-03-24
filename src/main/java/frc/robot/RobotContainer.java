@@ -251,7 +251,7 @@ public class RobotContainer {
     // CameraServer.startAutomaticCapture();
     // CameraServer.startAutomaticCapture();
     // // Configure the button bindings
-    // configureButtonBindings();
+    configureButtonBindings();
   }
 
   /**
@@ -311,6 +311,13 @@ public class RobotContainer {
                                 AllianceFlipUtil.apply(new Rotation2d()))),
                     drive)
                 .ignoringDisable(true));
+    driverController
+        .a()
+        .whileTrue(drive.withRotationCenterCommand(Drive.RotationCenter.FRONT_LEFT));
+    driverController
+        .b()
+        .whileTrue(drive.withRotationCenterCommand(Drive.RotationCenter.FRONT_RIGHT));
+
     // driverController
     //     .leftBumper()
     //     .whileTrue(

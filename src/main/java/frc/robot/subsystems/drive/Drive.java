@@ -61,6 +61,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkString;
 
 public class Drive extends SubsystemBase {
   // TunerConstants doesn't include these constants, so they are declared locally
@@ -93,6 +94,29 @@ public class Drive extends SubsystemBase {
               1),
           getModuleTranslations());
 
+  // Rotation center enum for testing
+  public enum RotationCenter {
+    CENTER(new Translation2d(0, 0)),
+    FRONT_LEFT(
+        new Translation2d(TunerConstants.FrontLeft.LocationX, TunerConstants.FrontLeft.LocationY)),
+    FRONT_RIGHT(
+        new Translation2d(
+            TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY)),
+    BACK_LEFT(
+        new Translation2d(TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY)),
+    BACK_RIGHT(
+        new Translation2d(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY));
+
+    public final Translation2d translation;
+
+    RotationCenter(Translation2d translation) {
+      this.translation = translation;
+    }
+  }
+
+  private Translation2d rotationCenter = new Translation2d();
+  private final LoggedNetworkString rotationCenterTunable =
+      new LoggedNetworkString("/Drive/RotationCenter", "CENTER");
   static final Lock odometryLock = new ReentrantLock();
   private final GyroIO gyroIO;
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
@@ -319,6 +343,8 @@ public class Drive extends SubsystemBase {
         driveKDTunableNumber,
         driveKSTunableNumber,
         driveKVTunableNumber);
+    Logger.recordOutput("Drive/RotationCenterX", rotationCenter.getX());
+    Logger.recordOutput("Drive/RotationCenterY", rotationCenter.getY());
     Translation2d robotToReef =
         getPose().getTranslation().minus(AllianceFlipUtil.apply(FieldConstants.Reef.center));
     double angleOffset =
@@ -361,7 +387,8 @@ public class Drive extends SubsystemBase {
   public void runVelocity(ChassisSpeeds speeds) {
     // Calculate module setpoints
     ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
-    SwerveModuleState[] setpointStates = kinematics.toSwerveModuleStates(discreteSpeeds);
+    SwerveModuleState[] setpointStates =
+        kinematics.toSwerveModuleStates(discreteSpeeds, rotationCenter);
     SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, TunerConstants.kSpeedAt12Volts);
 
     // Log unoptimized setpoints and setpoint speeds
@@ -594,5 +621,15 @@ public class Drive extends SubsystemBase {
   public void registerYawConsumer(BiConsumer<Double, Rotation2d> consumer) {
     yawConsumer = consumer;
   }
+
+  public void setRotationCenter(RotationCenter center) {
+    this.rotationCenter = center.translation;
+  }
+
+  public Command withRotationCenterCommand(RotationCenter center) {
+    return Commands.startEnd(
+        () -> setRotationCenter(center), () -> setRotationCenter(RotationCenter.CENTER));
+  }
+
   // end 5892
 }
